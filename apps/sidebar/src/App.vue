@@ -8,10 +8,12 @@ import AppIcon from './components/AppIcon.vue';
 import FakeGuestPanel from './components/FakeGuestPanel.vue';
 import HintTooltip from './components/HintTooltip.vue';
 import ProblemAlert from './components/ProblemAlert.vue';
+import SuggestPanel from './components/SuggestPanel.vue';
 import UserMenu from './components/UserMenu.vue';
 import { createGuest, isFakeGuest, provideGuest } from './guest';
 import { useAnnotationsStore } from './stores/annotations';
 import { useProfilesStore } from './stores/profiles';
+import { useSuggestionsStore } from './stores/suggestions';
 import { useTextSize } from './text-size';
 import { useGuestSync } from './use-guest-sync';
 
@@ -21,6 +23,7 @@ provideGuest(guest);
 const auth = useAuthStore();
 const store = useAnnotationsStore();
 const profiles = useProfilesStore();
+const suggestions = useSuggestionsStore();
 const textSize = useTextSize();
 
 // Everything the list shows depends on who is asking (ADR 0006), so a new
@@ -35,6 +38,7 @@ watch(
     if (who !== identity) {
       identity = who;
       store.resetSession();
+      suggestions.clear(guest);
     }
     if (!joined) return;
     const uris = joined.split('\n');
@@ -104,6 +108,7 @@ useGuestSync(guest, store);
       </p>
       <ProblemAlert :problem="profiles.problem" />
       <AnnotationComposer v-if="auth.status === 'authenticated' && guest.document.value" />
+      <SuggestPanel v-if="auth.status === 'authenticated' && guest.document.value" />
       <p v-else-if="auth.status === 'anonymous'" class="muted">
         Public annotations are shown. Log in to annotate.
       </p>
