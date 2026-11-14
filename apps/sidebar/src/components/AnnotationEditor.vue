@@ -3,6 +3,7 @@ import type { AclEntry, PrincipalRef, Problem } from '@curanno/api-client';
 import type { JsonValue, Permission, ValidationError } from '@curanno/model';
 import { computed, ref, shallowRef, watch } from 'vue';
 import type { AnnotationDraft } from '../api/annotations';
+import { writable } from '../profiles/schema';
 import { useProfilesStore } from '../stores/profiles';
 import AclEditor from './AclEditor.vue';
 import ProblemAlert from './ProblemAlert.vue';
@@ -43,6 +44,12 @@ watch(
 );
 
 const profile = computed(() => (profileIri.value ? profiles.byIri(profileIri.value) : undefined));
+// A body that already has a derived profile can still be edited; a new one cannot be given it.
+const choices = computed(() => {
+  const list = writable(profiles.profiles);
+  const current = profile.value;
+  return current && !list.includes(current) ? [...list, current] : list;
+});
 const conflict = computed(() => props.problem?.status === 412);
 const empty = computed(
   () => !text.value.trim() && tags.value.length === 0 && profile.value === undefined,
@@ -88,11 +95,11 @@ function submit(): void {
 <template>
   <form class="editor" @submit.prevent="submit">
     <TextualBodyEditor v-model="text" v-model:tags="tags" :placeholder="placeholder" />
-    <label v-if="profiles.profiles.length" class="profile-pick">
+    <label v-if="choices.length" class="profile-pick">
       Structured data
       <select name="profile" :value="profileIri" @change="onProfileChange">
         <option value="">None</option>
-        <option v-for="p in profiles.profiles" :key="p.iri" :value="p.iri">{{ p.title }}</option>
+        <option v-for="p in choices" :key="p.iri" :value="p.iri">{{ p.title }}</option>
       </select>
     </label>
     <StructuredBodyEditor
