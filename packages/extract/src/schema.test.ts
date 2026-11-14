@@ -1,5 +1,6 @@
 import {
   builtinProfiles,
+  caseFamilyProfile,
   caseIndividualProfile,
   evidenceExcerptProfile,
   type BodyProfile,
@@ -33,6 +34,9 @@ describe('outputSchema', () => {
         'maxLength',
         'ontology',
         'uniqueItems',
+        'annotation',
+        'derived',
+        'minProperties',
       ]) {
         expect(used.has(dropped)).toBe(false);
       }
@@ -51,6 +55,19 @@ describe('outputSchema', () => {
       { path: ['casePresentingHpos'], ontology: { name: 'hp', root: 'HP:0000118' } },
       { path: ['caseNotHpos'], ontology: { name: 'hp', root: 'HP:0000118' } },
     ]);
+  });
+
+  it('leaves a link field to the pipeline and lets the model pick a label', () => {
+    const { valueSchema, link } = outputSchema(caseFamilyProfile, ['II-1', 'II-2', 'II-1']);
+    expect(link).toEqual({
+      field: 'individual',
+      profile: 'https://curanno.example/profiles/individual/1',
+      label: 'case',
+    });
+    const properties = valueSchema['properties'] as Record<string, Record<string, unknown>>;
+    expect(properties['individual']).toBeUndefined();
+    expect(valueSchema['required']).toEqual(['case', 'familyInfo']);
+    expect(properties['case']).toMatchObject({ type: 'string', enum: ['II-1', 'II-2'] });
   });
 
   it('keeps enums, required fields and descriptions', () => {

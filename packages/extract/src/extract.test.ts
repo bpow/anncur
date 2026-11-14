@@ -1,6 +1,7 @@
 import {
   ProfileRegistry,
   addProfileKeywords,
+  caseFamilyProfile,
   caseIndividualProfile,
   evidenceExcerptProfile,
   type StructuredBody,
@@ -14,7 +15,7 @@ import { answer, createFakeEndpoint, documentOf } from './testing.js';
 
 const registry = new ProfileRegistry(
   addProfileKeywords(new Ajv2020({ allErrors: true, strict: false })),
-  [evidenceExcerptProfile, caseIndividualProfile],
+  [evidenceExcerptProfile, caseIndividualProfile, caseFamilyProfile],
 );
 
 function validate(body: StructuredBody) {
@@ -281,6 +282,50 @@ describe('extract', () => {
       ),
     ).rejects.toThrow();
     expect(fake.requests).toHaveLength(0);
+  });
+
+  it('links each suggestion to the individual the model named', async () => {
+    const family = 'Her father was affected. Both parents of II-2 are cousins.';
+    const fake = createFakeEndpoint(() =>
+      answer([
+        {
+          quote: 'Her father was affected.',
+          value: { case: 'II-1', familyInfo: 'Father affected.' },
+        },
+        {
+          quote: 'Both parents of II-2 are cousins.',
+          value: { case: 'II-2', familyInfo: 'Consanguineous.' },
+        },
+        { quote: 'Her father was affected.', value: { case: 'II-9', familyInfo: 'Unknown.' } },
+      ]),
+    );
+    const links = [
+      { id: 'https://x.example/annotations/1', label: 'II-1' },
+      { id: 'https://x.example/annotations/2', label: 'II-2' },
+    ];
+    const result = await extract(
+      { scopes: [{ key: 'body', text: family }], profile: caseFamilyProfile, links },
+      endpoint,
+      options(fake),
+    );
+    expect(result.suggestions.map((s) => s.value)).toEqual([
+      { case: 'II-1', familyInfo: 'Father affected.', individual: links[0]!.id },
+      { case: 'II-2', familyInfo: 'Consanguineous.', individual: links[1]!.id },
+    ]);
+    expect(result.rejected.map((r) => r.reason)).toEqual(['invalid']);
+    const [request] = fake.requests;
+    expect(request?.messages[0]?.content).toContain(
+      'make one suggestion for each, with the same quote',
+    );
+    expect(JSON.stringify(request?.response_format)).toContain('"enum":["II-1","II-2"]');
+
+    await expect(
+      extract(
+        { scopes: [{ key: 'body', text: family }], profile: caseFamilyProfile },
+        endpoint,
+        options(fake),
+      ),
+    ).rejects.toThrow(/none to link to/);
   });
 
   it('names the model in the body creator', () => {
