@@ -9,6 +9,7 @@ import FakeGuestPanel from './components/FakeGuestPanel.vue';
 import HintTooltip from './components/HintTooltip.vue';
 import ProblemAlert from './components/ProblemAlert.vue';
 import UserMenu from './components/UserMenu.vue';
+import { forgetCurrentUser } from './current-user';
 import { createGuest, isFakeGuest, provideGuest } from './guest';
 import { useAnnotationsStore } from './stores/annotations';
 import { useProfilesStore } from './stores/profiles';
@@ -35,6 +36,7 @@ watch(
     if (who !== identity) {
       identity = who;
       store.resetSession();
+      forgetCurrentUser();
     }
     if (!joined) return;
     const uris = joined.split('\n');
