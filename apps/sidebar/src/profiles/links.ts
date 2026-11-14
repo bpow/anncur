@@ -3,7 +3,8 @@
  * of the field's profile, labelled by the body's `label` field.
  */
 import type { Annotation } from '@curanno/api-client';
-import { quoteOf, structuredBodies, type AnnotationLink } from '@curanno/model';
+import { quoteOf, structuredBodies, type AnnotationLink, type BodyProfile } from '@curanno/model';
+import { fieldsOf } from './schema';
 
 export interface LinkCandidate {
   id: string;
@@ -26,4 +27,9 @@ export function linkCandidates(
     if (!body) return [];
     return [{ id: a.id, label: labelOf(body.value, link.label) ?? a.id, quote: quoteOf(a) ?? '' }];
   });
+}
+
+/** The profile's link field, if it has one. */
+export function linkOf(profile: BodyProfile): AnnotationLink | undefined {
+  return fieldsOf(profile.schema).find((f) => f.kind === 'annotation')?.link;
 }
