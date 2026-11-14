@@ -8,13 +8,19 @@
  * Options: --corpus DIR (default ./corpus), --max-chars N, --overlap N,
  * --concurrency N, --api URL (resolve ontology labels through a running
  * API's /x/ontologies), --out FILE (write every suggestion and rejection as
- * JSON), --case NAME (run one case).
+ * JSON), --case NAME (run one case), --facts (see below).
  *
  * A suggestion matches an expected annotation when their quotes overlap in
  * the document. For each match, every field the expected value gives is
  * compared: `filled` when the suggestion has it, `equal` when it agrees
  * after folding case and whitespace; a list counts the share of expected
  * items (by label or variant) it contains.
+ *
+ * With --facts, a `case-individual/1` case is run the way facts are
+ * curated (ADR 0035, 0036): one run finds the individuals, one run per fact
+ * profile finds facts linked to them, every suggestion is taken as accepted,
+ * and the summaries computed from them are matched to the expected values
+ * by the individual's label instead of by quote.
  */
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -26,8 +32,17 @@ import {
   addProfileKeywords,
   blockStarts,
   builtinProfiles,
+  caseDiseaseProfile,
+  caseFamilyProfile,
+  caseIndividualProfile,
+  casePhenotypesProfile,
+  caseTestingProfile,
+  caseVariantProfile,
   createDomAdapter,
   extractText,
+  individualProfile,
+  summarizeIndividuals,
+  type BodyProfile,
   type DomLikeNode,
   type StructuredBody,
 } from '@curanno/model';
@@ -40,6 +55,7 @@ import {
   extract,
   locateQuote,
   type ExtractionResult,
+  type LinkTarget,
   type ResolveTerms,
   type Suggestion,
   type Term,
@@ -70,6 +86,7 @@ const { values } = parseArgs({
     api: { type: 'string' },
     out: { type: 'string' },
     case: { type: 'string' },
+    facts: { type: 'boolean', default: false },
   },
 });
 if (!values.endpoint || !values.model) {
@@ -158,6 +175,102 @@ function compareFields(
   }
 }
 
+async function run(
+  profile: BodyProfile,
+  doc: { text: string; blockStarts: number[] },
+  links?: LinkTarget[],
+): Promise<{ result: ExtractionResult; chunks: number }> {
+  let chunks = 0;
+  const result = await extract(
+    { scopes: [{ key: 'body', ...doc }], profile, ...(links ? { links } : {}) },
+    endpoint,
+    {
+      validate,
+      ...(values.api ? { resolveTerms: apiTerms(values.api) } : {}),
+      ...(values.concurrency ? { concurrency: Number(values.concurrency) } : {}),
+      chunking: {
+        ...(values['max-chars'] ? { maxChars: Number(values['max-chars']) } : {}),
+        ...(values.overlap ? { overlapChars: Number(values.overlap) } : {}),
+      },
+      onProgress: (_done, total) => (chunks = total),
+    },
+  );
+  return { result, chunks };
+}
+
+const FACT_PROFILES = [
+  caseVariantProfile,
+  casePhenotypesProfile,
+  caseFamilyProfile,
+  caseTestingProfile,
+  caseDiseaseProfile,
+];
+
+const asAnnotation = (profile: BodyProfile) => (s: Suggestion) => ({
+  id: s.id,
+  body: { type: 'StructuredBody', profile: profile.iri, value: s.value },
+});
+
+async function runFacts(
+  testCase: Case,
+  doc: { text: string; blockStarts: number[] },
+  started: number,
+): Promise<void> {
+  const found = await run(individualProfile, doc);
+  let chunks = found.chunks;
+  const links = found.result.suggestions.flatMap((s) => {
+    const label = (s.value as { case?: unknown }).case;
+    return typeof label === 'string' ? [{ id: s.id, label }] : [];
+  });
+  const annotations = found.result.suggestions.map(asAnnotation(individualProfile));
+  const counts: string[] = [`individual ${links.length}`];
+  let rejected = found.result.rejected.length;
+  for (const r of found.result.rejected) reasons.set(r.reason, (reasons.get(r.reason) ?? 0) + 1);
+  if (links.length) {
+    for (const profile of FACT_PROFILES) {
+      const facts = await run(profile, doc, links);
+      chunks += facts.chunks;
+      annotations.push(...facts.result.suggestions.map(asAnnotation(profile)));
+      counts.push(`${profile.title.replace(/^Case /, '')} ${facts.result.suggestions.length}`);
+      rejected += facts.result.rejected.length;
+      for (const r of facts.result.rejected) {
+        reasons.set(r.reason, (reasons.get(r.reason) ?? 0) + 1);
+      }
+    }
+  }
+  const seconds = (performance.now() - started) / 1000;
+  const { individuals, unlinked } = summarizeIndividuals(annotations, validate);
+  const remaining = new Set(individuals);
+  let matched = 0;
+  for (const expected of testCase.expected) {
+    const label = expected.value['case'];
+    // "The proband" and "proband" name the same individual.
+    const name = (s: string) => fold(s).replace(/^the /, '');
+    const hit = [...remaining].find((i) => {
+      const own = i.value['case'];
+      return typeof label === 'string' && typeof own === 'string' && name(own) === name(label);
+    });
+    if (!hit) {
+      fields.total += Object.keys(expected.value).length;
+      continue;
+    }
+    remaining.delete(hit);
+    matched++;
+    compareFields(expected.value, hit.value, fields);
+  }
+  totals.expected += testCase.expected.length;
+  totals.suggested += individuals.length;
+  totals.matched += matched;
+  totals.seconds += seconds;
+  totals.chunks += chunks;
+  report[testCase.name] = { annotations, individuals, unlinked, seconds };
+  console.log(
+    `${testCase.name}: ${matched}/${testCase.expected.length} individuals found, ` +
+      `${individuals.length} summarised (${counts.join(', ')}; ${unlinked.length} unlinked), ` +
+      `${rejected} rejected, ${seconds.toFixed(1)} s`,
+  );
+}
+
 const dir = values.corpus;
 const cases: Case[] = readdirSync(dir)
   .filter((f) => f.endsWith('.json'))
@@ -170,7 +283,7 @@ const cases: Case[] = readdirSync(dir)
 const totals = { expected: 0, suggested: 0, matched: 0, seconds: 0, chunks: 0 };
 const fields: FieldScore = { filled: 0, equal: 0, total: 0 };
 const reasons = new Map<string, number>();
-const report: Record<string, ExtractionResult & { seconds: number }> = {};
+const report: Record<string, object> = {};
 
 for (const testCase of cases) {
   const profile = registry.get(testCase.profile);
@@ -178,18 +291,15 @@ for (const testCase of cases) {
   const doc = loadDocument(readFileSync(path.join(dir, `${testCase.name}.html`), 'utf8'));
   const view = buildView(doc.text, doc.blockStarts);
   const whole = { start: 0, end: view.text.length };
-  let chunks = 0;
   const started = performance.now();
-  const result = await extract({ scopes: [{ key: 'body', ...doc }], profile }, endpoint, {
-    validate,
-    ...(values.api ? { resolveTerms: apiTerms(values.api) } : {}),
-    ...(values.concurrency ? { concurrency: Number(values.concurrency) } : {}),
-    chunking: {
-      ...(values['max-chars'] ? { maxChars: Number(values['max-chars']) } : {}),
-      ...(values.overlap ? { overlapChars: Number(values.overlap) } : {}),
-    },
-    onProgress: (_done, total) => (chunks = total),
-  });
+  if (values.facts) {
+    if (profile.iri !== caseIndividualProfile.iri) {
+      throw new Error(`${testCase.name}: --facts needs a ${caseIndividualProfile.iri} case`);
+    }
+    await runFacts(testCase, doc, started);
+    continue;
+  }
+  const { result, chunks } = await run(profile, doc);
   const seconds = (performance.now() - started) / 1000;
   report[testCase.name] = { ...result, seconds };
 
