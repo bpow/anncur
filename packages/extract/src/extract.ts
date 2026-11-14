@@ -45,6 +45,16 @@ export interface ExtractionInput {
   profile: BodyProfile;
   /** The curator's guidance, added to every request. */
   instructions?: string;
+  /**
+   * For a profile with a link field (ADR 0035): the annotations it may name.
+   * The model picks one by label, and the suggestion gets its IRI.
+   */
+  links?: readonly LinkTarget[];
+}
+
+export interface LinkTarget {
+  id: string;
+  label: string;
 }
 
 export interface Suggestion {
@@ -150,7 +160,15 @@ export async function extract(
 ): Promise<ExtractionResult> {
   options.signal?.throwIfAborted();
   const { profile } = input;
-  const { schema, valueSchema, ontologyFields } = outputSchema(profile);
+  const links = input.links ?? [];
+  const { schema, valueSchema, ontologyFields, link } = outputSchema(
+    profile,
+    links.map((l) => l.label),
+  );
+  if (link && !links.length) {
+    throw new Error(`${profile.title} links to other annotations; there are none to link to`);
+  }
+  const linkByLabel = new Map(links.map((l) => [l.label, l.id]));
   const jobs: Job[] = input.scopes.flatMap((scope) => {
     const view = buildView(scope.text, scope.blockStarts);
     const chunks = chunkText(view.text, options.chunking);
@@ -175,6 +193,7 @@ export async function extract(
       part: job.part,
       parts: job.parts,
       instructions: input.instructions,
+      linked: link !== undefined,
     });
     const request = completionRequest(endpoint, messages, schema);
     for (let attempt = 0; attempt < 2; attempt++) {
@@ -205,6 +224,13 @@ export async function extract(
         continue;
       }
       const pruned = prune(raw.value) ?? {};
+      if (link && typeof pruned === 'object' && !Array.isArray(pruned)) {
+        const record = pruned as Record<string, unknown>;
+        const label = record[link.label];
+        const id = typeof label === 'string' ? linkByLabel.get(label) : undefined;
+        // A label that names nothing leaves the link out, and validation rejects the suggestion.
+        if (id) record[link.field] = id;
+      }
       const resolved = await resolveOntologyFields(pruned, ontologyFields, options.resolveTerms);
       const value = resolved.value as JsonValue;
       const errors = options.validate({ type: 'StructuredBody', profile: profile.iri, value });

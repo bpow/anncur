@@ -29,6 +29,7 @@ export {
   type ExtractOptions,
   type ExtractionInput,
   type ExtractionResult,
+  type LinkTarget,
   type Rejection,
   type RejectionReason,
   type ScopeText,
@@ -39,6 +40,7 @@ export { PROMPT_VERSION, buildMessages, type ChatMessage } from './prompt.js';
 export {
   UnsupportedProfileError,
   outputSchema,
+  type LinkField,
   type OntologyField,
   type OutputSchema,
   type ValuePath,
