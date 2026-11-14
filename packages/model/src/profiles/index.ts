@@ -29,3 +29,4 @@ export {
   type ValidationError,
   type ValidationResult,
 } from './registry.js';
+export { summarizeIndividuals, type IndividualSummary, type Summaries } from './summary.js';
