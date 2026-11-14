@@ -1,6 +1,6 @@
 # Case individuals as facts where they appear: plan
 
-**Status:** Proposed, 2026-11-13.
+**Status:** Implemented on `feat/case-facets-plan`, 2026-11-13, in ADRs 0035 and 0036 (both Proposed). The status note at the end records what differs from the plan.
 
 Curators have recorded each case individual as one `case-individual/1` annotation, anchored where the individual first appears, holding everything found anywhere in the article. This plan splits that into small annotations, each anchored on the passage that states one kind of fact about one individual, and computes the whole-individual record from them.
 
@@ -74,3 +74,22 @@ Each fact profile is a separate run for now. One run that returns facts of sever
 - `variantEvidence` and `gnomad` describe the variant, not the individual. They sit in `case-variant/1` for now. A variant-level annotation that several individuals' facts refer to could replace them later.
 - `course` (onset and progression) has no field in `case-individual/1`, so it appears only in the fact itself. If that is not enough, it needs a `case-individual/2` summary shape.
 - Many small annotations make for a long sidebar. Grouping the facts under their individual in the list may be needed.
+
+## 7. Status note (2026-11-13)
+
+All steps are done. What differs from the plan above:
+
+- **The `derived` flag is a schema keyword.** `derived: true` sits at the schema's root, next to `ontology` and `annotation`, instead of being a profile field. Database-registered profiles can therefore use it without an API or schema change.
+- **Validation of facts.** The link field accepts any IRI (a pattern, not `format`), so the registry also compiles without `ajv-formats`. A fact needs at least three properties, so a fact that only names its individual is rejected.
+- **The prompt is version 2.** For profiles with a link it adds one line, which asks for one suggestion per individual when a passage covers several. Body creators now read `… / prompt 2`.
+- **Joined text.** The summary joins distinct text values with `; `.
+- **Export.** Serialising a summary as an annotation (ADR 0036) is not built yet. The sidebar only shows summaries.
+
+First results on the synthetic corpus (`eval --facts`, qwen/qwen3.6-35b-a3b in LM Studio). The previous one-block run used prompt 1:
+
+| Mode | Recall | Precision | Fields filled | Fields equal | Time per chunk |
+| --- | --- | --- | --- | --- | --- |
+| One `case-individual/1` block | 3/3 | 3/3 | 93% | 47% | 10–115 s |
+| Facts, then a computed summary | 3/3 | 3/3 | 100% | 50% | 2.3 s |
+
+The facts mode makes six runs per document, so a whole document takes longer even though each request is faster. The individuals are matched by label, ignoring a leading "the". One model mistake shows up in a summary: "The proband is a girl." was recorded as family history.
