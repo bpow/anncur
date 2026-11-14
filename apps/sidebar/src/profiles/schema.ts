@@ -9,6 +9,8 @@ import {
   addProfileKeywords,
   ProfileRegistry,
   type BodyProfile,
+  isDerived,
+  type AnnotationLink,
   type JsonSchema,
   type OntologyLookup,
 } from '@curanno/model';
@@ -47,7 +49,8 @@ export type FieldKind =
   | 'boolean'
   | 'string-list'
   | 'object-list'
-  | 'term-list';
+  | 'term-list'
+  | 'annotation';
 
 export interface SchemaField {
   name: string;
@@ -62,6 +65,8 @@ export interface SchemaField {
   itemTitle?: string;
   /** For a term list: where its suggestions come from. */
   ontology?: OntologyLookup;
+  /** For an annotation link: which annotations it may name. */
+  link?: AnnotationLink;
 }
 
 interface PropertySchema {
@@ -75,10 +80,12 @@ interface PropertySchema {
   properties?: Record<string, PropertySchema>;
   required?: string[];
   ontology?: OntologyLookup;
+  annotation?: AnnotationLink;
 }
 
 function kindOf(schema: PropertySchema): FieldKind {
   const type = Array.isArray(schema.type) ? schema.type[0] : schema.type;
+  if (schema.annotation) return 'annotation';
   if (schema.enum) return 'select';
   if (type === 'boolean') return 'boolean';
   if (type === 'number' || type === 'integer') return 'number';
@@ -107,6 +114,7 @@ export function fieldsOf(schema: JsonSchema): SchemaField[] {
       ...(property.enum ? { options: property.enum.map(String) } : {}),
       ...(pattern !== undefined ? { pattern } : {}),
       ...(kind === 'term-list' && property.ontology ? { ontology: property.ontology } : {}),
+      ...(kind === 'annotation' && property.annotation ? { link: property.annotation } : {}),
       ...(kind === 'object-list' && property.items
         ? {
             fields: fieldsOf(property.items as JsonSchema),
@@ -115,4 +123,9 @@ export function fieldsOf(schema: JsonSchema): SchemaField[] {
         : {}),
     };
   });
+}
+
+/** Profiles a curator may write; derived ones are computed (ADR 0036). */
+export function writable(profiles: readonly BodyProfile[]): BodyProfile[] {
+  return profiles.filter((p) => !isDerived(p.schema));
 }

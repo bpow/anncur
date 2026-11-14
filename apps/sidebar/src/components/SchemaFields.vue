@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { JsonValue, ValidationError } from '@curanno/model';
 import { computed } from 'vue';
+import { labelOf, linkCandidates, type LinkCandidate } from '../profiles/links';
 import type { SchemaField, Term } from '../profiles/schema';
+import { useAnnotationsStore } from '../stores/annotations';
 import TagInput from './TagInput.vue';
 import TermListInput from './TermListInput.vue';
 
@@ -84,6 +86,34 @@ function setTerms(name: string, list: Term[]): void {
   set(name, json.length ? json : undefined);
 }
 
+// The store is only needed, and only touched, when a profile has a link field.
+const linkable = computed(() =>
+  props.fields.some((f) => f.kind === 'annotation') ? useAnnotationsStore().all : [],
+);
+
+function candidates(field: SchemaField): LinkCandidate[] {
+  if (!field.link) return [];
+  const found = linkCandidates(linkable.value, field.link);
+  const current = value.value[field.name];
+  // A link to an annotation that is not loaded, or that the reader cannot see, is kept as it is.
+  if (typeof current === 'string' && !found.some((c) => c.id === current)) {
+    const label = labelOf(value.value, field.link.label);
+    found.push({ id: current, label: `${label ?? current} (not on this page)`, quote: '' });
+  }
+  return found;
+}
+
+/** Choosing the linked annotation also copies its label. */
+function setLink(field: SchemaField, id: string): void {
+  const copy: Record<string, JsonValue> = { ...value.value };
+  if (id) copy[field.name] = id;
+  else delete copy[field.name];
+  const label = field.link?.label;
+  const picked = candidates(field).find((c) => c.id === id);
+  if (label && picked && picked.label !== picked.id) copy[label] = picked.label;
+  emit('update:modelValue', copy);
+}
+
 function items(name: string): JsonValue[] {
   const current = value.value[name];
   return Array.isArray(current) ? current : [];
@@ -134,7 +164,25 @@ function removeItem(name: string, index: number): void {
         {{ field.title }}<span v-if="field.required" aria-hidden="true"> *</span>
       </label>
       <select
-        v-if="field.kind === 'select'"
+        v-if="field.kind === 'annotation'"
+        :id="`field-${nameOf(field)}`"
+        :name="nameOf(field)"
+        :required="field.required"
+        :value="value[field.name] ?? ''"
+        @change="setLink(field, ($event.target as HTMLSelectElement).value)"
+      >
+        <option value="">—</option>
+        <option
+          v-for="candidate in candidates(field)"
+          :key="candidate.id"
+          :value="candidate.id"
+          :title="candidate.quote"
+        >
+          {{ candidate.label }}
+        </option>
+      </select>
+      <select
+        v-else-if="field.kind === 'select'"
         :id="`field-${nameOf(field)}`"
         :name="nameOf(field)"
         :required="field.required"

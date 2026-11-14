@@ -1,7 +1,15 @@
-import { caseIndividualProfile, evidenceExcerptProfile, type BodyProfile } from '@curanno/model';
+import {
+  caseFamilyProfile,
+  caseIndividualProfile,
+  evidenceExcerptProfile,
+  individualProfile,
+  type BodyProfile,
+} from '@curanno/model';
+import type { Annotation } from '@curanno/api-client';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { describe, expect, it } from 'vitest';
+import { useAnnotationsStore } from '../stores/annotations';
 import { installFakeApi, json } from '../test/fake-api';
 import StructuredBodyEditor from './StructuredBodyEditor.vue';
 
@@ -169,5 +177,51 @@ describe('StructuredBodyEditor', () => {
     expect(wrapper.find('input[name="variants.0.variant"]').attributes('required')).toBeDefined();
     expect(wrapper.find('input[name="variants.0.clinVarId"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('Add Variant');
+  });
+
+  it('links a fact to an individual on the page and copies its label', async () => {
+    setActivePinia(createPinia());
+    const individual = (id: string, label: string): Annotation =>
+      ({
+        '@context': 'http://www.w3.org/ns/anno.jsonld',
+        id,
+        type: 'Annotation',
+        target: {
+          source: 'https://example.org/a',
+          selector: { type: 'TextQuoteSelector', exact: `${label} was a boy` },
+        },
+        body: { type: 'StructuredBody', profile: individualProfile.iri, value: { case: label } },
+      });
+    const store = useAnnotationsStore();
+    store.upsert(individual('https://x.example/annotations/1', 'II-1'));
+    store.upsert(individual('https://x.example/annotations/2', 'II-2'));
+
+    const wrapper = mount(StructuredBodyEditor, {
+      props: { profile: caseFamilyProfile, modelValue: { familyInfo: 'Father affected.' } },
+    });
+    const picker = wrapper.find('select[name="individual"]');
+    expect(picker.findAll('option').map((o) => o.text())).toEqual(['—', 'II-1', 'II-2']);
+    expect(picker.findAll('option')[2]?.attributes('title')).toBe('II-2 was a boy');
+    await picker.setValue('https://x.example/annotations/2');
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([
+      {
+        familyInfo: 'Father affected.',
+        individual: 'https://x.example/annotations/2',
+        case: 'II-2',
+      },
+    ]);
+  });
+
+  it('keeps a link to an individual that is not loaded', () => {
+    setActivePinia(createPinia());
+    const wrapper = mount(StructuredBodyEditor, {
+      props: {
+        profile: caseFamilyProfile,
+        modelValue: { individual: 'https://x.example/annotations/9', case: 'P9' },
+      },
+    });
+    const picker = wrapper.find('select[name="individual"]');
+    expect(picker.findAll('option').map((o) => o.text())).toEqual(['—', 'P9 (not on this page)']);
+    expect((picker.element as HTMLSelectElement).value).toBe('https://x.example/annotations/9');
   });
 });

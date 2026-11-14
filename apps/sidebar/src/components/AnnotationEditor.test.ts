@@ -1,9 +1,10 @@
-import { PROFILE_BASE, evidenceExcerptProfile } from '@curanno/model';
+import { PROFILE_BASE, caseIndividualProfile, evidenceExcerptProfile } from '@curanno/model';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useProfilesStore } from '../stores/profiles';
 import { installFakeApi, json } from '../test/fake-api';
+import type { AnnotationDraft } from '../api/annotations';
 import AnnotationEditor from './AnnotationEditor.vue';
 
 const profileIri = `${PROFILE_BASE}evidence-excerpt/1`;
@@ -13,7 +14,13 @@ describe('AnnotationEditor', () => {
     setActivePinia(createPinia());
     installFakeApi(({ url }) =>
       url.pathname === '/x/profiles'
-        ? json([{ ...evidenceExcerptProfile, builtin: true, enabled: true }])
+        ? json(
+            [evidenceExcerptProfile, caseIndividualProfile].map((p) => ({
+              ...p,
+              builtin: true,
+              enabled: true,
+            })),
+          )
         : undefined,
     );
     await useProfilesStore().load();
@@ -118,5 +125,21 @@ describe('AnnotationEditor', () => {
   it('offers no sharing controls unless asked', () => {
     const wrapper = mount(AnnotationEditor, { props: { draft: { text: '', tags: [] } } });
     expect(wrapper.find('.sharing').exists()).toBe(false);
+  });
+
+  it('offers a derived profile only to a body that already has it', () => {
+    const options = (draft: AnnotationDraft) =>
+      mount(AnnotationEditor, { props: { draft } })
+        .find('select[name="profile"]')
+        .findAll('option')
+        .map((o) => o.text());
+    expect(options({ text: '', tags: [] })).toEqual(['None', 'Evidence excerpt']);
+    expect(
+      options({
+        text: '',
+        tags: [],
+        structured: { profile: caseIndividualProfile.iri, value: { case: 'P1' } },
+      }),
+    ).toEqual(['None', 'Evidence excerpt', 'Case individual']);
   });
 });
