@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { JsonValue, StructuredBody } from '@curanno/model';
+import type { StructuredBody } from '@curanno/model';
 import { computed } from 'vue';
-import { fieldsOf, type SchemaField } from '../profiles/schema';
+import { entriesOf, isObject, type Entry } from '../profiles/entries';
+import { fieldsOf } from '../profiles/schema';
 import { useProfilesStore } from '../stores/profiles';
 
 const props = defineProps<{ body: StructuredBody }>();
@@ -9,45 +10,6 @@ const profiles = useProfilesStore();
 
 const profile = computed(() => profiles.byIri(props.body.profile));
 const title = computed(() => profile.value?.title ?? props.body.profile);
-
-function show(v: JsonValue): string {
-  if (Array.isArray(v)) return v.map(show).join(', ');
-  return typeof v === 'object' && v !== null ? JSON.stringify(v) : String(v);
-}
-
-interface Entry {
-  key: string;
-  label: string;
-  text?: string;
-  items?: Entry[][];
-}
-
-function isObject(v: JsonValue | undefined): v is Record<string, JsonValue> {
-  return typeof v === 'object' && v !== null && !Array.isArray(v);
-}
-
-// Labels come from the schema's titles; keys it doesn't describe keep their names.
-// Only one level of object lists is laid out; deeper ones are shown as JSON.
-function entriesOf(
-  value: Record<string, JsonValue>,
-  fields: SchemaField[],
-  nested = false,
-): Entry[] {
-  return Object.entries(value).map(([key, v]) => {
-    const field = fields.find((f) => f.name === key);
-    const label = field?.title ?? key;
-    if (!nested && field?.kind === 'object-list' && Array.isArray(v) && v.every(isObject)) {
-      return { key, label, items: v.map((item) => entriesOf(item, field.fields ?? [], true)) };
-    }
-    if (field?.kind === 'term-list' && Array.isArray(v) && v.every(isObject)) {
-      const terms = v.map((t) =>
-        t['id'] ? `${show(t['label'] ?? '')} (${show(t['id'])})` : show(t['label'] ?? ''),
-      );
-      return { key, label, text: terms.join(', ') };
-    }
-    return { key, label, text: show(v) };
-  });
-}
 
 const entries = computed<Entry[]>(() => {
   const value = props.body.value;
