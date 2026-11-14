@@ -3,6 +3,7 @@ import { Toggle, ToolbarButton, ToolbarRoot, TooltipProvider } from 'reka-ui';
 import { watch } from 'vue';
 import { useAuthStore } from './auth/store';
 import AnnotationList from './components/AnnotationList.vue';
+import IndividualsPanel from './components/IndividualsPanel.vue';
 import AnnotationComposer from './components/AnnotationComposer.vue';
 import AppIcon from './components/AppIcon.vue';
 import FakeGuestPanel from './components/FakeGuestPanel.vue';
@@ -109,6 +110,7 @@ useGuestSync(guest, store);
       <p v-else-if="auth.status === 'anonymous'" class="muted">
         Public annotations are shown. Log in to annotate.
       </p>
+      <IndividualsPanel />
       <AnnotationList />
     </main>
   </TooltipProvider>
