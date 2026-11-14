@@ -16,8 +16,9 @@ import { devPort } from '../../dev-ports.ts';
  * VITE_OIDC_* fall back to OIDC_ISSUER and OIDC_CLIENT_ID from the
  * repository .env, then from deploy/zitadel/.bootstrap/oidc.env, which the
  * compose stack's provisioner writes, so the API and the sidebar name the
- * same client. VITE_FRAME_ANCESTORS falls back to FRAME_ANCESTORS there,
- * which the API reads too. The ports come from dev-ports.ts.
+ * same client. VITE_EXTRACT_ENDPOINTS and VITE_FRAME_ANCESTORS fall back to
+ * EXTRACT_ENDPOINTS and FRAME_ANCESTORS there, which the API reads too. The
+ * ports come from dev-ports.ts.
  */
 function provisionedEnv(): Record<string, string | undefined> {
   try {
@@ -33,6 +34,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, fileURLToPath(new URL('.', import.meta.url)), 'VITE_');
   const own = loadEnv(mode, fileURLToPath(new URL('../..', import.meta.url)), [
     'OIDC_',
+    'EXTRACT_ENDPOINTS',
     'FRAME_ANCESTORS',
     'AUTH_MODE',
     'PUBLIC_URL',
@@ -50,6 +52,7 @@ export default defineConfig(({ mode }) => {
     ],
     ['VITE_OIDC_CLIENT_ID', embedded ? 'curanno' : repo['OIDC_CLIENT_ID']],
     ['VITE_PDF_VIEWER_ORIGIN', `http://localhost:${devPort('PDF_VIEWER_PORT')}`],
+    ['VITE_EXTRACT_ENDPOINTS', repo['EXTRACT_ENDPOINTS']],
   ] as const) {
     if (!env[name] && fallback) process.env[name] = fallback;
   }
