@@ -13,6 +13,17 @@ export interface OntologyLookup {
   root?: string;
 }
 
+/**
+ * On a string property: its value is the IRI of an annotation whose
+ * structured body has `profile`. `label` names the field, in this schema and
+ * in the linked profile's, that holds the linked annotation's label, so an
+ * editor can show and copy it (ADR 0035).
+ */
+export interface AnnotationLink {
+  profile: string;
+  label?: string;
+}
+
 /** Minimal view of an Ajv instance, so this package does not depend on Ajv's types. */
 export interface KeywordRegistry {
   addKeyword(definition: { keyword: string; metaSchema?: object }): unknown;
@@ -31,5 +42,21 @@ export function addProfileKeywords<T extends KeywordRegistry>(ajv: T): T {
       },
     },
   });
+  ajv.addKeyword({
+    keyword: 'annotation',
+    metaSchema: {
+      type: 'object',
+      required: ['profile'],
+      additionalProperties: false,
+      properties: { profile: { type: 'string' }, label: { type: 'string' } },
+    },
+  });
+  // At a schema's root: bodies of the profile are computed, not written (ADR 0036).
+  ajv.addKeyword({ keyword: 'derived', metaSchema: { type: 'boolean' } });
   return ajv;
+}
+
+/** Whether a profile's bodies are computed rather than written, so editors should not offer it. */
+export function isDerived(schema: Record<string, unknown>): boolean {
+  return schema['derived'] === true;
 }

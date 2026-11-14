@@ -67,6 +67,74 @@ const phenotypeList = (title: string, description: string) => ({
   uniqueItems: true,
 });
 
+// Fields shared by the whole-individual summary and the facts it is computed from.
+const fields = {
+  case: text(
+    'Case',
+    'How the article identifies the individual, for example "Patient 3" or "II-1".',
+  ),
+  diseaseAssertion: text(
+    'DiseaseAssertion',
+    'The disease or diagnosis asserted for the individual.',
+    2000,
+  ),
+  familyInfo: text(
+    'FamilyInfo',
+    'Family history, consanguinity, segregation or affected relatives.',
+    2000,
+  ),
+  casePresentingHpos: phenotypeList(
+    'CasePresentingHPOs',
+    'Phenotypes present. Pick HPO terms; text that matches none is kept as written.',
+  ),
+  caseNotHpos: phenotypeList(
+    'CaseNOTHPOs',
+    'Phenotypes the article says are absent. Pick HPO terms; text that matches none is kept as written.',
+  ),
+  casePreviousTesting: text(
+    'CasePreviousTesting',
+    'Testing done before the genetic test that found the variant.',
+    2000,
+  ),
+  genotypingMethod: text(
+    'GenotypingMethod',
+    'For example exome sequencing, a gene panel or Sanger sequencing.',
+  ),
+  previouslyPublished: text(
+    'PreviouslyPublished',
+    'Where the individual was reported before, for example PMID:12345.',
+  ),
+  supplementalData: text('SupplementalData', 'Where in the supplement the individual is reported.'),
+};
+
+const variantProperties = {
+  geneName: text('GeneName', 'HGNC gene symbol, for example MYH7.', 50),
+  variant: text(
+    'Variant',
+    'The variant as reported, preferably HGVS, for example NM_000257.4:c.1208G>A.',
+  ),
+  clinVarId: {
+    title: 'ClinVarID',
+    description: 'The numeric ClinVar Variation ID.',
+    type: 'string',
+    pattern: '^[0-9]+$',
+    maxLength: 20,
+  },
+  caid: {
+    title: 'CAID',
+    description: 'ClinGen Allele Registry ID, for example CA000123.',
+    type: 'string',
+    pattern: '^CA[0-9]+$',
+    maxLength: 20,
+  },
+  gnomad: text('gnomAD', 'The gnomAD variant ID or allele frequency.'),
+  variantEvidence: text(
+    'VariantEvidence',
+    'Evidence about the variant itself, such as functional studies.',
+    2000,
+  ),
+};
+
 /**
  * An individual reported in an article with a variant in the gene of interest,
  * after the Case-Individuals template of the ClinGen Hypothes.is annotation
@@ -74,6 +142,9 @@ const phenotypeList = (title: string, description: string) => ({
  * trained on it recognise the fields. The template's "n/a" convention becomes
  * an omitted field, MultipleGeneVariants becomes the `variants` list, and
  * each HPO list also holds the free text its CaseHPOFreeText field held.
+ *
+ * New work records facts where they appear (ADR 0035), and this shape is
+ * computed from them (ADR 0036), so editors no longer offer it.
  */
 export const caseIndividualProfile: BodyProfile = {
   iri: `${PROFILE_BASE}case-individual/1`,
@@ -85,48 +156,11 @@ export const caseIndividualProfile: BodyProfile = {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
     $id: `${PROFILE_BASE}case-individual/1`,
     type: 'object',
+    derived: true,
     required: ['case', 'variants'],
     additionalProperties: false,
     properties: {
-      case: text(
-        'Case',
-        'How the article identifies the individual, for example "Patient 3" or "II-1".',
-      ),
-      diseaseAssertion: text(
-        'DiseaseAssertion',
-        'The disease or diagnosis asserted for the individual.',
-        2000,
-      ),
-      familyInfo: text(
-        'FamilyInfo',
-        'Family history, consanguinity, segregation or affected relatives.',
-        2000,
-      ),
-      casePresentingHpos: phenotypeList(
-        'CasePresentingHPOs',
-        'Phenotypes present. Pick HPO terms; text that matches none is kept as written.',
-      ),
-      caseNotHpos: phenotypeList(
-        'CaseNOTHPOs',
-        'Phenotypes the article says are absent. Pick HPO terms; text that matches none is kept as written.',
-      ),
-      casePreviousTesting: text(
-        'CasePreviousTesting',
-        'Testing done before the genetic test that found the variant.',
-        2000,
-      ),
-      genotypingMethod: text(
-        'GenotypingMethod',
-        'For example exome sequencing, a gene panel or Sanger sequencing.',
-      ),
-      previouslyPublished: text(
-        'PreviouslyPublished',
-        'Where the individual was reported before, for example PMID:12345.',
-      ),
-      supplementalData: text(
-        'SupplementalData',
-        'Where in the supplement the individual is reported.',
-      ),
+      ...fields,
       variants: {
         title: 'Variants',
         description:
@@ -138,41 +172,127 @@ export const caseIndividualProfile: BodyProfile = {
           type: 'object',
           required: ['variant'],
           additionalProperties: false,
-          properties: {
-            geneName: text('GeneName', 'HGNC gene symbol, for example MYH7.', 50),
-            variant: text(
-              'Variant',
-              'The variant as reported, preferably HGVS, for example NM_000257.4:c.1208G>A.',
-            ),
-            clinVarId: {
-              title: 'ClinVarID',
-              description: 'The numeric ClinVar Variation ID.',
-              type: 'string',
-              pattern: '^[0-9]+$',
-              maxLength: 20,
-            },
-            caid: {
-              title: 'CAID',
-              description: 'ClinGen Allele Registry ID, for example CA000123.',
-              type: 'string',
-              pattern: '^CA[0-9]+$',
-              maxLength: 20,
-            },
-            gnomad: text('gnomAD', 'The gnomAD variant ID or allele frequency.'),
-            variantEvidence: text(
-              'VariantEvidence',
-              'Evidence about the variant itself, such as functional studies.',
-              2000,
-            ),
-          },
+          properties: variantProperties,
         },
       },
     },
   },
 };
 
+/** Where the article first describes an individual; facts about them link here (ADR 0035). */
+export const individualProfile: BodyProfile = {
+  iri: `${PROFILE_BASE}individual/1`,
+  title: 'Individual',
+  description:
+    'Where the article first describes a case individual. Facts about the individual link to this annotation.',
+  defaultPurpose: 'identifying',
+  schema: {
+    $schema: 'https://json-schema.org/draft/2020-12/schema',
+    $id: `${PROFILE_BASE}individual/1`,
+    type: 'object',
+    required: ['case'],
+    additionalProperties: false,
+    properties: {
+      case: fields.case,
+      previouslyPublished: fields.previouslyPublished,
+      supplementalData: fields.supplementalData,
+    },
+  },
+};
+
+// An IRI of any scheme; the `annotation` keyword says what it should name.
+const IRI_PATTERN = '^[A-Za-z][A-Za-z0-9+.-]*:[^\\s]+$';
+
+function factProfile(
+  slug: string,
+  title: string,
+  description: string,
+  properties: Record<string, unknown>,
+  required: string[] = [],
+): BodyProfile {
+  const iri = `${PROFILE_BASE}${slug}/1`;
+  return {
+    iri,
+    title,
+    description,
+    defaultPurpose: 'describing',
+    schema: {
+      $schema: 'https://json-schema.org/draft/2020-12/schema',
+      $id: iri,
+      type: 'object',
+      required: ['individual', 'case', ...required],
+      // A fact states something beyond whom it is about.
+      minProperties: 3,
+      additionalProperties: false,
+      properties: {
+        individual: {
+          title: 'Individual',
+          description: 'The annotation that introduces the individual.',
+          type: 'string',
+          pattern: IRI_PATTERN,
+          maxLength: 2000,
+          annotation: { profile: individualProfile.iri, label: 'case' },
+        },
+        case: fields.case,
+        ...properties,
+      },
+    },
+  };
+}
+
+export const caseVariantProfile = factProfile(
+  'case-variant',
+  'Case variant',
+  'A variant the passage reports for one individual.',
+  variantProperties,
+  ['variant'],
+);
+
+export const casePhenotypesProfile = factProfile(
+  'case-phenotypes',
+  'Case phenotypes',
+  'Phenotypes the passage reports as present or absent in one individual, and their course.',
+  {
+    casePresentingHpos: fields.casePresentingHpos,
+    caseNotHpos: fields.caseNotHpos,
+    course: text('Course', 'Onset, progression or resolution of the phenotypes.', 2000),
+  },
+);
+
+export const caseFamilyProfile = factProfile(
+  'case-family',
+  'Case family history',
+  "What the passage says about one individual's family.",
+  { familyInfo: fields.familyInfo },
+  ['familyInfo'],
+);
+
+export const caseTestingProfile = factProfile(
+  'case-testing',
+  'Case testing',
+  'Testing of one individual: earlier tests, and how the variant was found.',
+  {
+    casePreviousTesting: fields.casePreviousTesting,
+    genotypingMethod: fields.genotypingMethod,
+  },
+);
+
+export const caseDiseaseProfile = factProfile(
+  'case-disease',
+  'Case disease',
+  'The disease or diagnosis the passage asserts for one individual.',
+  { diseaseAssertion: fields.diseaseAssertion },
+  ['diseaseAssertion'],
+);
+
 /** Profiles compiled into every deployment. */
 export const builtinProfiles: readonly BodyProfile[] = [
   evidenceExcerptProfile,
   caseIndividualProfile,
+  individualProfile,
+  caseVariantProfile,
+  casePhenotypesProfile,
+  caseFamilyProfile,
+  caseTestingProfile,
+  caseDiseaseProfile,
 ];
