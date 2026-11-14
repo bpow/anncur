@@ -5,10 +5,22 @@
 export {
   PROFILE_BASE,
   builtinProfiles,
+  caseDiseaseProfile,
+  caseFamilyProfile,
   caseIndividualProfile,
+  casePhenotypesProfile,
+  caseTestingProfile,
+  caseVariantProfile,
   evidenceExcerptProfile,
+  individualProfile,
 } from './builtin.js';
-export { addProfileKeywords, type KeywordRegistry, type OntologyLookup } from './keywords.js';
+export {
+  addProfileKeywords,
+  isDerived,
+  type AnnotationLink,
+  type KeywordRegistry,
+  type OntologyLookup,
+} from './keywords.js';
 export {
   ProfileRegistry,
   type BodyProfile,

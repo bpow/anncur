@@ -73,9 +73,28 @@ The sidebar runs the same registry client-side, with the schemas it fetched from
 
 The template's Article Information fields (PMID, Gene, HGNCID) are not part of this profile, because the annotation's target already identifies the article. Gene-specific protocols that add or remove fields should register their own profiles, not edit this one.
 
+New work no longer writes this profile: its schema has `derived: true`, so the editor and the suggestion form leave it out. Existing bodies stay valid, and the sidebar computes this shape from the facts in section 6a (ADR 0036).
+
+## 6a. Case facts
+
+Facts about a case individual are annotated where the article states them ([ADR 0035](adr/0035-case-facts-link-to-an-individual.md)).
+
+- **`individual/1`** is anchored where the article first describes the individual. It has `case` (the article's label, required), `previouslyPublished` and `supplementalData`.
+- **The fact profiles** each describe one individual. Every one has `individual`, the IRI of that individual's `individual/1` annotation, and `case`, the label repeated for reading. Their other fields are:
+
+| Profile | Fields | Fills in `case-individual/1` |
+| --- | --- | --- |
+| `case-variant/1` | `variant` (required), `geneName`, `clinVarId`, `caid`, `gnomad`, `variantEvidence` | one item of `variants` |
+| `case-phenotypes/1` | `casePresentingHpos`, `caseNotHpos`, `course` (onset and progression) | the two lists; `course` has no field there |
+| `case-family/1` | `familyInfo` (required) | `familyInfo` |
+| `case-testing/1` | `casePreviousTesting`, `genotypingMethod` | the same |
+| `case-disease/1` | `diseaseAssertion` (required) | `diseaseAssertion` |
+
+A fact must state something beyond whom it is about (`minProperties: 3`). A passage about several individuals gets one fact annotation for each of them.
+
 ## 7. Adding a profile
 
-1. Write the JSON Schema. Keep `additionalProperties: false` so that typos in field names are caught. The sidebar builds its form from the top-level `properties`. It handles strings, numbers, booleans, enums, lists of strings and lists of flat objects. A property's `title` labels the field, and an object list's `items.title` names its items. An array with the `ontology` keyword (`{"name": "hp", "root": "HP:0000118"}`) and `{id?, label}` items becomes a term picker that searches that ontology ([ontologies.md](ontologies.md)). The keyword only annotates: validation ignores it, and the server and the sidebar register it so that strict Ajv accepts it.
+1. Write the JSON Schema. Keep `additionalProperties: false` so that typos in field names are caught. The sidebar builds its form from the top-level `properties`. It handles strings, numbers, booleans, enums, lists of strings and lists of flat objects. A property's `title` labels the field, and an object list's `items.title` names its items. An array with the `ontology` keyword (`{"name": "hp", "root": "HP:0000118"}`) and `{id?, label}` items becomes a term picker that searches that ontology ([ontologies.md](ontologies.md)). A string with the `annotation` keyword (`{"profile": "<IRI>", "label": "case"}`) holds the IRI of an annotation with that profile. The editor offers the document's annotations of that profile, and copies the field that `label` names. A schema with `derived: true` at its root is computed, not written, and editors do not offer it. These keywords only annotate: validation ignores them, and the server and the sidebar register them so that strict Ajv accepts them.
 2. For a built-in profile, add it to `builtinProfiles` with a test; for a deployment-specific one, `PUT` it as an administrator.
 3. Document the fields where users will see them: the sidebar's editor for the profile.
 4. Never change a published schema incompatibly. Register `.../name/2` and migrate bodies if needed.

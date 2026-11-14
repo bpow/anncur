@@ -1,8 +1,16 @@
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import type { JsonValue } from '../annotation/types.js';
 import { describe, expect, it } from 'vitest';
-import { addProfileKeywords } from './keywords.js';
-import { builtinProfiles, caseIndividualProfile, evidenceExcerptProfile } from './builtin.js';
+import { addProfileKeywords, isDerived } from './keywords.js';
+import {
+  builtinProfiles,
+  caseFamilyProfile,
+  caseIndividualProfile,
+  casePhenotypesProfile,
+  caseVariantProfile,
+  evidenceExcerptProfile,
+  individualProfile,
+} from './builtin.js';
 import { ProfileRegistry, type BodyProfile } from './registry.js';
 
 const compiler = addProfileKeywords(new Ajv2020({ strict: true, allErrors: true }));
@@ -10,10 +18,8 @@ const registry = new ProfileRegistry(compiler, builtinProfiles);
 
 describe('ProfileRegistry', () => {
   it('lists built-in profiles and finds them by IRI', () => {
-    expect(registry.list().map((p) => p.iri)).toEqual([
-      evidenceExcerptProfile.iri,
-      caseIndividualProfile.iri,
-    ]);
+    expect(registry.list().map((p) => p.iri)).toEqual(builtinProfiles.map((p) => p.iri));
+    expect(registry.list().slice(0, 2)).toEqual([evidenceExcerptProfile, caseIndividualProfile]);
     expect(registry.get(evidenceExcerptProfile.iri)?.title).toBe('Evidence excerpt');
   });
 
@@ -157,5 +163,48 @@ describe('case-individual profile', () => {
         '/value/variants/0',
       ]),
     );
+  });
+});
+
+describe('case fact profiles', () => {
+  const individual = 'https://curanno.example/annotations/0b9e4e1c-8f7e-4d0a-9d55-0c3f6c2b2a11';
+  const paths = (profile: string, value: JsonValue) => {
+    const result = registry.validate({ type: 'StructuredBody', profile, value });
+    return result?.ok ? [] : (result?.errors ?? []).map((e) => e.instancePath);
+  };
+
+  it('introduces an individual by its label', () => {
+    expect(paths(individualProfile.iri, { case: 'II-1', previouslyPublished: 'PMID:1' })).toEqual(
+      [],
+    );
+    expect(paths(individualProfile.iri, { previouslyPublished: 'PMID:1' })).toEqual(['/value']);
+  });
+
+  it('links each fact to its individual and repeats the label', () => {
+    expect(
+      paths(caseVariantProfile.iri, { individual, case: 'II-1', variant: 'c.1208G>A' }),
+    ).toEqual([]);
+    expect(
+      paths(casePhenotypesProfile.iri, {
+        individual,
+        case: 'II-1',
+        casePresentingHpos: [{ id: 'HP:0001251', label: 'Ataxia' }],
+        course: 'Onset at 4 years, progressive.',
+      }),
+    ).toEqual([]);
+    expect(
+      paths(caseFamilyProfile.iri, { case: 'II-1', familyInfo: 'Father affected.' }),
+    ).toContain('/value');
+    expect(
+      paths(caseFamilyProfile.iri, { individual: 'not an iri', case: 'II-1', familyInfo: 'x' }),
+    ).toEqual(['/value/individual']);
+  });
+
+  it('needs a fact to state something beyond whom it is about', () => {
+    expect(paths(casePhenotypesProfile.iri, { individual, case: 'II-1' })).toEqual(['/value']);
+  });
+
+  it('marks only the whole-individual summary as derived', () => {
+    expect(builtinProfiles.filter((p) => isDerived(p.schema))).toEqual([caseIndividualProfile]);
   });
 });
