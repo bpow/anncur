@@ -181,17 +181,16 @@ describe('StructuredBodyEditor', () => {
 
   it('links a fact to an individual on the page and copies its label', async () => {
     setActivePinia(createPinia());
-    const individual = (id: string, label: string): Annotation =>
-      ({
-        '@context': 'http://www.w3.org/ns/anno.jsonld',
-        id,
-        type: 'Annotation',
-        target: {
-          source: 'https://example.org/a',
-          selector: { type: 'TextQuoteSelector', exact: `${label} was a boy` },
-        },
-        body: { type: 'StructuredBody', profile: individualProfile.iri, value: { case: label } },
-      });
+    const individual = (id: string, label: string): Annotation => ({
+      '@context': 'http://www.w3.org/ns/anno.jsonld',
+      id,
+      type: 'Annotation',
+      target: {
+        source: 'https://example.org/a',
+        selector: { type: 'TextQuoteSelector', exact: `${label} was a boy` },
+      },
+      body: { type: 'StructuredBody', profile: individualProfile.iri, value: { case: label } },
+    });
     const store = useAnnotationsStore();
     store.upsert(individual('https://x.example/annotations/1', 'II-1'));
     store.upsert(individual('https://x.example/annotations/2', 'II-2'));
