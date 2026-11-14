@@ -46,3 +46,5 @@ An architecture decision record (ADR) captures one decision that shapes the syst
 | [0032](0032-suggestions-from-a-configured-endpoint.md) | Annotation suggestions come from an OpenAI-compatible endpoint the deployment configures | Accepted |
 | [0033](0033-guest-reports-document-text.md) | The guest reports its document's text when the sidebar asks | Accepted |
 | [0034](0034-provenance-of-suggested-bodies.md) | A suggested body names the model as its creator | Accepted |
+| [0035](0035-case-facts-link-to-an-individual.md) | Facts about a case individual are annotations that link to an individual annotation | Proposed |
+| [0036](0036-individual-summaries-are-computed.md) | Whole-individual summaries are computed from the facts, not stored | Proposed |
