@@ -16,6 +16,7 @@ import { parse } from 'yaml';
 import { TEXT_MODEL_VERSION } from '@curanno/model';
 import { createCoercingAjv, createStrictAjv } from './ajv.js';
 import { AnnotationStore } from './annotations/store.js';
+import { SuggestionStore } from './suggestions/store.js';
 import { installAuth, securityHandlers } from './auth/plugin.js';
 import type { EmbeddedIssuer } from './auth/embedded/index.js';
 import type { TokenVerifier } from './auth/verifier.js';
@@ -97,10 +98,12 @@ export async function buildServer(options: ServerOptions): Promise<FastifyInstan
 
   const profiles = new ProfileService(db, strict);
   const bridge = new EventBridge(config.databaseUrl, app.log);
+  const store = new AnnotationStore(db, config.publicUrl);
   const ctx: AppContext = {
     db,
     config,
-    store: new AnnotationStore(db, config.publicUrl),
+    store,
+    suggestions: new SuggestionStore(db, store, profiles, config.publicUrl),
     profiles,
     bridge,
     metrics,

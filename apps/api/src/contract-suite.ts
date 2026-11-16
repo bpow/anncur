@@ -1182,6 +1182,155 @@ export function describeContract(name: string, open: () => Promise<TestContext>)
         }),
       },
     ]);
+    const individualItem = (id: string, label: string) => ({
+      id,
+      selector: { type: 'TextQuoteSelector', exact: `${label} was a boy` },
+      body: {
+        type: 'StructuredBody',
+        profile: `${PROFILE_BASE}individual/1`,
+        value: { case: label },
+      },
+    });
+    const batchInput = (items: unknown[]) => ({
+      group: state['groupId'],
+      document: { uri: PAGE, links: [] },
+      engine: { name: 'contract', version: '1' },
+      items,
+    });
+    run('createSuggestionBatch', [
+      {
+        name: 'stores a batch',
+        as: alice,
+        status: 201,
+        request: () => ({
+          method: 'POST',
+          url: '/x/suggestion-batches',
+          payload: batchInput([individualItem('_:i1', 'II-1'), individualItem('_:i2', 'II-2')]),
+        }),
+        then: (res) => (state['batchId'] = res.json<{ id: string }>().id),
+      },
+      {
+        name: '422 for a bad local id',
+        as: alice,
+        status: 422,
+        request: () => ({
+          method: 'POST',
+          url: '/x/suggestion-batches',
+          payload: batchInput([individualItem('i1', 'II-1')]),
+        }),
+      },
+      {
+        name: '403 for someone outside the group',
+        as: root,
+        status: 403,
+        request: () => ({
+          method: 'POST',
+          url: '/x/suggestion-batches',
+          payload: batchInput([individualItem('_:i1', 'II-1')]),
+        }),
+      },
+      {
+        name: '400 without items',
+        as: alice,
+        status: 400,
+        request: () => ({ method: 'POST', url: '/x/suggestion-batches', payload: batchInput([]) }),
+      },
+    ]);
+    run('listSuggestionBatches', [
+      {
+        name: 'lists the batches with pending items on a page',
+        as: bob,
+        status: 200,
+        request: () => ({
+          method: 'GET',
+          url: `/x/suggestion-batches?pending=true&uri=${encodeURIComponent(PAGE)}`,
+        }),
+        then: (res) => expect(res.json<{ total: number }>().total).toBe(1),
+      },
+    ]);
+    run('getSuggestionBatch', [
+      {
+        name: 'returns the batch with its items',
+        as: bob,
+        status: 200,
+        request: () => ({ method: 'GET', url: `/x/suggestion-batches/${state['batchId']}` }),
+      },
+      {
+        name: '404 for someone outside the group',
+        as: root,
+        status: 404,
+        request: () => ({ method: 'GET', url: `/x/suggestion-batches/${state['batchId']}` }),
+      },
+    ]);
+    run('acceptSuggestions', [
+      {
+        name: 'creates the annotation',
+        as: bob,
+        status: 200,
+        request: () => ({
+          method: 'POST',
+          url: `/x/suggestion-batches/${state['batchId']}/accept`,
+          payload: {
+            items: [
+              {
+                id: '_:i1',
+                annotation: {
+                  type: 'Annotation',
+                  body: individualItem('_:i1', 'II-1').body,
+                  target: { source: PAGE },
+                },
+              },
+            ],
+          },
+        }),
+      },
+      {
+        name: '409 for an item already decided',
+        as: bob,
+        status: 409,
+        request: () => ({
+          method: 'POST',
+          url: `/x/suggestion-batches/${state['batchId']}/accept`,
+          payload: { items: [{ id: '_:i1', existing: `${PAGE}#x` }] },
+        }),
+      },
+    ]);
+    run('rejectSuggestions', [
+      {
+        name: 'rejects',
+        as: bob,
+        status: 200,
+        request: () => ({
+          method: 'POST',
+          url: `/x/suggestion-batches/${state['batchId']}/reject`,
+          payload: { items: ['_:i2'] },
+        }),
+      },
+      {
+        name: '404 for an item not in the batch',
+        as: bob,
+        status: 404,
+        request: () => ({
+          method: 'POST',
+          url: `/x/suggestion-batches/${state['batchId']}/reject`,
+          payload: { items: ['_:nope'] },
+        }),
+      },
+    ]);
+    run('deleteSuggestionBatch', [
+      {
+        name: 'deletes',
+        as: bob,
+        status: 204,
+        request: () => ({ method: 'DELETE', url: `/x/suggestion-batches/${state['batchId']}` }),
+      },
+      {
+        name: '404 once gone',
+        as: bob,
+        status: 404,
+        request: () => ({ method: 'DELETE', url: `/x/suggestion-batches/${state['batchId']}` }),
+      },
+    ]);
     run('removeMember', [
       {
         name: '409 for the last administrator',

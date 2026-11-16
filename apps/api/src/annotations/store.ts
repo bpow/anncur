@@ -208,51 +208,58 @@ export class AnnotationStore {
   }
 
   async create(parsed: ParsedAnnotation, caller: UserCaller): Promise<string> {
-    return this.db.transaction().execute(async (trx) => {
-      const { parentId, documentIds } = await this.resolveReferences(trx, parsed, caller);
-      let documentId = documentIds.find((d) => d !== undefined) ?? null;
-      if (documentId === null && parentId) {
-        const parent = await trx
-          .selectFrom('annotations')
-          .select('document_id')
-          .where('id', '=', parentId)
-          .executeTakeFirst();
-        documentId = parent?.document_id ?? null;
-      }
-      const annotation = await trx
-        .insertInto('annotations')
-        .values({
-          document_id: documentId,
-          parent_id: parentId,
-          created_by: caller.userId,
-          motivation: parsed.motivation,
-          data: JSON.stringify(parsed.data),
-        })
-        .returning('id')
-        .executeTakeFirstOrThrow();
-      await this.writeParts(trx, annotation.id, parsed, documentIds);
-      await trx
-        .insertInto('acl')
-        .values(
-          (['read', 'update', 'delete', 'share'] as Permission[]).map((permission) => ({
-            annotation_id: annotation.id,
-            principal_id: caller.userId,
-            permission,
-            granted_by: caller.userId,
-          })),
-        )
-        .execute();
-      await trx
-        .insertInto('annotation_events')
-        .values({
+    return this.db.transaction().execute((trx) => this.createIn(trx, parsed, caller));
+  }
+
+  /** `create` within a transaction the caller holds, so that other writes commit with it. */
+  async createIn(
+    trx: Kysely<Database>,
+    parsed: ParsedAnnotation,
+    caller: UserCaller,
+  ): Promise<string> {
+    const { parentId, documentIds } = await this.resolveReferences(trx, parsed, caller);
+    let documentId = documentIds.find((d) => d !== undefined) ?? null;
+    if (documentId === null && parentId) {
+      const parent = await trx
+        .selectFrom('annotations')
+        .select('document_id')
+        .where('id', '=', parentId)
+        .executeTakeFirst();
+      documentId = parent?.document_id ?? null;
+    }
+    const annotation = await trx
+      .insertInto('annotations')
+      .values({
+        document_id: documentId,
+        parent_id: parentId,
+        created_by: caller.userId,
+        motivation: parsed.motivation,
+        data: JSON.stringify(parsed.data),
+      })
+      .returning('id')
+      .executeTakeFirstOrThrow();
+    await this.writeParts(trx, annotation.id, parsed, documentIds);
+    await trx
+      .insertInto('acl')
+      .values(
+        (['read', 'update', 'delete', 'share'] as Permission[]).map((permission) => ({
           annotation_id: annotation.id,
-          document_id: documentId,
-          kind: 'created',
-          actor_id: caller.userId,
-        })
-        .execute();
-      return annotation.id;
-    });
+          principal_id: caller.userId,
+          permission,
+          granted_by: caller.userId,
+        })),
+      )
+      .execute();
+    await trx
+      .insertInto('annotation_events')
+      .values({
+        annotation_id: annotation.id,
+        document_id: documentId,
+        kind: 'created',
+        actor_id: caller.userId,
+      })
+      .execute();
+    return annotation.id;
   }
 
   /**

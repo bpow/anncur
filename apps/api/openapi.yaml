@@ -41,6 +41,8 @@ tags:
     description: The JSON-LD context of the platform's extension terms
   - name: ontologies
     description: Ontologies loaded for term lookup, such as HPO (docs/ontologies.md)
+  - name: suggestions
+    description: Suggested annotations waiting for review, in batches that belong to a group (ADR 0037)
 security:
   - bearerAuth: []
 paths:
@@ -1164,6 +1166,193 @@ paths:
         '409':
           $ref: '#/components/responses/Conflict'
 
+  /x/suggestion-batches:
+    post:
+      operationId: createSuggestionBatch
+      tags: [suggestions]
+      summary: Post a batch of suggested annotations
+      description: |
+        Members of the group only. The document is found or created from `document` as by
+        `POST /x/documents`, without merging documents. Items may link to each other by local
+        id in their link fields (ADR 0035, 0037). With a `key`, the pending items of earlier
+        batches with the same group, document, engine name and key are removed.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SuggestionBatchInput'
+      responses:
+        '201':
+          description: The stored batch
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuggestionBatch'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableContent'
+    get:
+      operationId: listSuggestionBatches
+      tags: [suggestions]
+      summary: List the batches of the caller's groups
+      description: >-
+        Newest first, without their items. `uri` finds the document as `GET /x/documents`
+        does; a URI that identifies no document gives an empty list.
+      parameters:
+        - name: group
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: document
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: uri
+          in: query
+          schema:
+            type: string
+            format: uri
+        - name: pending
+          in: query
+          description: '`true` for only the batches that still have pending items.'
+          schema:
+            type: boolean
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: Batches
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuggestionBatchList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /x/suggestion-batches/{id}:
+    parameters:
+      - $ref: '#/components/parameters/batchId'
+    get:
+      operationId: getSuggestionBatch
+      tags: [suggestions]
+      summary: Retrieve a batch with its items
+      responses:
+        '200':
+          description: The batch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuggestionBatch'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteSuggestionBatch
+      tags: [suggestions]
+      summary: Delete a batch
+      description: >-
+        Members of the group only. Annotations made from its items stay.
+      responses:
+        '204':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /x/suggestion-batches/{id}/accept:
+    parameters:
+      - $ref: '#/components/parameters/batchId'
+    post:
+      operationId: acceptSuggestions
+      tags: [suggestions]
+      summary: Accept pending items
+      description: |
+        For each item, in order, either creates `annotation` as the caller or records that the
+        item stands for the `existing` annotation, which the caller must be able to read and
+        which must have a body of the item's profile. Local ids in the link fields of the new
+        annotations' structured bodies are replaced with the annotations of items accepted
+        before, in this request or an earlier one; a link to an item that is not accepted is a
+        conflict (409). All or nothing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SuggestionAcceptInput'
+      responses:
+        '200':
+          description: The annotation each item became
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuggestionDecisions'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableContent'
+  /x/suggestion-batches/{id}/reject:
+    parameters:
+      - $ref: '#/components/parameters/batchId'
+    post:
+      operationId: rejectSuggestions
+      tags: [suggestions]
+      summary: Reject pending items
+      description: >-
+        The rejected items are removed from the link fields of pending items. A pending item
+        left without a link its profile requires is rejected too.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              additionalProperties: false
+              properties:
+                items:
+                  type: array
+                  minItems: 1
+                  maxItems: 2000
+                  items:
+                    $ref: '#/components/schemas/SuggestionLocalId'
+      responses:
+        '200':
+          description: The batch after the change
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuggestionBatch'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1175,6 +1364,13 @@ components:
         (ADR 0005). Reads without a token see public annotations only.
   parameters:
     annotationId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    batchId:
       name: id
       in: path
       required: true
@@ -1614,6 +1810,193 @@ components:
         modified:
           type: string
           format: date-time
+    SuggestionLocalId:
+      description: An item's id within its batch, which links between items name.
+      type: string
+      pattern: '^_:[A-Za-z0-9_-]{1,64}$'
+    SuggestionEngine:
+      type: object
+      required: [name, version]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        version:
+          type: string
+          minLength: 1
+          maxLength: 200
+        nickname:
+          description: The model and prompt, for example; the sidebar names the body's creator with it.
+          type: string
+          maxLength: 200
+    SuggestionItemInput:
+      type: object
+      required: [id, selector, body]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          maxLength: 66
+        selector:
+          anyOf:
+            - $ref: '#/components/schemas/Selector'
+            - type: array
+              minItems: 1
+              items:
+                $ref: '#/components/schemas/Selector'
+        body:
+          $ref: '#/components/schemas/StructuredBody'
+    SuggestionBatchInput:
+      type: object
+      required: [group, document, engine, items]
+      additionalProperties: false
+      properties:
+        group:
+          type: string
+          format: uuid
+        document:
+          $ref: '#/components/schemas/DocumentMetadata'
+        engine:
+          $ref: '#/components/schemas/SuggestionEngine'
+        key:
+          type: string
+          minLength: 1
+          maxLength: 200
+        items:
+          type: array
+          minItems: 1
+          maxItems: 2000
+          items:
+            $ref: '#/components/schemas/SuggestionItemInput'
+    SuggestionStatus:
+      type: string
+      enum: [pending, accepted, rejected]
+    SuggestionItem:
+      type: object
+      required: [id, selector, body, status]
+      properties:
+        id:
+          $ref: '#/components/schemas/SuggestionLocalId'
+        selector:
+          anyOf:
+            - $ref: '#/components/schemas/Selector'
+            - type: array
+              items:
+                $ref: '#/components/schemas/Selector'
+        body:
+          $ref: '#/components/schemas/StructuredBody'
+        status:
+          $ref: '#/components/schemas/SuggestionStatus'
+        annotation:
+          description: The annotation an accepted item became or stands for.
+          type: string
+          format: iri
+        decidedBy:
+          type: string
+          format: uuid
+        decided:
+          type: string
+          format: date-time
+    SuggestionCounts:
+      type: object
+      required: [pending, accepted, rejected]
+      properties:
+        pending:
+          type: integer
+        accepted:
+          type: integer
+        rejected:
+          type: integer
+    SuggestionBatchSummary:
+      type: object
+      required: [id, group, document, engine, creator, created, counts]
+      properties:
+        id:
+          type: string
+          format: uuid
+        group:
+          type: string
+          format: uuid
+        document:
+          type: string
+          format: uuid
+        engine:
+          $ref: '#/components/schemas/SuggestionEngine'
+        key:
+          type: string
+        creator:
+          type: string
+          format: uuid
+        created:
+          type: string
+          format: date-time
+        counts:
+          $ref: '#/components/schemas/SuggestionCounts'
+    SuggestionBatch:
+      allOf:
+        - $ref: '#/components/schemas/SuggestionBatchSummary'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/SuggestionItem'
+    SuggestionBatchList:
+      type: object
+      required: [total, items]
+      properties:
+        total:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SuggestionBatchSummary'
+    SuggestionAcceptInput:
+      type: object
+      required: [items]
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          minItems: 1
+          maxItems: 500
+          items:
+            oneOf:
+              - type: object
+                required: [id, annotation]
+                additionalProperties: false
+                properties:
+                  id:
+                    $ref: '#/components/schemas/SuggestionLocalId'
+                  annotation:
+                    $ref: '#/components/schemas/AnnotationInput'
+              - type: object
+                required: [id, existing]
+                additionalProperties: false
+                properties:
+                  id:
+                    $ref: '#/components/schemas/SuggestionLocalId'
+                  existing:
+                    type: string
+                    format: iri
+    SuggestionDecisions:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            required: [id, annotation]
+            properties:
+              id:
+                $ref: '#/components/schemas/SuggestionLocalId'
+              annotation:
+                type: string
+                format: iri
     GroupRole:
       type: string
       enum: [member, admin]
