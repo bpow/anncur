@@ -1,6 +1,6 @@
 import type { Annotation } from '@curanno/api-client';
 import { describe, expect, it } from 'vitest';
-import { draftOf, rebuildInput, repairInput, withEditor } from './annotations';
+import { draftOf, rebuildInput, repairInput, splitInputs, withEditor } from './annotations';
 
 const PAGE = 'https://example.org/page';
 
@@ -104,5 +104,57 @@ describe('withEditor', () => {
       creator: [model, { type: 'Person' as const, id: me }],
     };
     expect(await withEditor(made, already, curator)).toBe(already);
+  });
+});
+
+describe('splitInputs', () => {
+  const [a, b, c] = [
+    'https://x.example/annotations/1',
+    'https://x.example/annotations/2',
+    'https://x.example/annotations/3',
+  ];
+  const model = { type: 'Software' as const, name: 'curanno-extract' };
+  const fact: Annotation = {
+    '@context': 'http://www.w3.org/ns/anno.jsonld',
+    id: 'https://x.example/annotations/9',
+    type: 'Annotation',
+    created: '2026-11-15T00:00:00Z',
+    motivation: 'describing',
+    target: {
+      source: 'https://example.org/a',
+      selector: { type: 'TextQuoteSelector', exact: 'All three' },
+    },
+    body: [
+      { type: 'TextualBody', value: 'A comment', purpose: 'commenting' },
+      {
+        type: 'StructuredBody',
+        profile: 'https://x.example/profiles/family/1',
+        value: { individuals: [a, b, c], familyInfo: 'Cousins.' },
+        creator: model,
+      },
+    ],
+  };
+
+  it('copies the fact for one individual and takes it out of the original', () => {
+    const { kept, split } = splitInputs(fact, 'individuals', b, 'https://x.example/x/users/7');
+    const curator = { type: 'Person', id: 'https://x.example/x/users/7' };
+    expect(split).toEqual({
+      type: 'Annotation',
+      motivation: 'describing',
+      target: fact.target,
+      body: [
+        { type: 'TextualBody', value: 'A comment', purpose: 'commenting' },
+        {
+          type: 'StructuredBody',
+          profile: 'https://x.example/profiles/family/1',
+          value: { individuals: [b], familyInfo: 'Cousins.' },
+          creator: [model, curator],
+        },
+      ],
+    });
+    expect((kept.body as { value?: unknown }[])[1]).toMatchObject({
+      value: { individuals: [a, c], familyInfo: 'Cousins.' },
+      creator: [model, curator],
+    });
   });
 });

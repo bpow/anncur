@@ -1,12 +1,21 @@
 <script setup lang="ts">
 import { type Annotation, toProblem, type Problem } from '@curanno/api-client';
-import { ToolbarButton, ToolbarRoot } from 'reka-ui';
+import {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuRoot,
+  DropdownMenuTrigger,
+  ToolbarButton,
+  ToolbarRoot,
+} from 'reka-ui';
 import { computed, ref } from 'vue';
 import {
   anchoringOf,
   annotationUuid,
   commentOf,
   creatorOf,
+  linkedIris,
   quoteOf,
   structuredBodies,
   tagsOf,
@@ -18,12 +27,14 @@ import {
   isEdited,
   rebuildInput,
   repairInput,
+  splitInputs,
   withEditor,
   type AnnotationDraft,
 } from '../api/annotations';
 import { useAuthStore } from '../auth/store';
 import { currentUserIri } from '../current-user';
 import { useGuest } from '../guest';
+import { linkFieldOf, linkLabels } from '../profiles/links';
 import { useAnnotationsStore } from '../stores/annotations';
 import { useProfilesStore } from '../stores/profiles';
 import { formatTime } from '../util/time';
@@ -70,6 +81,58 @@ const repairable = computed(
     can(props.annotation, 'update') &&
     guest.selection.value !== undefined,
 );
+
+/** A fact that names several linked annotations can have one of them split off (ADR 0035). */
+const splittable = computed(() => {
+  if (props.reply || !can(props.annotation, 'update') || !can(props.annotation, 'share')) return;
+  for (const body of structured.value) {
+    const profile = profiles.byIri(body.profile);
+    const field = profile && linkFieldOf(profile);
+    if (!field?.link || !field.multiple) continue;
+    const value = body.value;
+    const ids = linkedIris(
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? value[field.name]
+        : undefined,
+    );
+    if (ids.length < 2) continue;
+    const labels = linkLabels(store.all, field.link);
+    return {
+      field: field.name,
+      choices: ids.map((id) => ({ id, label: labels.get(id) ?? 'one not on this page' })),
+    };
+  }
+  return undefined;
+});
+
+/**
+ * The copy is made and shared like the original before the original changes, so a failure
+ * part way leaves the individual named twice rather than not at all.
+ */
+async function splitOff(iri: string): Promise<void> {
+  const target = splittable.value;
+  if (!target) return;
+  busy.value = true;
+  try {
+    const current = await store.fetch(props.annotation.id);
+    if (!current.etag) throw new Error('the server sent no ETag');
+    const { kept, split } = splitInputs(
+      current.annotation,
+      target.field,
+      iri,
+      await currentUserIri(),
+    );
+    const acl = await store.aclOf(props.annotation.id);
+    const created = await store.create(split, store.documentOf.get(props.annotation.id));
+    await store.share(created.annotation.id, acl);
+    await store.update(props.annotation.id, kept, current.etag);
+    problem.value = undefined;
+  } catch (err) {
+    problem.value = toProblem(err);
+  } finally {
+    busy.value = false;
+  }
+}
 
 /** Focus leaving the card altogether un-emphasises its highlight. */
 function onFocusOut(event: FocusEvent): void {
@@ -300,6 +363,25 @@ async function repair(): Promise<void> {
           </ToolbarButton>
         </HintTooltip>
       </ConfirmDialog>
+      <DropdownMenuRoot v-if="splittable">
+        <HintTooltip text="Split off one of the linked annotations">
+          <DropdownMenuTrigger as-child>
+            <ToolbarButton class="link" :disabled="busy">Split…</ToolbarButton>
+          </DropdownMenuTrigger>
+        </HintTooltip>
+        <DropdownMenuPortal>
+          <DropdownMenuContent class="dropdown-menu" align="start">
+            <DropdownMenuItem
+              v-for="choice in splittable.choices"
+              :key="choice.id"
+              class="dropdown-menu-item"
+              @select="splitOff(choice.id)"
+            >
+              Split off {{ choice.label }}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenuPortal>
+      </DropdownMenuRoot>
       <ToolbarButton v-if="repairable" class="link" :disabled="busy" @click="repair">
         Repair with selection
       </ToolbarButton>
