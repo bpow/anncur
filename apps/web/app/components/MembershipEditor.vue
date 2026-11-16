@@ -97,6 +97,7 @@ const canRemove = (member: Membership): boolean =>
             >
               <option value="member">member</option>
               <option value="admin">admin</option>
+              <option value="suggester">suggester (posts suggestions only)</option>
             </select>
             <template v-else>{{ member.role }}</template>
           </td>
