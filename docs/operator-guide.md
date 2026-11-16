@@ -252,7 +252,7 @@ The new Deployment takes over the running pods, whose labels already match, and 
   2. On the account's page, they make a token. The token is shown once; keep it in the job's secret store.
   3. A group administrator makes the account the group's **suggester**. A suggester posts batches for the group and reads the ones it posted. It cannot read the group's annotations or members, and cannot accept or reject items.
 
-  Tokens (`cat_…`) are checked against the database on every request. Revoking one, or disabling its user, takes effect at once. Tokens expire within a year, and reach only the operations of their scope (`suggestions:write`: their own record, profiles, ontology terms, and suggestion batches). Request logs carry the token's id (`tokenId`), never the token. Leaked tokens can be found by the `cat_` prefix in secret scanners.
+  Tokens (`cat_…`) are checked against the database on every request. Revoking one, or disabling its user, takes effect at once. Tokens expire within a year, and reach only the operations of their scope (`suggestions:write`: their own record, profiles, ontology terms, and suggestion batches). Request logs carry the token's id (`tokenId`), never the token. Leaked tokens can be found by the `cat_` prefix in secret scanners. The bulk suggester for PubMed Central articles, `apps/suggester`, is one such engine; its README has the command.
 
 ## 8. Checks on a new cluster
 
