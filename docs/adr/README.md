@@ -48,3 +48,4 @@ An architecture decision record (ADR) captures one decision that shapes the syst
 | [0034](0034-provenance-of-suggested-bodies.md) | A suggested body names the model as its creator | Accepted |
 | [0035](0035-case-facts-link-to-an-individual.md) | Facts about a case individual are annotations that link to an individual annotation | Proposed |
 | [0036](0036-individual-summaries-are-computed.md) | Whole-individual summaries are computed from the facts, not stored | Proposed |
+| [0037](0037-suggestion-batches.md) | Suggestions are stored as batches that belong to a group, and their items may link to each other | Proposed |
