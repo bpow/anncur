@@ -1,15 +1,24 @@
 <script setup lang="ts">
-import { caseIndividualProfile, summarizeIndividuals } from '@curanno/model';
-import { computed } from 'vue';
+import { caseIndividualProfile, individualProfile, summarizeIndividuals } from '@curanno/model';
+import { computed, watch } from 'vue';
 import { useGuest } from '../guest';
 import { entriesOf } from '../profiles/entries';
 import { fieldsOf } from '../profiles/schema';
 import { useAnnotationsStore } from '../stores/annotations';
+import { useCurrentLinksStore } from '../stores/current-links';
 import { useProfilesStore } from '../stores/profiles';
 
 const store = useAnnotationsStore();
 const profiles = useProfilesStore();
 const guest = useGuest();
+const current = useCurrentLinksStore();
+
+// Which individuals are current only makes sense on the page they were chosen on.
+watch(
+  () => guest.document.value?.uri,
+  () => current.clear(),
+);
+const isCurrent = (iri: string) => current.of(individualProfile.iri).includes(iri);
 
 const fields = fieldsOf(caseIndividualProfile.schema);
 // Without the profile loaded there is nothing to check a summary against.
@@ -34,7 +43,10 @@ const shown = computed(() => individuals.value.length > 0 || summaries.value.unl
     <summary>
       Individuals <span class="muted">({{ individuals.length }})</span>
     </summary>
-    <p class="muted hint">Computed from the facts on this page; nothing here is saved.</p>
+    <p class="muted hint">
+      Computed from the facts on this page; nothing here is saved. New facts link to the individuals
+      marked current.
+    </p>
     <article
       v-for="individual in individuals"
       :key="individual.individual"
@@ -53,6 +65,14 @@ const shown = computed(() => individuals.value.length > 0 || summaries.value.unl
         <span class="muted">
           {{ individual.facts.length }} fact{{ individual.facts.length === 1 ? '' : 's' }}
         </span>
+        <label class="current" title="New facts link to the current individuals">
+          <input
+            type="checkbox"
+            :checked="isCurrent(individual.individual)"
+            @change="current.toggle(individualProfile.iri, individual.individual)"
+          />
+          Current
+        </label>
       </h2>
       <p v-if="individual.errors.length" class="incomplete">
         Incomplete: {{ individual.errors.map((e) => e.message).join('; ') }}
@@ -132,6 +152,16 @@ h2 {
   align-items: baseline;
   margin: 0;
   font-size: 1em;
+}
+
+.current {
+  margin-left: auto;
+  font-weight: normal;
+  font-size: 0.85em;
+}
+
+.current input {
+  width: auto;
 }
 
 .incomplete {
