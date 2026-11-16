@@ -284,19 +284,19 @@ describe('extract', () => {
     expect(fake.requests).toHaveLength(0);
   });
 
-  it('links each suggestion to the individual the model named', async () => {
+  it('links each suggestion to the individuals the model named', async () => {
     const family = 'Her father was affected. Both parents of II-2 are cousins.';
     const fake = createFakeEndpoint(() =>
       answer([
         {
           quote: 'Her father was affected.',
-          value: { case: 'II-1', familyInfo: 'Father affected.' },
+          value: { individuals: ['II-1', 'II-9'], familyInfo: 'Father affected.' },
         },
         {
           quote: 'Both parents of II-2 are cousins.',
-          value: { case: 'II-2', familyInfo: 'Consanguineous.' },
+          value: { individuals: ['II-2', 'II-1', 'II-2'], familyInfo: 'Consanguineous.' },
         },
-        { quote: 'Her father was affected.', value: { case: 'II-9', familyInfo: 'Unknown.' } },
+        { quote: 'Her father was affected.', value: { individuals: ['II-9'], familyInfo: 'No.' } },
       ]),
     );
     const links = [
@@ -309,14 +309,12 @@ describe('extract', () => {
       options(fake),
     );
     expect(result.suggestions.map((s) => s.value)).toEqual([
-      { case: 'II-1', familyInfo: 'Father affected.', individual: links[0]!.id },
-      { case: 'II-2', familyInfo: 'Consanguineous.', individual: links[1]!.id },
+      { familyInfo: 'Father affected.', individuals: [links[0]!.id] },
+      { familyInfo: 'Consanguineous.', individuals: [links[1]!.id, links[0]!.id] },
     ]);
     expect(result.rejected.map((r) => r.reason)).toEqual(['invalid']);
     const [request] = fake.requests;
-    expect(request?.messages[0]?.content).toContain(
-      'make one suggestion for each, with the same quote',
-    );
+    expect(request?.messages[0]?.content).toContain('make one suggestion that names them all');
     expect(JSON.stringify(request?.response_format)).toContain('"enum":["II-1","II-2"]');
 
     await expect(

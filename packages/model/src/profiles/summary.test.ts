@@ -27,8 +27,12 @@ const annotation = (n: number, profile: string, value: JsonValue) => ({
   id: iri(n),
   body: { type: 'StructuredBody', profile, value },
 });
-const fact = (n: number, profile: string, individual: number, value: Record<string, JsonValue>) =>
-  annotation(n, profile, { individual: iri(individual), case: 'II-1', ...value });
+const fact = (
+  n: number,
+  profile: string,
+  individuals: number | number[],
+  value: Record<string, JsonValue>,
+) => annotation(n, profile, { individuals: [individuals].flat().map(iri), ...value });
 
 describe('summarizeIndividuals', () => {
   it('computes a case-individual value from the facts that link to each individual', () => {
@@ -94,5 +98,21 @@ describe('summarizeIndividuals', () => {
       { variant: 'c.2C>T', caid: 'CA1' },
     ]);
     expect(individuals[0]?.sources['variants']).toEqual([iri(2), iri(3)]);
+  });
+
+  it('counts a fact for every individual it names that the reader can see', () => {
+    const { individuals, unlinked } = summarizeIndividuals([
+      annotation(1, individualProfile.iri, { case: 'II-1' }),
+      annotation(2, individualProfile.iri, { case: 'II-2' }),
+      fact(3, caseDiseaseProfile.iri, [1, 2, 99], { diseaseAssertion: 'HCM' }),
+      fact(4, caseFamilyProfile.iri, [98, 99], { familyInfo: 'Lost.' }),
+    ]);
+    expect(
+      individuals.map((i) => [i.value['diseaseAssertion'], i.sources['diseaseAssertion']]),
+    ).toEqual([
+      ['HCM', [iri(3)]],
+      ['HCM', [iri(3)]],
+    ]);
+    expect(unlinked).toEqual([iri(4)]);
   });
 });

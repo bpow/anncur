@@ -4,7 +4,7 @@
  */
 import type { Annotation } from '@curanno/api-client';
 import { quoteOf, structuredBodies, type AnnotationLink, type BodyProfile } from '@curanno/model';
-import { fieldsOf } from './schema';
+import { fieldsOf, type SchemaField } from './schema';
 
 export interface LinkCandidate {
   id: string;
@@ -29,7 +29,19 @@ export function linkCandidates(
   });
 }
 
+/** A label for each linked annotation that is loaded, by IRI. */
+export function linkLabels(
+  annotations: readonly Annotation[],
+  link: AnnotationLink,
+): Map<string, string> {
+  return new Map(linkCandidates(annotations, link).map((c) => [c.id, c.label]));
+}
+
 /** The profile's link field, if it has one. */
 export function linkOf(profile: BodyProfile): AnnotationLink | undefined {
-  return fieldsOf(profile.schema).find((f) => f.kind === 'annotation')?.link;
+  return linkFieldOf(profile)?.link;
+}
+
+export function linkFieldOf(profile: BodyProfile): SchemaField | undefined {
+  return fieldsOf(profile.schema).find((f) => f.kind === 'annotation' && f.link);
 }

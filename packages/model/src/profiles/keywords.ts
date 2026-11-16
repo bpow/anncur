@@ -14,14 +14,20 @@ export interface OntologyLookup {
 }
 
 /**
- * On a string property: its value is the IRI of an annotation whose
- * structured body has `profile`. `label` names the field, in this schema and
- * in the linked profile's, that holds the linked annotation's label, so an
- * editor can show and copy it (ADR 0035).
+ * On a string property, or an array of strings: each value is the IRI of an
+ * annotation whose structured body has `profile`. `label` names the field of
+ * the linked profile that holds the linked annotation's label, so readers can
+ * show it without storing it (ADR 0035).
  */
 export interface AnnotationLink {
   profile: string;
   label?: string;
+}
+
+/** The IRIs a link field's value names, whether it holds one or a list. */
+export function linkedIris(value: unknown): string[] {
+  if (typeof value === 'string') return [value];
+  return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
 }
 
 /** Minimal view of an Ajv instance, so this package does not depend on Ajv's types. */

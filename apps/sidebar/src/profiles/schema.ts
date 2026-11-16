@@ -65,8 +65,9 @@ export interface SchemaField {
   itemTitle?: string;
   /** For a term list: where its suggestions come from. */
   ontology?: OntologyLookup;
-  /** For an annotation link: which annotations it may name. */
+  /** For an annotation link: which annotations it may name, and whether it names several. */
   link?: AnnotationLink;
+  multiple?: boolean;
 }
 
 interface PropertySchema {
@@ -114,7 +115,9 @@ export function fieldsOf(schema: JsonSchema): SchemaField[] {
       ...(property.enum ? { options: property.enum.map(String) } : {}),
       ...(pattern !== undefined ? { pattern } : {}),
       ...(kind === 'term-list' && property.ontology ? { ontology: property.ontology } : {}),
-      ...(kind === 'annotation' && property.annotation ? { link: property.annotation } : {}),
+      ...(kind === 'annotation' && property.annotation
+        ? { link: property.annotation, multiple: property.type === 'array' }
+        : {}),
       ...(kind === 'object-list' && property.items
         ? {
             fields: fieldsOf(property.items as JsonSchema),

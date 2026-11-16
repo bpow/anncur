@@ -1,12 +1,19 @@
 <script setup lang="ts">
 import type { StructuredBody } from '@curanno/model';
 import { computed } from 'vue';
-import { entriesOf, isObject, type Entry } from '../profiles/entries';
+import { entriesOf, isObject, type Entry, type LinkLabel } from '../profiles/entries';
+import { linkLabels } from '../profiles/links';
 import { fieldsOf } from '../profiles/schema';
+import { useAnnotationsStore } from '../stores/annotations';
 import { useProfilesStore } from '../stores/profiles';
 
 const props = defineProps<{ body: StructuredBody }>();
 const profiles = useProfilesStore();
+const annotations = useAnnotationsStore();
+
+// Labels of linked annotations are read from them, not stored in the body (ADR 0035).
+const linkLabelOf: LinkLabel = (field, iri) =>
+  field.link && linkLabels(annotations.all, field.link).get(iri);
 
 const profile = computed(() => profiles.byIri(props.body.profile));
 const title = computed(() => profile.value?.title ?? props.body.profile);
@@ -14,7 +21,8 @@ const title = computed(() => profile.value?.title ?? props.body.profile);
 const entries = computed<Entry[]>(() => {
   const value = props.body.value;
   if (!isObject(value)) return [{ key: 'value', label: 'value', text: JSON.stringify(value) }];
-  return entriesOf(value, profile.value ? fieldsOf(profile.value.schema) : []);
+  const fields = profile.value ? fieldsOf(profile.value.schema) : [];
+  return entriesOf(value, fields, { linkLabel: linkLabelOf });
 });
 </script>
 

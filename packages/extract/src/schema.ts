@@ -7,9 +7,9 @@
  * own validation afterwards. An ontology field (`ontology` keyword on an
  * array of `{id?, label}`) becomes an array of labels: the model never
  * supplies identifiers, the ontology lookup does (ADR 0031). A link to
- * another annotation (`annotation` keyword, ADR 0035) is left out as well:
- * the model names the linked annotation by its label, from a list the
- * caller gives, and the pipeline fills in the IRI.
+ * another annotation (`annotation` keyword, ADR 0035) holds labels instead
+ * of IRIs: the model names linked annotations by their labels, from a list
+ * the caller gives, and the pipeline puts in the IRIs.
  */
 import type { AnnotationLink, BodyProfile, JsonSchema, OntologyLookup } from '@curanno/model';
 
@@ -35,6 +35,8 @@ export interface OutputSchema {
 export interface LinkField extends AnnotationLink {
   field: string;
   label: string;
+  /** The field holds a list of links rather than one. */
+  multiple: boolean;
 }
 
 /** Thrown for a profile whose schema cannot be turned into an output schema. */
@@ -96,7 +98,10 @@ function linkOf(profile: BodyProfile): LinkField | undefined {
   if (!isSchema(properties)) return undefined;
   const links = Object.entries(properties).flatMap(([field, child]) => {
     const annotation = isSchema(child) ? child['annotation'] : undefined;
-    return isSchema(annotation) ? [{ field, ...(annotation as unknown as AnnotationLink) }] : [];
+    if (!isSchema(annotation) || !isSchema(child)) return [];
+    return [
+      { field, ...(annotation as unknown as AnnotationLink), multiple: child['type'] === 'array' },
+    ];
   });
   if (links.length > 1) throw new UnsupportedProfileError('more than one annotation link');
   const [link] = links;
@@ -115,17 +120,20 @@ export function outputSchema(profile: BodyProfile, labels?: readonly string[]): 
   const value = project(profile.schema, [], ontologyFields);
   if (link) {
     const properties = value['properties'] as Schema;
-    delete properties[link.field];
     const required = value['required'];
-    if (Array.isArray(required)) value['required'] = required.filter((r) => r !== link.field);
     if (labels?.length) {
-      const own = isSchema(properties[link.label]) ? properties[link.label] : {};
-      properties[link.label] = {
-        ...(own as Schema),
-        type: 'string',
-        enum: [...new Set(labels)],
-        description: 'Which one the passage is about, by one of these labels.',
-      };
+      const one = { type: 'string', enum: [...new Set(labels)] };
+      properties[link.field] = link.multiple
+        ? {
+            type: 'array',
+            minItems: 1,
+            items: one,
+            description: 'Every one the passage is about, by these labels.',
+          }
+        : { ...one, description: 'Which one the passage is about, by one of these labels.' };
+    } else {
+      delete properties[link.field];
+      if (Array.isArray(required)) value['required'] = required.filter((r) => r !== link.field);
     }
   }
   const schema: JsonSchema = {

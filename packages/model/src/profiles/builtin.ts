@@ -220,20 +220,20 @@ function factProfile(
       $schema: 'https://json-schema.org/draft/2020-12/schema',
       $id: iri,
       type: 'object',
-      required: ['individual', 'case', ...required],
+      required: ['individuals', ...required],
       // A fact states something beyond whom it is about.
-      minProperties: 3,
+      minProperties: 2,
       additionalProperties: false,
       properties: {
-        individual: {
-          title: 'Individual',
-          description: 'The annotation that introduces the individual.',
-          type: 'string',
-          pattern: IRI_PATTERN,
-          maxLength: 2000,
+        individuals: {
+          title: 'Individuals',
+          description: 'The annotations that introduce the individuals the passage is about.',
+          type: 'array',
+          minItems: 1,
+          uniqueItems: true,
+          items: { type: 'string', pattern: IRI_PATTERN, maxLength: 2000 },
           annotation: { profile: individualProfile.iri, label: 'case' },
         },
-        case: fields.case,
         ...properties,
       },
     },
@@ -243,7 +243,7 @@ function factProfile(
 export const caseVariantProfile = factProfile(
   'case-variant',
   'Case variant',
-  'A variant the passage reports for one individual.',
+  'A variant the passage reports for one or more individuals.',
   variantProperties,
   ['variant'],
 );
@@ -251,7 +251,7 @@ export const caseVariantProfile = factProfile(
 export const casePhenotypesProfile = factProfile(
   'case-phenotypes',
   'Case phenotypes',
-  'Phenotypes the passage reports as present or absent in one individual, and their course.',
+  'Phenotypes the passage reports as present or absent in one or more individuals, and their course.',
   {
     casePresentingHpos: fields.casePresentingHpos,
     caseNotHpos: fields.caseNotHpos,
@@ -262,7 +262,7 @@ export const casePhenotypesProfile = factProfile(
 export const caseFamilyProfile = factProfile(
   'case-family',
   'Case family history',
-  "What the passage says about one individual's family.",
+  'What the passage says about the family of one or more individuals.',
   { familyInfo: fields.familyInfo },
   ['familyInfo'],
 );
@@ -270,7 +270,7 @@ export const caseFamilyProfile = factProfile(
 export const caseTestingProfile = factProfile(
   'case-testing',
   'Case testing',
-  'Testing of one individual: earlier tests, and how the variant was found.',
+  'Testing of one or more individuals: earlier tests, and how the variant was found.',
   {
     casePreviousTesting: fields.casePreviousTesting,
     genotypingMethod: fields.genotypingMethod,
@@ -280,7 +280,7 @@ export const caseTestingProfile = factProfile(
 export const caseDiseaseProfile = factProfile(
   'case-disease',
   'Case disease',
-  'The disease or diagnosis the passage asserts for one individual.',
+  'The disease or diagnosis the passage asserts for one or more individuals.',
   { diseaseAssertion: fields.diseaseAssertion },
   ['diseaseAssertion'],
 );

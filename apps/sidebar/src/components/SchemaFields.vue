@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type { JsonValue, ValidationError } from '@curanno/model';
+import { linkedIris, type JsonValue, type ValidationError } from '@curanno/model';
 import { computed } from 'vue';
-import { labelOf, linkCandidates, type LinkCandidate } from '../profiles/links';
+import { linkCandidates, type LinkCandidate } from '../profiles/links';
 import type { SchemaField, Term } from '../profiles/schema';
 import { useAnnotationsStore } from '../stores/annotations';
+import { useProfilesStore } from '../stores/profiles';
+import LinkInput from './LinkInput.vue';
 import TagInput from './TagInput.vue';
 import TermListInput from './TermListInput.vue';
 
@@ -92,27 +94,19 @@ const linkable = computed(() =>
 );
 
 function candidates(field: SchemaField): LinkCandidate[] {
-  if (!field.link) return [];
-  const found = linkCandidates(linkable.value, field.link);
-  const current = value.value[field.name];
-  // A link to an annotation that is not loaded, or that the reader cannot see, is kept as it is.
-  if (typeof current === 'string' && !found.some((c) => c.id === current)) {
-    const label = labelOf(value.value, field.link.label);
-    found.push({ id: current, label: `${label ?? current} (not on this page)`, quote: '' });
-  }
-  return found;
+  return field.link ? linkCandidates(linkable.value, field.link) : [];
 }
 
-/** Choosing the linked annotation also copies its label. */
-function setLink(field: SchemaField, id: string): void {
-  const copy: Record<string, JsonValue> = { ...value.value };
-  if (id) copy[field.name] = id;
-  else delete copy[field.name];
-  const label = field.link?.label;
-  const picked = candidates(field).find((c) => c.id === id);
-  if (label && picked && picked.label !== picked.id) copy[label] = picked.label;
-  emit('update:modelValue', copy);
+function links(field: SchemaField): string[] {
+  return linkedIris(value.value[field.name]);
 }
+
+function setLinks(field: SchemaField, ids: string[]): void {
+  set(field.name, field.multiple ? (ids.length ? ids : undefined) : ids[0]);
+}
+
+const nounOf = (field: SchemaField): string =>
+  (field.link && useProfilesStore().byIri(field.link.profile)?.title.toLowerCase()) ?? 'annotation';
 
 function items(name: string): JsonValue[] {
   const current = value.value[name];
@@ -163,24 +157,17 @@ function removeItem(name: string, index: number): void {
       <label :for="`field-${nameOf(field)}`">
         {{ field.title }}<span v-if="field.required" aria-hidden="true"> *</span>
       </label>
-      <select
+      <LinkInput
         v-if="field.kind === 'annotation'"
-        :id="`field-${nameOf(field)}`"
+        :input-id="`field-${nameOf(field)}`"
         :name="nameOf(field)"
         :required="field.required"
-        :value="value[field.name] ?? ''"
-        @change="setLink(field, ($event.target as HTMLSelectElement).value)"
-      >
-        <option value="">—</option>
-        <option
-          v-for="candidate in candidates(field)"
-          :key="candidate.id"
-          :value="candidate.id"
-          :title="candidate.quote"
-        >
-          {{ candidate.label }}
-        </option>
-      </select>
+        :multiple="field.multiple ?? false"
+        :noun="nounOf(field)"
+        :candidates="candidates(field)"
+        :model-value="links(field)"
+        @update:model-value="setLinks(field, $event)"
+      />
       <select
         v-else-if="field.kind === 'select'"
         :id="`field-${nameOf(field)}`"

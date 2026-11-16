@@ -57,11 +57,9 @@ describe('IndividualsPanel', () => {
   it('summarises each individual from its facts and finds the passages', async () => {
     const store = useAnnotationsStore();
     store.upsert(annotation(1, individualProfile.iri, { case: 'II-1' }));
-    const link = { individual: iri(1), case: 'II-1' };
+    const link = { individuals: [iri(1)] };
     store.upsert(annotation(2, caseFamilyProfile.iri, { ...link, familyInfo: 'Father affected.' }));
-    store.upsert(
-      annotation(3, caseFamilyProfile.iri, { individual: iri(9), case: 'P9', familyInfo: 'x' }),
-    );
+    store.upsert(annotation(3, caseFamilyProfile.iri, { individuals: [iri(9)], familyInfo: 'x' }));
     const wrapper = mountPanel();
     expect(wrapper.find('summary').text()).toBe('Individuals (1)');
     const card = wrapper.find('article.individual');
