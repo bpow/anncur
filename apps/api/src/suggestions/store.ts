@@ -7,7 +7,11 @@
  */
 import { sql, type Kysely } from 'kysely';
 import {
+  checkItems,
   isStructuredBody,
+  localLinks,
+  replaceLocalIds,
+  type ItemInput,
   linkFieldsOf,
   linkedIris,
   type AnnotationInput,
@@ -29,7 +33,6 @@ import {
 } from '../documents/service.js';
 import type { ProfileService } from '../profiles/service.js';
 import { badRequest, conflict, forbidden, notFound, unprocessable } from '../problems.js';
-import { checkItems, localLinks, replaceLocalIds, type ItemInput } from './items.js';
 
 /** The request bodies, as the OpenAPI schema has already checked them, in the model's types. */
 export interface BatchInput {

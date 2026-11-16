@@ -57,6 +57,52 @@ PDFs are annotated in the platform's own viewer, so that the annotations follow 
 
 In the viewer, select text and annotate as on a web page. Each annotation remembers its page; an annotation on a page not yet shown still appears in the sidebar, and its highlight is drawn when you scroll to the page. The viewer's toolbar has page navigation, zoom and a button to show or hide the annotations sidebar.
 
+## 3a. Suggested annotations
+
+Where the administrator has set up a language model, the sidebar can read the page or PDF for you and suggest annotations, such as case individuals and their facts. The model only suggests. What it suggests is saved for one of your groups to review, and nothing becomes an annotation until someone in the group saves it.
+
+1. Press **Suggest annotations…**, tick the kinds of annotation you want, choose the group to review them and the model, and add guidance if it helps (for example, "only individuals with a variant in MYH7").
+2. The form says where the document's text will be sent. The administrator chooses these servers; on some installations the only choice is a model on your own computer, and the text never leaves it.
+3. Press **Suggest**. A long document is read in parts, one kind after another; **Stop** ends the run, and then nothing is saved.
+4. The suggestions appear in a box of their own, under the name of the model, and are highlighted in the page with a dashed blue underline. Anyone in the group sees them there when they open the page, and so do suggestions that programs post for the group (an administrator sets those up).
+5. For each suggestion, check the passage and the values. Then use **Review and save** to edit and save it as your annotation, or **Reject**. Phenotypes the ontology lookup did not match are listed so that you can pick the right term. A saved suggestion starts out readable by the group; change that in the form before saving. **Discard all** throws away the rest of a box.
+
+The site's **Suggestions** page lists, for each of your groups, the documents with suggestions still to review. Open a document there, with the sidebar or the extension, to review it.
+
+Each quote is checked against the page: a suggestion whose quote is not in the page word for word, or whose values do not fit the kind of annotation, is set aside and only counted. A saved annotation is yours. Its structured part records the model that suggested it, and you as well if you changed the values, so readers can tell which annotations started as suggestions.
+
+The page is the model's input, and a page can contain text meant to mislead it. Review every suggestion as you would a colleague's draft.
+
+### Case individuals, fact by fact
+
+A case individual is recorded as several annotations, each on the passage that states it:
+
+1. **Individual**: annotate where the article first describes the person, with the label it uses ("II-1", "Patient 3").
+2. **Facts**: annotate each passage about the individual with one of **Case variant**, **Case phenotypes**, **Case family history**, **Case testing** or **Case disease**, and add the individuals it is about in the form's **Individuals** field. A passage about several individuals ("all three siblings had cardiomyopathy") is one annotation that names them all. If one of them later turns out to differ, use **Split…** on the annotation to give that individual a copy of their own, which you can then edit.
+
+To save picking the same individual again and again, tick **Current** beside them in the **Individuals** section. New facts start out linked to the current individuals until you move to another page.
+
+Suggestions work the same way, in one run: tick **Individual** with the fact kinds you want, and each suggested fact names the suggested individuals it is about. Without **Individual**, facts are linked to the individuals already saved on the page, and the form asks for one if there are none.
+
+When you review, each suggested individual heads its facts:
+
+- **Save with its suggestions** saves the individual and the facts under it in one go.
+- **Same as** says that the individual is one already saved on the page, such as II-1 from an earlier run. The facts then link to that annotation.
+- **Reject** on an individual also rejects the facts that were only about them.
+
+Saving a fact on its own also saves the individuals it names.
+
+The **Individuals** section above the annotations brings each individual's facts together in the **Case individual** form's shape, with a link from each value to the passage it came from. It is computed from the annotations you can see and is not saved, so it changes as facts are added, edited or deleted. "Incomplete" means that the summary is still missing something the form requires, such as a variant. **Case individual** is no longer offered for new annotations; existing ones can still be edited.
+
+### Running the model on your own computer
+
+If the administrator offers "This computer", run a model server on your machine:
+
+- **Ollama**: start it so that it accepts the sidebar's requests, with the sidebar's address in place of the example: `OLLAMA_ORIGINS=https://curanno.example ollama serve`, then `ollama pull llama3.1:8b` (or the model the form lists).
+- **LM Studio**: load the model, start the server (port 1234) and turn on **Enable CORS** in its server settings.
+
+If the sidebar says it could not reach the server, check that the server is running and allows the sidebar's origin. Chromium may ask once whether the sidebar may connect to devices on your local network; allow it.
+
 ## 4. Share
 
 Every annotation starts private to you. Sharing is per annotation:
@@ -104,3 +150,5 @@ Everything in the sidebar works from the keyboard and with a screen reader: the 
 ## 8. Privacy and what the page can see
 
 The page you annotate never sees your login, your annotations' text, tags or authors: the sidebar runs on the platform's own origin and the page gets only the location of each highlight. The page does see the text you select, which it could see anyway. Nothing in the bookmarklet or the page can sign you in or act as you.
+
+When you ask for suggestions, the page's text goes from the sidebar to the model server named in the form, and to no other: the sidebar's security policy allows only the servers the administrator listed. The model's answers stay in the sidebar; the page gets only where to draw each suggested highlight.

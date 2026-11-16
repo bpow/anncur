@@ -1,17 +1,15 @@
 /**
  * Checks on the items of a suggestion batch (ADR 0037): local ids, links
- * between items, and each value against its profile. Pure, so that the
- * rules can be tested without a database.
+ * between items, and each value against its profile. The API applies them
+ * to every batch posted, and the suggester before it posts one.
  */
-import {
-  linkFieldsOf,
-  linkedIris,
-  type JsonValue,
-  type ProfileRegistry,
-  type Selector,
-  type StructuredBody,
-} from '@curanno/model';
-import type { ValidationIssue } from '../problems.js';
+import type { JsonValue, Selector, StructuredBody } from '../annotation/types.js';
+import { linkFieldsOf, linkedIris } from './keywords.js';
+import type { ProfileRegistry, ValidationError } from './registry.js';
+
+type ValidationIssue = ValidationError;
+/** What the checks need of a registry: its profiles, and for `checkItems` its validation. */
+type Profiles = Pick<ProfileRegistry, 'get'>;
 
 export interface ItemInput {
   id: string;
@@ -21,14 +19,14 @@ export interface ItemInput {
 
 const LOCAL_ID = /^_:[A-Za-z0-9_-]{1,64}$/;
 // Stands in for a local id while a value is validated; it matches the IRI pattern link fields use.
-const PLACEHOLDER = 'urn:x-curanno-local:';
+export const LOCAL_PLACEHOLDER = 'urn:x-curanno-local:';
 
 export const isLocalId = (value: string): boolean => value.startsWith('_:');
 
 /** The local ids an item's value links to, by field. */
 export function localLinks(
   body: StructuredBody,
-  registry: ProfileRegistry,
+  registry: Profiles,
 ): { field: string; profile: string; ids: string[] }[] {
   const profile = registry.get(body.profile);
   const value = body.value;
@@ -43,7 +41,7 @@ export function localLinks(
 /** `value` with every local id in its link fields replaced by `replace(id)`, or removed when that gives undefined. */
 export function replaceLocalIds(
   body: StructuredBody,
-  registry: ProfileRegistry,
+  registry: Profiles,
   replace: (id: string) => string | undefined,
 ): StructuredBody {
   const profile = registry.get(body.profile);
@@ -62,7 +60,10 @@ export function replaceLocalIds(
 }
 
 /** Every problem with a batch's items; empty when they can be stored. */
-export function checkItems(items: ItemInput[], registry: ProfileRegistry): ValidationIssue[] {
+export function checkItems(
+  items: ItemInput[],
+  registry: Pick<ProfileRegistry, 'get' | 'validate'>,
+): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const byId = new Map<string, ItemInput>();
   items.forEach((item, i) => {
@@ -107,7 +108,11 @@ export function checkItems(items: ItemInput[], registry: ProfileRegistry): Valid
       }
     }
     edges.set(item.id, targets);
-    const placeheld = replaceLocalIds(item.body, registry, (id) => `${PLACEHOLDER}${id.slice(2)}`);
+    const placeheld = replaceLocalIds(
+      item.body,
+      registry,
+      (id) => `${LOCAL_PLACEHOLDER}${id.slice(2)}`,
+    );
     const result = registry.validate(placeheld);
     if (result && !result.ok) {
       for (const e of result.errors) {

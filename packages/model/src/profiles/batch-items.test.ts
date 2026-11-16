@@ -1,16 +1,15 @@
 import { Ajv2020 } from 'ajv/dist/2020.js';
+import type { JsonValue } from '../annotation/types.js';
 import {
-  addProfileKeywords,
   builtinProfiles,
   caseFamilyProfile,
   evidenceExcerptProfile,
   individualProfile,
-  ProfileRegistry,
-  type BodyProfile,
-  type JsonValue,
-} from '@curanno/model';
+} from './builtin.js';
+import { addProfileKeywords } from './keywords.js';
+import { ProfileRegistry, type BodyProfile } from './registry.js';
 import { describe, expect, it } from 'vitest';
-import { checkItems, replaceLocalIds, type ItemInput } from './items.js';
+import { checkItems, replaceLocalIds, type ItemInput } from './batch-items.js';
 
 // A profile pair that can link both ways, to exercise the cycle check.
 const ring: BodyProfile = {

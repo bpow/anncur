@@ -3,17 +3,21 @@ import { Toggle, ToolbarButton, ToolbarRoot, TooltipProvider } from 'reka-ui';
 import { watch } from 'vue';
 import { useAuthStore } from './auth/store';
 import AnnotationList from './components/AnnotationList.vue';
+import BatchReview from './components/BatchReview.vue';
 import IndividualsPanel from './components/IndividualsPanel.vue';
 import AnnotationComposer from './components/AnnotationComposer.vue';
 import AppIcon from './components/AppIcon.vue';
 import FakeGuestPanel from './components/FakeGuestPanel.vue';
 import HintTooltip from './components/HintTooltip.vue';
 import ProblemAlert from './components/ProblemAlert.vue';
+import SuggestPanel from './components/SuggestPanel.vue';
 import UserMenu from './components/UserMenu.vue';
 import { forgetCurrentUser } from './current-user';
 import { createGuest, isFakeGuest, provideGuest } from './guest';
 import { useAnnotationsStore } from './stores/annotations';
 import { useProfilesStore } from './stores/profiles';
+import { useBatchesStore } from './stores/batches';
+import { useSuggestionsStore } from './stores/suggestions';
 import { useTextSize } from './text-size';
 import { useGuestSync } from './use-guest-sync';
 
@@ -23,6 +27,8 @@ provideGuest(guest);
 const auth = useAuthStore();
 const store = useAnnotationsStore();
 const profiles = useProfilesStore();
+const suggestions = useSuggestionsStore();
+const batches = useBatchesStore();
 const textSize = useTextSize();
 
 // Everything the list shows depends on who is asking (ADR 0006), so a new
@@ -38,6 +44,8 @@ watch(
       identity = who;
       store.resetSession();
       forgetCurrentUser();
+      suggestions.clear();
+      batches.clear(guest);
     }
     if (!joined) return;
     const uris = joined.split('\n');
@@ -107,6 +115,8 @@ useGuestSync(guest, store);
       </p>
       <ProblemAlert :problem="profiles.problem" />
       <AnnotationComposer v-if="auth.status === 'authenticated' && guest.document.value" />
+      <SuggestPanel v-if="auth.status === 'authenticated' && guest.document.value" />
+      <BatchReview v-if="auth.status === 'authenticated' && guest.document.value" />
       <p v-else-if="auth.status === 'anonymous'" class="muted">
         Public annotations are shown. Log in to annotate.
       </p>
