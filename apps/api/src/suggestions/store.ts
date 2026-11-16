@@ -90,6 +90,9 @@ export class SuggestionStore {
           'suggestion_batches.rerun_key',
           'suggestion_batches.created_by',
           'suggestion_batches.created_at',
+          sql<string>`(select g.name from groups g where g.principal_id = suggestion_batches.group_id)`.as(
+            'group_name',
+          ),
           count('pending').as('pending'),
           count('accepted').as('accepted'),
           count('rejected').as('rejected'),
@@ -103,6 +106,7 @@ export class SuggestionStore {
     return {
       id: row.id,
       group: row.group_id,
+      groupName: row.group_name,
       document: row.document_id,
       engine: {
         name: row.engine_name,

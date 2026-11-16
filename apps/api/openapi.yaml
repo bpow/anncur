@@ -2024,7 +2024,7 @@ components:
           type: integer
     SuggestionBatchSummary:
       type: object
-      required: [id, group, document, engine, creator, created, counts]
+      required: [id, group, groupName, document, engine, creator, created, counts]
       properties:
         id:
           type: string
@@ -2032,6 +2032,8 @@ components:
         group:
           type: string
           format: uuid
+        groupName:
+          type: string
         document:
           type: string
           format: uuid
