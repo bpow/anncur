@@ -247,3 +247,15 @@ Part 1 (steps 1–4) is done. What differs from section 2:
 - **Split is on the card.** A saved fact naming several individuals has a **Split…** menu on its card, not on the editor's chips. The copy is shared like the original, and is made before the original changes.
 - **Current individuals.** A **Current** checkbox on each individual in the Individuals view. Choosing a fact profile in the editor starts the value linked to them. There is no chip in the composer header; the editor's Individuals field shows them. Suggestions always arrive linked, so nothing fills them on acceptance.
 - **Evaluation needs no change.** `eval --facts` scores the computed summaries, which already group facts by individual.
+
+## 11. Status note (2026-11-15): Part 2
+
+Step 5 is done on `feat/suggestion-batches`, in ADR 0037 (Proposed). What differs from section 3:
+
+- **Items carry a `selector`, not a `target`.** The source is the batch's document, so an item holds only a selector or a list of them.
+- **The client builds the accepted annotation.** `POST …/accept` takes, for each item, the annotation the client wants, or `existing`, the IRI of a saved annotation the item stands for, such as an individual already on the page. The server replaces local ids, creates the annotations and records the decisions in one transaction. Purpose, motivation and the body's `creator` therefore stay with the sidebar's rules (ADR 0034) and are not duplicated on the server. The server does not set the engine as creator.
+- **No new document guard.** `POST /x/documents` already never merges documents (its links that name another document are logged, not merged), and batches use the same code.
+- **Access is by group membership only.** The `suggester` role and reading one's own batches without membership come with Part 3.
+- **No events yet.** The sidebar finds batches when it loads a document (`GET /x/suggestion-batches?uri=…&pending=true`).
+- **Rejection cascades only through required link fields.** An item left with an empty required link field is rejected too; one whose link field is optional keeps its other values.
+- **Limits:** 2000 items per batch and 500 per accept call, in the OpenAPI document. `DELETE /x/suggestion-batches/{id}` removes a batch; annotations made from it stay.
