@@ -943,6 +943,9 @@ export interface components {
             groupName: string;
             /** Format: uuid */
             document: string;
+            /** @description A URL that opens the document, its own page's when known. */
+            documentUri: string;
+            documentTitle?: string;
             engine: components["schemas"]["SuggestionEngine"];
             key?: string;
             /** Format: uuid */
