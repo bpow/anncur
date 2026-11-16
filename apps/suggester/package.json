@@ -8,7 +8,8 @@
     "curanno-suggester": "./src/cli.ts"
   },
   "scripts": {
-    "suggest": "tsc -b ../../packages/model ../../packages/api-client ../../packages/extract && node src/cli.ts",
+    "build": "tsc -b ../../packages/model ../../packages/api-client ../../packages/extract",
+    "suggest": "pnpm build && node src/cli.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
