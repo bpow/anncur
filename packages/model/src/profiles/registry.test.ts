@@ -180,28 +180,31 @@ describe('case fact profiles', () => {
     expect(paths(individualProfile.iri, { previouslyPublished: 'PMID:1' })).toEqual(['/value']);
   });
 
-  it('links each fact to its individual and repeats the label', () => {
+  it('links each fact to one or more individuals', () => {
     expect(
-      paths(caseVariantProfile.iri, { individual, case: 'II-1', variant: 'c.1208G>A' }),
+      paths(caseVariantProfile.iri, { individuals: [individual], variant: 'c.1208G>A' }),
     ).toEqual([]);
     expect(
       paths(casePhenotypesProfile.iri, {
-        individual,
-        case: 'II-1',
+        individuals: [individual, `${individual}-2`],
         casePresentingHpos: [{ id: 'HP:0001251', label: 'Ataxia' }],
         course: 'Onset at 4 years, progressive.',
       }),
     ).toEqual([]);
+    expect(paths(caseFamilyProfile.iri, { familyInfo: 'Father affected.' })).toContain('/value');
+    expect(paths(caseFamilyProfile.iri, { individuals: [], familyInfo: 'x' })).toEqual([
+      '/value/individuals',
+    ]);
     expect(
-      paths(caseFamilyProfile.iri, { case: 'II-1', familyInfo: 'Father affected.' }),
-    ).toContain('/value');
-    expect(
-      paths(caseFamilyProfile.iri, { individual: 'not an iri', case: 'II-1', familyInfo: 'x' }),
-    ).toEqual(['/value/individual']);
+      paths(caseFamilyProfile.iri, { individuals: [individual, individual], familyInfo: 'x' }),
+    ).toEqual(['/value/individuals']);
+    expect(paths(caseFamilyProfile.iri, { individuals: ['not an iri'], familyInfo: 'x' })).toEqual([
+      '/value/individuals/0',
+    ]);
   });
 
   it('needs a fact to state something beyond whom it is about', () => {
-    expect(paths(casePhenotypesProfile.iri, { individual, case: 'II-1' })).toEqual(['/value']);
+    expect(paths(casePhenotypesProfile.iri, { individuals: [individual] })).toEqual(['/value']);
   });
 
   it('marks only the whole-individual summary as derived', () => {

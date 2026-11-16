@@ -7,6 +7,7 @@
  */
 import {
   describeRange,
+  linkedIris,
   utf16ToCodePoint,
   type Agent,
   type BodyProfile,
@@ -226,10 +227,12 @@ export async function extract(
       const pruned = prune(raw.value) ?? {};
       if (link && typeof pruned === 'object' && !Array.isArray(pruned)) {
         const record = pruned as Record<string, unknown>;
-        const label = record[link.label];
-        const id = typeof label === 'string' ? linkByLabel.get(label) : undefined;
-        // A label that names nothing leaves the link out, and validation rejects the suggestion.
-        if (id) record[link.field] = id;
+        // A label that names nothing is dropped; with none left, validation rejects the suggestion.
+        const ids = [
+          ...new Set(linkedIris(record[link.field]).flatMap((l) => linkByLabel.get(l) ?? [])),
+        ];
+        delete record[link.field];
+        if (ids.length) record[link.field] = link.multiple ? ids : ids[0];
       }
       const resolved = await resolveOntologyFields(pruned, ontologyFields, options.resolveTerms);
       const value = resolved.value as JsonValue;

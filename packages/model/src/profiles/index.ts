@@ -17,6 +17,7 @@ export {
 export {
   addProfileKeywords,
   isDerived,
+  linkedIris,
   type AnnotationLink,
   type KeywordRegistry,
   type OntologyLookup,

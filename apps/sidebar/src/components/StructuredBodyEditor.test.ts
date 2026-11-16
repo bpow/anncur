@@ -4,6 +4,7 @@ import {
   evidenceExcerptProfile,
   individualProfile,
   type BodyProfile,
+  type JsonValue,
 } from '@curanno/model';
 import type { Annotation } from '@curanno/api-client';
 import { flushPromises, mount } from '@vue/test-utils';
@@ -179,7 +180,7 @@ describe('StructuredBodyEditor', () => {
     expect(wrapper.text()).toContain('Add Variant');
   });
 
-  it('links a fact to an individual on the page and copies its label', async () => {
+  it('links a fact to individuals on the page', async () => {
     setActivePinia(createPinia());
     const individual = (id: string, label: string): Annotation => ({
       '@context': 'http://www.w3.org/ns/anno.jsonld',
@@ -198,17 +199,34 @@ describe('StructuredBodyEditor', () => {
     const wrapper = mount(StructuredBodyEditor, {
       props: { profile: caseFamilyProfile, modelValue: { familyInfo: 'Father affected.' } },
     });
-    const picker = wrapper.find('select[name="individual"]');
-    expect(picker.findAll('option').map((o) => o.text())).toEqual(['—', 'II-1', 'II-2']);
-    expect(picker.findAll('option')[2]?.attributes('title')).toBe('II-2 was a boy');
-    await picker.setValue('https://x.example/annotations/2');
-    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([
-      {
-        familyInfo: 'Father affected.',
-        individual: 'https://x.example/annotations/2',
-        case: 'II-2',
-      },
-    ]);
+    const picker = () => wrapper.find('select[name="individuals"]');
+    expect(
+      picker()
+        .findAll('option')
+        .map((o) => o.text()),
+    ).toEqual(['Add annotation…', 'II-1', 'II-2']);
+    expect(picker().findAll('option')[2]?.attributes('title')).toBe('II-2 was a boy');
+    await picker().setValue('https://x.example/annotations/2');
+    const emitted = wrapper.emitted('update:modelValue')?.at(-1)?.[0] as JsonValue;
+    expect(emitted).toEqual({
+      familyInfo: 'Father affected.',
+      individuals: ['https://x.example/annotations/2'],
+    });
+    await wrapper.setProps({ modelValue: emitted });
+    expect(wrapper.findAll('.chip').map((c) => c.text().replace(/\s+/g, ' '))).toEqual(['II-2 ×']);
+    expect(
+      picker()
+        .findAll('option')
+        .map((o) => o.text()),
+    ).toEqual(['Add annotation…', 'II-1']);
+    await picker().setValue('https://x.example/annotations/1');
+    expect(wrapper.emitted('update:modelValue')?.at(-1)?.[0]).toMatchObject({
+      individuals: ['https://x.example/annotations/2', 'https://x.example/annotations/1'],
+    });
+    await wrapper.find('button[aria-label="Remove II-2"]').trigger('click');
+    expect(wrapper.emitted('update:modelValue')?.at(-1)?.[0]).toEqual({
+      familyInfo: 'Father affected.',
+    });
   });
 
   it('keeps a link to an individual that is not loaded', () => {
@@ -216,11 +234,11 @@ describe('StructuredBodyEditor', () => {
     const wrapper = mount(StructuredBodyEditor, {
       props: {
         profile: caseFamilyProfile,
-        modelValue: { individual: 'https://x.example/annotations/9', case: 'P9' },
+        modelValue: { individuals: ['https://x.example/annotations/9'] },
       },
     });
-    const picker = wrapper.find('select[name="individual"]');
-    expect(picker.findAll('option').map((o) => o.text())).toEqual(['—', 'P9 (not on this page)']);
-    expect((picker.element as HTMLSelectElement).value).toBe('https://x.example/annotations/9');
+    const chip = wrapper.find('.chip');
+    expect(chip.text()).toMatch(/^Not on this page\s+×$/);
+    expect(chip.classes()).toContain('missing');
   });
 });

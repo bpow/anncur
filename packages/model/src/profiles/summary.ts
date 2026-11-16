@@ -16,6 +16,7 @@ import {
   caseVariantProfile,
   individualProfile,
 } from './builtin.js';
+import { linkedIris } from './keywords.js';
 import type { ValidationError } from './registry.js';
 
 type Value = Record<string, JsonValue>;
@@ -38,7 +39,7 @@ export interface IndividualSummary {
 
 export interface Summaries {
   individuals: IndividualSummary[];
-  /** Facts whose individual is not among the annotations given. */
+  /** Facts none of whose individuals are among the annotations given. */
   unlinked: string[];
 }
 
@@ -108,6 +109,22 @@ function merge(summary: IndividualSummary, field: string, next: JsonValue, fact:
   if (!sources.includes(fact)) sources.push(fact);
 }
 
+function addFact(summary: IndividualSummary, id: string, body: StructuredBody, value: Value): void {
+  if (!summary.facts.includes(id)) summary.facts.push(id);
+  if (body.profile === caseVariantProfile.iri) {
+    const item = pick(value, VARIANT_FIELDS);
+    const variants = (summary.value['variants'] ?? []) as JsonValue[];
+    if (variants.some((v) => same(v, item))) return;
+    summary.value['variants'] = [...variants, item];
+    (summary.sources['variants'] ??= []).push(id);
+    return;
+  }
+  for (const field of FACT_FIELDS.get(body.profile) ?? []) {
+    const next = value[field];
+    if (next !== undefined) merge(summary, field, next, id);
+  }
+}
+
 export function summarizeIndividuals(
   annotations: Iterable<AnnotationLike & { id: string }>,
   validate?: (body: StructuredBody) => ValidationError[],
@@ -138,25 +155,12 @@ export function summarizeIndividuals(
 
   const unlinked: string[] = [];
   for (const { id, body, value } of facts) {
-    const link = value['individual'];
-    const summary = typeof link === 'string' ? byIndividual.get(link) : undefined;
-    if (!summary) {
-      if (!unlinked.includes(id)) unlinked.push(id);
-      continue;
-    }
-    if (!summary.facts.includes(id)) summary.facts.push(id);
-    if (body.profile === caseVariantProfile.iri) {
-      const item = pick(value, VARIANT_FIELDS);
-      const variants = (summary.value['variants'] ?? []) as JsonValue[];
-      if (variants.some((v) => same(v, item))) continue;
-      summary.value['variants'] = [...variants, item];
-      (summary.sources['variants'] ??= []).push(id);
-      continue;
-    }
-    for (const field of FACT_FIELDS.get(body.profile) ?? []) {
-      const next = value[field];
-      if (next !== undefined) merge(summary, field, next, id);
-    }
+    const linked = linkedIris(value['individuals']).flatMap((link) => {
+      const summary = byIndividual.get(link);
+      return summary ? [summary] : [];
+    });
+    if (!linked.length && !unlinked.includes(id)) unlinked.push(id);
+    for (const summary of linked) addFact(summary, id, body, value);
   }
 
   const individuals = [...byIndividual.values()];

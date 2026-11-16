@@ -57,17 +57,28 @@ describe('outputSchema', () => {
     ]);
   });
 
-  it('leaves a link field to the pipeline and lets the model pick a label', () => {
+  it('lets the model name linked annotations by their labels', () => {
     const { valueSchema, link } = outputSchema(caseFamilyProfile, ['II-1', 'II-2', 'II-1']);
     expect(link).toEqual({
-      field: 'individual',
+      field: 'individuals',
       profile: 'https://curanno.example/profiles/individual/1',
       label: 'case',
+      multiple: true,
     });
     const properties = valueSchema['properties'] as Record<string, Record<string, unknown>>;
-    expect(properties['individual']).toBeUndefined();
-    expect(valueSchema['required']).toEqual(['case', 'familyInfo']);
-    expect(properties['case']).toMatchObject({ type: 'string', enum: ['II-1', 'II-2'] });
+    expect(valueSchema['required']).toEqual(['individuals', 'familyInfo']);
+    expect(properties['individuals']).toMatchObject({
+      type: 'array',
+      minItems: 1,
+      items: { type: 'string', enum: ['II-1', 'II-2'] },
+    });
+    expect(properties['case']).toBeUndefined();
+  });
+
+  it('leaves a link field out when there is nothing to link to', () => {
+    const { valueSchema } = outputSchema(caseFamilyProfile);
+    expect(valueSchema['required']).toEqual(['familyInfo']);
+    expect((valueSchema['properties'] as Record<string, unknown>)['individuals']).toBeUndefined();
   });
 
   it('keeps enums, required fields and descriptions', () => {
