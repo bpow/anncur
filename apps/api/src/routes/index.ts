@@ -8,6 +8,7 @@ import { ontologyHandlers } from './ontologies.js';
 import { profileHandlers } from './profiles.js';
 import { protocolHandlers } from './protocol.js';
 import { searchHandlers } from './search.js';
+import { suggestionHandlers } from './suggestions.js';
 import { userHandlers } from './users.js';
 import { vocabularyHandlers } from './vocabulary.js';
 
@@ -24,6 +25,7 @@ export function createHandlers(ctx: AppContext): Handlers {
     ...userHandlers(ctx),
     ...applicationHandlers(ctx),
     ...groupHandlers(ctx),
+    ...suggestionHandlers(ctx),
     ...vocabularyHandlers(),
   };
 }

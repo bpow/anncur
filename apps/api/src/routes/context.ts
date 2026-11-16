@@ -6,6 +6,7 @@ import type { Database } from '../db/index.js';
 import type { EventBridge } from '../events/bridge.js';
 import type { Metrics } from '../metrics.js';
 import type { ProfileService } from '../profiles/service.js';
+import type { SuggestionStore } from '../suggestions/store.js';
 
 /** Mail about accounts, available when the embedded issuer can send it. */
 export interface AccountMail {
@@ -20,6 +21,7 @@ export interface AppContext {
   db: Kysely<Database>;
   config: Config;
   store: AnnotationStore;
+  suggestions: SuggestionStore;
   profiles: ProfileService;
   bridge: EventBridge;
   metrics: Metrics;

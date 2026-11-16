@@ -12,6 +12,7 @@ import type {
   JsonSchema,
   Permission,
   Selector,
+  StructuredBody,
 } from '@curanno/model';
 
 type Timestamp = ColumnType<Date, Date | string | undefined, Date | string>;
@@ -281,6 +282,32 @@ export interface OntologyTermsTable {
   ancestors: string[];
 }
 
+export interface SuggestionBatchesTable {
+  id: Generated<string>;
+  group_id: string;
+  document_id: string;
+  engine_name: string;
+  engine_version: string;
+  engine_nickname: string | null;
+  rerun_key: string | null;
+  created_by: string;
+  created_at: Timestamp;
+}
+
+export type SuggestionStatus = 'pending' | 'accepted' | 'rejected';
+
+export interface SuggestionItemsTable {
+  batch_id: string;
+  local_id: string;
+  position: number;
+  selector: JSONColumnType<Selector | Selector[], string, string>;
+  body: JSONColumnType<StructuredBody, string, string>;
+  status: Generated<SuggestionStatus>;
+  annotation_id: string | null;
+  decided_by: string | null;
+  decided_at: OptionalTimestamp;
+}
+
 export type AnnotationEventKind = 'created' | 'updated' | 'deleted';
 
 export interface AnnotationEventsTable {
@@ -324,5 +351,7 @@ export interface Database {
   ontologies: OntologiesTable;
   ontology_terms: OntologyTermsTable;
   annotation_events: AnnotationEventsTable;
+  suggestion_batches: SuggestionBatchesTable;
+  suggestion_items: SuggestionItemsTable;
   schema_migrations: SchemaMigrationsTable;
 }

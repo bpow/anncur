@@ -42,6 +42,8 @@ export const HANDLING: Record<string, 'moved' | 'merged' | 'dropped' | 'self'> =
   'upstream_attempts.principal_id': 'dropped',
   'pending_links.principal_id': 'dropped',
   'login_tickets.principal_id': 'dropped',
+  'suggestion_batches.created_by': 'moved',
+  'suggestion_items.decided_by': 'moved',
 };
 
 export class MergeError extends Error {}
@@ -172,6 +174,8 @@ export async function mergeAccounts(
     ['account_tokens', 'created_by'],
     ['auth_events', 'principal_id'],
     ['applications', 'decided_by'],
+    ['suggestion_batches', 'created_by'],
+    ['suggestion_items', 'decided_by'],
   ] as const) {
     await sql`update ${sql.table(table)} set ${sql.ref(column)} = ${survivor} where ${sql.ref(column)} = ${loser}`.execute(
       trx,

@@ -144,7 +144,7 @@ export async function seedLoadData(
       }
       log('removing existing data');
       await client.query(
-        'truncate annotation_events, acl, bodies, targets, annotations, document_uris, documents, group_memberships, groups restart identity',
+        'truncate suggestion_items, suggestion_batches, annotation_events, acl, bodies, targets, annotations, document_uris, documents, group_memberships, groups restart identity',
       );
       await client.query('delete from users');
       await client.query(`delete from principals where kind in ('user', 'group')`);

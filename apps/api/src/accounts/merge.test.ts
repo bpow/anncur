@@ -187,6 +187,40 @@ describe.skipIf(!databaseUrl)('merging accounts', () => {
         ctx.db,
       );
     },
+    'suggestion_batches.created_by': async () => {
+      const doc = await ctx.db
+        .insertInto('documents')
+        .values({ title: 'Suggested on' })
+        .returning('id')
+        .executeTakeFirstOrThrow();
+      const batch = await ctx.db
+        .insertInto('suggestion_batches')
+        .values({
+          group_id: ids['g3']!,
+          document_id: doc.id,
+          engine_name: 'e',
+          engine_version: '1',
+          created_by: loser,
+        })
+        .returning('id')
+        .executeTakeFirstOrThrow();
+      ids['batch'] = batch.id;
+    },
+    'suggestion_items.decided_by': async () => {
+      await ctx.db
+        .insertInto('suggestion_items')
+        .values({
+          batch_id: ids['batch']!,
+          local_id: '_:i1',
+          position: 0,
+          selector: JSON.stringify({ type: 'TextQuoteSelector', exact: 'x' }),
+          body: JSON.stringify({ type: 'StructuredBody', profile: 'https://p.test/1', value: {} }),
+          status: 'rejected',
+          decided_by: loser,
+          decided_at: new Date(),
+        })
+        .execute();
+    },
   };
 
   it('accounts for every column that references a user or a principal, and nothing else', async () => {

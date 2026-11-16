@@ -206,6 +206,11 @@ export async function mergeDocuments(
     .set({ document_id: survivor })
     .where('document_id', 'in', others)
     .execute();
+  await trx
+    .updateTable('suggestion_batches')
+    .set({ document_id: survivor })
+    .where('document_id', 'in', others)
+    .execute();
   await trx.deleteFrom('documents').where('id', 'in', others).execute();
   if (moved.length > 0) {
     await trx
