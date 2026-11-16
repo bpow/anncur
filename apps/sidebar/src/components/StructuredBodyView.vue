@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { StructuredBody } from '@curanno/model';
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
 import { entriesOf, isObject, type Entry, type LinkLabel } from '../profiles/entries';
-import { linkLabels } from '../profiles/links';
+import { EXTRA_LINKS, extraCandidates, linkLabels } from '../profiles/links';
 import { fieldsOf } from '../profiles/schema';
 import { useAnnotationsStore } from '../stores/annotations';
 import { useProfilesStore } from '../stores/profiles';
@@ -12,8 +12,14 @@ const profiles = useProfilesStore();
 const annotations = useAnnotationsStore();
 
 // Labels of linked annotations are read from them, not stored in the body (ADR 0035).
-const linkLabelOf: LinkLabel = (field, iri) =>
-  field.link && linkLabels(annotations.all, field.link).get(iri);
+const extras = inject(EXTRA_LINKS, undefined);
+const linkLabelOf: LinkLabel = (field, iri) => {
+  if (!field.link) return undefined;
+  if (iri.startsWith('_:')) {
+    return extraCandidates(extras?.value ?? [], field.link).find((c) => c.id === iri)?.label;
+  }
+  return linkLabels(annotations.all, field.link).get(iri);
+};
 
 const profile = computed(() => profiles.byIri(props.body.profile));
 const title = computed(() => profile.value?.title ?? props.body.profile);

@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { linkedIris, type JsonValue, type ValidationError } from '@curanno/model';
-import { computed } from 'vue';
-import { linkCandidates, type LinkCandidate } from '../profiles/links';
+import { computed, inject } from 'vue';
+import {
+  EXTRA_LINKS,
+  extraCandidates,
+  linkCandidates,
+  type LinkCandidate,
+} from '../profiles/links';
 import type { SchemaField, Term } from '../profiles/schema';
 import { useAnnotationsStore } from '../stores/annotations';
 import { useProfilesStore } from '../stores/profiles';
@@ -93,8 +98,14 @@ const linkable = computed(() =>
   props.fields.some((f) => f.kind === 'annotation') ? useAnnotationsStore().all : [],
 );
 
+const extras = inject(EXTRA_LINKS, undefined);
+
 function candidates(field: SchemaField): LinkCandidate[] {
-  return field.link ? linkCandidates(linkable.value, field.link) : [];
+  if (!field.link) return [];
+  return [
+    ...linkCandidates(linkable.value, field.link),
+    ...extraCandidates(extras?.value ?? [], field.link),
+  ];
 }
 
 function links(field: SchemaField): string[] {
