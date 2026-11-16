@@ -97,6 +97,7 @@ describe.skipIf(!databaseUrl)('suggestion batches', () => {
   it('lets members of the group post and read a batch, and no one else', async () => {
     const batch = await batchOf(alice, [individual('_:i1', 'II-1')]);
     expect(batch.counts).toEqual({ pending: 1, accepted: 0, rejected: 0 });
+    expect(batch).toMatchObject({ documentUri: PAGE, documentTitle: 'A case report' });
     expect(
       (await ctx.as(carol, { method: 'GET', url: `/x/suggestion-batches/${batch.id}` })).statusCode,
     ).toBe(200);

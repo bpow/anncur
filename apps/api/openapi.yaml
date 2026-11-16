@@ -2024,7 +2024,7 @@ components:
           type: integer
     SuggestionBatchSummary:
       type: object
-      required: [id, group, groupName, document, engine, creator, created, counts]
+      required: [id, group, groupName, document, documentUri, engine, creator, created, counts]
       properties:
         id:
           type: string
@@ -2037,6 +2037,11 @@ components:
         document:
           type: string
           format: uuid
+        documentUri:
+          description: A URL that opens the document, its own page's when known.
+          type: string
+        documentTitle:
+          type: string
         engine:
           $ref: '#/components/schemas/SuggestionEngine'
         key:
