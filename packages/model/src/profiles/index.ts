@@ -18,7 +18,9 @@ export {
   addProfileKeywords,
   isDerived,
   linkedIris,
+  linkFieldsOf,
   type AnnotationLink,
+  type SchemaLink,
   type KeywordRegistry,
   type OntologyLookup,
 } from './keywords.js';

@@ -11,7 +11,13 @@
  * of IRIs: the model names linked annotations by their labels, from a list
  * the caller gives, and the pipeline puts in the IRIs.
  */
-import type { AnnotationLink, BodyProfile, JsonSchema, OntologyLookup } from '@curanno/model';
+import {
+  linkFieldsOf,
+  type AnnotationLink,
+  type BodyProfile,
+  type JsonSchema,
+  type OntologyLookup,
+} from '@curanno/model';
 
 /** Where an ontology field is in a value: property names, and `*` for every array item. */
 export type ValuePath = string[];
@@ -94,20 +100,13 @@ function project(node: unknown, path: ValuePath, fields: OntologyField[]): Schem
 }
 
 function linkOf(profile: BodyProfile): LinkField | undefined {
-  const properties = profile.schema['properties'];
-  if (!isSchema(properties)) return undefined;
-  const links = Object.entries(properties).flatMap(([field, child]) => {
-    const annotation = isSchema(child) ? child['annotation'] : undefined;
-    if (!isSchema(annotation) || !isSchema(child)) return [];
-    return [
-      { field, ...(annotation as unknown as AnnotationLink), multiple: child['type'] === 'array' },
-    ];
-  });
+  const links = linkFieldsOf(profile.schema);
   if (links.length > 1) throw new UnsupportedProfileError('more than one annotation link');
-  const [link] = links;
-  if (!link) return undefined;
-  if (!link.label) throw new UnsupportedProfileError(`the link ${link.field} names no label`);
-  return { ...link, label: link.label };
+  const [found] = links;
+  if (!found) return undefined;
+  const { field, link, multiple } = found;
+  if (!link.label) throw new UnsupportedProfileError(`the link ${field} names no label`);
+  return { ...link, field, label: link.label, multiple };
 }
 
 /**
