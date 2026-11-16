@@ -240,6 +240,14 @@ export const useAnnotationsStore = defineStore('annotations', () => {
     await fetch(iri);
   }
 
+  async function aclOf(iri: string): Promise<AclEntry[]> {
+    return unwrap(
+      await useApi().GET('/x/annotations/{id}/acl', {
+        params: { path: { id: annotationUuid(iri) } },
+      }),
+    );
+  }
+
   async function destroy(iri: string, etag: string): Promise<void> {
     unwrap(
       await useApi().DELETE('/annotations/{id}', {
@@ -323,6 +331,7 @@ export const useAnnotationsStore = defineStore('annotations', () => {
     fetch,
     update,
     share,
+    aclOf,
     destroy,
     applyEvent,
     upsert,

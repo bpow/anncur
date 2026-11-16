@@ -7,6 +7,7 @@ import type { AclEntry, Annotation, AnnotationInput } from '@curanno/api-client'
 import { stableStringify } from '@curanno/extract';
 import {
   commentOf,
+  isStructuredBody,
   structuredBodies,
   tagsOf,
   targetsOf,
@@ -17,6 +18,7 @@ import {
   type Motivation,
   type OneOrMany,
   type Selector,
+  type StructuredBody,
   type Target,
 } from '@curanno/model';
 
@@ -202,4 +204,52 @@ export function repairInput(
     return { ...target, anchoring: { state: 'repaired' as const, repair } };
   });
   return { ...input, target: single(targets) } as AnnotationInput;
+}
+
+/**
+ * The two annotations that splitting one linked annotation off a fact makes
+ * (ADR 0035): `split`, a copy of the fact naming only `iri` in `field`, and
+ * `kept`, the original without it. Everything else is copied as it is. Each
+ * structured body that names `iri` changes value, so the curator joins its
+ * creators when it names any (ADR 0034).
+ */
+export function splitInputs(
+  annotation: Annotation,
+  field: string,
+  iri: string,
+  curator?: string,
+): { kept: AnnotationInput; split: AnnotationInput } {
+  const input = clientPropertiesOf(annotation);
+  const withLinks = (pick: (links: string[]) => string[]) => {
+    const copy: Record<string, unknown> = { ...input };
+    if (input['body'] !== undefined) {
+      const bodies = [input['body']].flat() as Body[];
+      const next = bodies.map((b) => relinked(b, field, iri, pick, curator));
+      copy['body'] = Array.isArray(input['body']) ? next : next[0];
+    }
+    return copy as AnnotationInput;
+  };
+  return {
+    kept: withLinks((links) => links.filter((l) => l !== iri)),
+    split: withLinks(() => [iri]),
+  };
+}
+
+function relinked(
+  body: Body,
+  field: string,
+  iri: string,
+  pick: (links: string[]) => string[],
+  curator: string | undefined,
+): Body {
+  if (!isStructuredBody(body)) return body;
+  const value = body.value;
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return body;
+  const links = value[field];
+  if (!Array.isArray(links) || !links.includes(iri)) return body;
+  const next: StructuredBody = { ...body, value: { ...value, [field]: pick(links as string[]) } };
+  if (body.creator === undefined || !curator) return next;
+  const all = [body.creator].flat();
+  if (all.some((c) => (typeof c === 'string' ? c : c.id) === curator)) return next;
+  return { ...next, creator: [...all, { type: 'Person', id: curator }] };
 }
