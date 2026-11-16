@@ -1035,7 +1035,7 @@ export interface components {
             [key: string]: unknown;
         };
         /**
-         * @description `suggestions:write`: `GET /x/me`, and posting, listing and reading suggestion batches.
+         * @description `suggestions:write`: `GET /x/me`, `GET /x/profiles`, ontology term search, and posting, listing and reading suggestion batches.
          * @enum {string}
          */
         TokenScope: "suggestions:write";
