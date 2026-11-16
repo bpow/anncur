@@ -1,7 +1,8 @@
 /**
  * The OpenAI-compatible chat completions call (ADR 0032). Plain `fetch`, no
- * SDK and no credential; the endpoint is one the deployment configured, and
- * the sidebar's CSP lets it reach no other.
+ * SDK. The sidebar sends no credential: its endpoint is one the deployment
+ * configured, and its CSP lets it reach no other. A program outside the
+ * browser, such as the bulk suggester, may send an API key.
  */
 import type { JsonSchema } from '@curanno/model';
 import type { ChatMessage } from './prompt.js';
@@ -10,6 +11,8 @@ export interface Endpoint {
   /** Base URL, for example `http://localhost:11434`; `/v1/chat/completions` is appended. */
   url: string;
   model: string;
+  /** Sent as a bearer token, for a hosted endpoint; never set in a browser. */
+  apiKey?: string;
 }
 
 export interface CompletionRequest {
@@ -65,7 +68,10 @@ export async function complete(
   try {
     response = await fetchImpl(completionsUrl(endpoint), {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: {
+        'content-type': 'application/json',
+        ...(endpoint.apiKey ? { authorization: `Bearer ${endpoint.apiKey}` } : {}),
+      },
       body: JSON.stringify(request),
       ...(options.signal ? { signal: options.signal } : {}),
     });
