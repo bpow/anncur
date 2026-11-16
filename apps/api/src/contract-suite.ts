@@ -1182,6 +1182,90 @@ export function describeContract(name: string, open: () => Promise<TestContext>)
         }),
       },
     ]);
+    run('createServiceAccount', [
+      {
+        name: 'creates',
+        as: root,
+        status: 201,
+        request: () => ({
+          method: 'POST',
+          url: '/x/users',
+          payload: { displayName: 'Contract bot' },
+        }),
+        then: (res) => (state['serviceId'] = res.json<{ id: string }>().id),
+      },
+      {
+        name: '403 for others',
+        as: alice,
+        status: 403,
+        request: () => ({ method: 'POST', url: '/x/users', payload: { displayName: 'Nope' } }),
+      },
+    ]);
+    run('createAccessToken', [
+      {
+        name: 'makes a token for a service account',
+        as: root,
+        status: 201,
+        request: () => ({
+          method: 'POST',
+          url: `/x/users/${state['serviceId']}/tokens`,
+          payload: { name: 'contract', scopes: ['suggestions:write'], expiresInDays: 7 },
+        }),
+        then: (res) => (state['tokenId'] = res.json<{ id: string }>().id),
+      },
+      {
+        name: '403 for a person who is not the caller',
+        as: root,
+        status: 403,
+        request: () => ({
+          method: 'POST',
+          url: `/x/users/${state['aliceId']}/tokens`,
+          payload: { name: 'x', scopes: ['suggestions:write'], expiresInDays: 7 },
+        }),
+      },
+      {
+        name: '400 for an unknown scope',
+        as: alice,
+        status: 400,
+        request: () => ({
+          method: 'POST',
+          url: `/x/users/${state['aliceId']}/tokens`,
+          payload: { name: 'x', scopes: ['everything'], expiresInDays: 7 },
+        }),
+      },
+    ]);
+    run('listAccessTokens', [
+      {
+        name: 'lists',
+        as: root,
+        status: 200,
+        request: () => ({ method: 'GET', url: `/x/users/${state['serviceId']}/tokens` }),
+        then: (res) => expect(res.json<unknown[]>()).toHaveLength(1),
+      },
+      {
+        name: "404 for someone else's",
+        as: bob,
+        status: 404,
+        request: () => ({ method: 'GET', url: `/x/users/${state['aliceId']}/tokens` }),
+      },
+    ]);
+    run('revokeAccessToken', [
+      {
+        name: 'revokes',
+        as: root,
+        status: 204,
+        request: () => ({
+          method: 'DELETE',
+          url: `/x/users/${state['serviceId']}/tokens/${state['tokenId']}`,
+        }),
+      },
+      {
+        name: '404 for an unknown token',
+        as: root,
+        status: 404,
+        request: () => ({ method: 'DELETE', url: `/x/users/${state['serviceId']}/tokens/${NIL}` }),
+      },
+    ]);
     const individualItem = (id: string, label: string) => ({
       id,
       selector: { type: 'TextQuoteSelector', exact: `${label} was a boy` },

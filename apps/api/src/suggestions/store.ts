@@ -1,6 +1,7 @@
 /**
  * Suggestion batches (ADR 0037). Every read filters by the caller's group
- * principals, as reads of annotations filter by their ACL (ADR 0006).
+ * principals, as reads of annotations filter by their ACL (ADR 0006), or
+ * by the caller having posted the batch as the group's suggester (ADR 0038).
  * Decisions on a batch lock its row, so two reviewers cannot decide the
  * same item at once.
  */
@@ -69,23 +70,31 @@ export class SuggestionStore {
   private summaries(db: Kysely<Database>, caller: UserCaller) {
     const count = (status: SuggestionStatus) =>
       sql<string>`(select count(*) from suggestion_items i where i.batch_id = suggestion_batches.id and i.status = ${status})`;
-    return db
-      .selectFrom('suggestion_batches')
-      .where('suggestion_batches.group_id', 'in', groupsOf(caller))
-      .select([
-        'suggestion_batches.id',
-        'suggestion_batches.group_id',
-        'suggestion_batches.document_id',
-        'suggestion_batches.engine_name',
-        'suggestion_batches.engine_version',
-        'suggestion_batches.engine_nickname',
-        'suggestion_batches.rerun_key',
-        'suggestion_batches.created_by',
-        'suggestion_batches.created_at',
-        count('pending').as('pending'),
-        count('accepted').as('accepted'),
-        count('rejected').as('rejected'),
-      ]);
+    return (
+      db
+        .selectFrom('suggestion_batches')
+        // Members see the group's batches; a suggester sees those it posted (ADR 0038).
+        .where((eb) =>
+          eb.or([
+            eb('suggestion_batches.group_id', 'in', groupsOf(caller)),
+            eb('suggestion_batches.created_by', '=', caller.userId),
+          ]),
+        )
+        .select([
+          'suggestion_batches.id',
+          'suggestion_batches.group_id',
+          'suggestion_batches.document_id',
+          'suggestion_batches.engine_name',
+          'suggestion_batches.engine_version',
+          'suggestion_batches.engine_nickname',
+          'suggestion_batches.rerun_key',
+          'suggestion_batches.created_by',
+          'suggestion_batches.created_at',
+          count('pending').as('pending'),
+          count('accepted').as('accepted'),
+          count('rejected').as('rejected'),
+        ])
+    );
   }
 
   private toSummary(
@@ -115,11 +124,16 @@ export class SuggestionStore {
     if (!caller.principalIds.includes(input.group)) {
       const group = await this.db
         .selectFrom('groups')
-        .select('principal_id')
-        .where('principal_id', '=', input.group)
+        .leftJoin('group_memberships', (join) =>
+          join
+            .onRef('group_memberships.group_id', '=', 'groups.principal_id')
+            .on('group_memberships.user_id', '=', caller.userId),
+        )
+        .select('group_memberships.role')
+        .where('groups.principal_id', '=', input.group)
         .executeTakeFirst();
       if (!group) throw notFound(`no group ${input.group}`);
-      throw forbidden('members of the group only');
+      if (group.role !== 'suggester') throw forbidden('members and suggesters of the group only');
     }
     const registry = await this.profiles.registry();
     const issues = checkItems(input.items, registry);

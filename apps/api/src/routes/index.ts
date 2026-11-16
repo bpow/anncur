@@ -9,6 +9,7 @@ import { profileHandlers } from './profiles.js';
 import { protocolHandlers } from './protocol.js';
 import { searchHandlers } from './search.js';
 import { suggestionHandlers } from './suggestions.js';
+import { tokenHandlers } from './tokens.js';
 import { userHandlers } from './users.js';
 import { vocabularyHandlers } from './vocabulary.js';
 
@@ -26,6 +27,7 @@ export function createHandlers(ctx: AppContext): Handlers {
     ...applicationHandlers(ctx),
     ...groupHandlers(ctx),
     ...suggestionHandlers(ctx),
+    ...tokenHandlers(ctx),
     ...vocabularyHandlers(),
   };
 }

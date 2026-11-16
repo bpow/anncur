@@ -41,6 +41,8 @@ tags:
     description: The JSON-LD context of the platform's extension terms
   - name: ontologies
     description: Ontologies loaded for term lookup, such as HPO (docs/ontologies.md)
+  - name: tokens
+    description: Access tokens the API issues, for engines and scripts (ADR 0038)
   - name: suggestions
     description: Suggested annotations waiting for review, in batches that belong to a group (ADR 0037)
 security:
@@ -823,6 +825,39 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+    post:
+      operationId: createServiceAccount
+      tags: [users]
+      summary: Create a service account
+      description: >-
+        Administrators only. A service account cannot sign in or be made an administrator; it
+        acts through access tokens an administrator makes for it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [displayName]
+              additionalProperties: false
+              properties:
+                displayName:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+      responses:
+        '201':
+          description: The service account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /x/users/{id}:
     parameters:
       - name: id
@@ -872,6 +907,77 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '409':
           $ref: '#/components/responses/Conflict'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /x/users/{id}/tokens:
+    parameters:
+      - $ref: '#/components/parameters/userId'
+    get:
+      operationId: listAccessTokens
+      tags: [tokens]
+      summary: List a user's access tokens
+      description: >-
+        The user themself, or an administrator. Revoked and expired tokens are listed too.
+      responses:
+        '200':
+          description: Tokens, newest first, without their secrets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccessToken'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      operationId: createAccessToken
+      tags: [tokens]
+      summary: Make an access token
+      description: >-
+        The user themself, or an administrator for a service account. The secret is in the
+        response and nowhere else.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessTokenInput'
+      responses:
+        '201':
+          description: The token, with its secret
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewAccessToken'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /x/users/{id}/tokens/{tokenId}:
+    parameters:
+      - $ref: '#/components/parameters/userId'
+      - name: tokenId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      operationId: revokeAccessToken
+      tags: [tokens]
+      summary: Revoke an access token
+      description: The user themself, or an administrator. It stops working at once.
+      responses:
+        '204':
+          description: Revoked
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
   /x/applications:
@@ -1358,12 +1464,19 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT
       description: >-
         An OpenID Connect access or ID token issued by the configured identity provider
-        (ADR 0005). Reads without a token see public annotations only.
+        (ADR 0005), or an access token the API issued (`cat_…`, ADR 0038), which reaches only
+        the operations its scopes allow. Reads without a token see public annotations only.
   parameters:
     annotationId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    userId:
       name: id
       in: path
       required: true
@@ -1998,8 +2111,11 @@ components:
                 type: string
                 format: iri
     GroupRole:
+      description: >-
+        A `suggester` may post suggestion batches for the group and read the ones it posted,
+        and is not otherwise a member (ADR 0038).
       type: string
-      enum: [member, admin]
+      enum: [member, admin, suggester]
     GroupRef:
       type: object
       required: [id, name]
@@ -2020,7 +2136,7 @@ components:
           type: string
     User:
       type: object
-      required: [id, isAdmin, created]
+      required: [id, isAdmin, service, created]
       properties:
         id:
           type: string
@@ -2037,6 +2153,9 @@ components:
           type: string
         isAdmin:
           type: boolean
+        service:
+          description: A service account, which cannot sign in and acts only through access tokens.
+          type: boolean
         status:
           description: >-
             Only an `active` user acts as themself. Others (waiting for approval, rejected,
@@ -2050,6 +2169,65 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/GroupRef'
+    TokenScope:
+      description: >-
+        `suggestions:write`: `GET /x/me`, and posting, listing and reading suggestion batches.
+      type: string
+      enum: ['suggestions:write']
+    AccessTokenInput:
+      type: object
+      required: [name, scopes, expiresInDays]
+      additionalProperties: false
+      properties:
+        name:
+          description: What the token is for, such as the job that uses it.
+          type: string
+          minLength: 1
+          maxLength: 200
+        scopes:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/TokenScope'
+        expiresInDays:
+          type: integer
+          minimum: 1
+          maximum: 366
+    AccessToken:
+      type: object
+      required: [id, name, scopes, created, expires]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        scopes:
+          type: array
+          items:
+            $ref: '#/components/schemas/TokenScope'
+        created:
+          type: string
+          format: date-time
+        expires:
+          type: string
+          format: date-time
+        lastUsed:
+          type: string
+          format: date-time
+        revoked:
+          type: string
+          format: date-time
+    NewAccessToken:
+      allOf:
+        - $ref: '#/components/schemas/AccessToken'
+        - type: object
+          required: [token]
+          properties:
+            token:
+              description: The bearer token. It is shown only this once.
+              type: string
     UserPatch:
       type: object
       properties:

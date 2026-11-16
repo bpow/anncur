@@ -43,8 +43,23 @@ export interface UsersTable {
   email: string | null;
   is_admin: Generated<boolean>;
   status: Generated<UserStatus>;
+  is_service: Generated<boolean>;
   created_at: Timestamp;
   last_login_at: OptionalTimestamp;
+}
+
+/** A token the API issued (ADR 0038). */
+export interface AccessTokensTable {
+  id: Generated<string>;
+  principal_id: string;
+  name: string;
+  scopes: string[];
+  secret_hash: string;
+  created_by: string | null;
+  created_at: Timestamp;
+  expires_at: Timestamp;
+  last_used_at: OptionalTimestamp;
+  revoked_at: OptionalTimestamp;
 }
 
 /** A way of signing in that belongs to a user: one issuer's subject (ADR 0028). */
@@ -179,7 +194,7 @@ export interface GroupsTable {
   updated_at: Timestamp;
 }
 
-export type GroupRole = 'member' | 'admin';
+export type GroupRole = 'member' | 'admin' | 'suggester';
 
 export interface GroupMembershipsTable {
   group_id: string;
@@ -353,5 +368,6 @@ export interface Database {
   annotation_events: AnnotationEventsTable;
   suggestion_batches: SuggestionBatchesTable;
   suggestion_items: SuggestionItemsTable;
+  access_tokens: AccessTokensTable;
   schema_migrations: SchemaMigrationsTable;
 }

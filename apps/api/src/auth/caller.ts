@@ -36,6 +36,8 @@ export interface UserCaller {
   expiresAt?: number;
   /** When the token was issued, in milliseconds since the epoch; absent when it does not say. */
   issuedAt?: number;
+  /** Set when the caller used an access token: the operations they may reach are limited (ADR 0038). */
+  token?: { id: string; scopes: string[] };
 }
 
 export type Caller = AnonymousCaller | UserCaller;
@@ -79,11 +81,7 @@ export async function resolveCaller(
 ): Promise<UserCaller> {
   return db.transaction().execute(async (trx) => {
     const user = await upsertUser(trx, claims, options);
-    const groups = await trx
-      .selectFrom('group_memberships')
-      .select('group_id')
-      .where('user_id', '=', user.principal_id)
-      .execute();
+    const groups = await groupsOf(trx, user.principal_id);
     return {
       kind: 'user',
       userId: user.principal_id,
@@ -100,7 +98,17 @@ export async function resolveCaller(
   });
 }
 
-function principalsOf(userId: string, groupIds: string[]): string[] {
+/** The groups whose principal the user acts as: a suggester is not a member (ADR 0038). */
+export function groupsOf(db: Kysely<Database>, userId: string) {
+  return db
+    .selectFrom('group_memberships')
+    .select('group_id')
+    .where('user_id', '=', userId)
+    .where('role', '!=', 'suggester')
+    .execute();
+}
+
+export function principalsOf(userId: string, groupIds: string[]): string[] {
   return [userId, AUTHENTICATED_PRINCIPAL_ID, PUBLIC_PRINCIPAL_ID, ...groupIds];
 }
 
@@ -119,11 +127,7 @@ export async function refreshCaller(
     .where('principal_id', '=', caller.userId)
     .executeTakeFirst();
   if (!user) return undefined;
-  const groups = await db
-    .selectFrom('group_memberships')
-    .select('group_id')
-    .where('user_id', '=', caller.userId)
-    .execute();
+  const groups = await groupsOf(db, caller.userId);
   return {
     ...caller,
     status: user.status,
