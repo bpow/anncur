@@ -1,7 +1,7 @@
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import type { JsonValue } from '../annotation/types.js';
 import { describe, expect, it } from 'vitest';
-import { addProfileKeywords, isDerived } from './keywords.js';
+import { addProfileKeywords, isDerived, linkFieldsOf } from './keywords.js';
 import {
   builtinProfiles,
   caseFamilyProfile,
@@ -205,6 +205,17 @@ describe('case fact profiles', () => {
 
   it('needs a fact to state something beyond whom it is about', () => {
     expect(paths(casePhenotypesProfile.iri, { individuals: [individual] })).toEqual(['/value']);
+  });
+
+  it('finds the link fields of a profile', () => {
+    expect(linkFieldsOf(caseFamilyProfile.schema)).toEqual([
+      {
+        field: 'individuals',
+        link: { profile: individualProfile.iri, label: 'case' },
+        multiple: true,
+      },
+    ]);
+    expect(linkFieldsOf(individualProfile.schema)).toEqual([]);
   });
 
   it('marks only the whole-individual summary as derived', () => {

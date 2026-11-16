@@ -24,6 +24,26 @@ export interface AnnotationLink {
   label?: string;
 }
 
+/** A top-level property of a profile's schema that links to other annotations. */
+export interface SchemaLink {
+  field: string;
+  link: AnnotationLink;
+  /** The field holds a list of links rather than one. */
+  multiple: boolean;
+}
+
+/** The link fields of a profile's schema, at its top level (ADR 0035). */
+export function linkFieldsOf(schema: Record<string, unknown>): SchemaLink[] {
+  const properties = schema['properties'];
+  if (typeof properties !== 'object' || properties === null) return [];
+  return Object.entries(properties as Record<string, unknown>).flatMap(([field, child]) => {
+    if (typeof child !== 'object' || child === null) return [];
+    const { annotation, type } = child as { annotation?: unknown; type?: unknown };
+    if (typeof annotation !== 'object' || annotation === null) return [];
+    return [{ field, link: annotation as AnnotationLink, multiple: type === 'array' }];
+  });
+}
+
 /** The IRIs a link field's value names, whether it holds one or a list. */
 export function linkedIris(value: unknown): string[] {
   if (typeof value === 'string') return [value];
