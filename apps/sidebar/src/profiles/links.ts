@@ -3,8 +3,32 @@
  * of the field's profile, labelled by the body's `label` field.
  */
 import type { Annotation } from '@curanno/api-client';
+import type { InjectionKey, Ref } from 'vue';
 import { quoteOf, structuredBodies, type AnnotationLink, type BodyProfile } from '@curanno/model';
 import { fieldsOf, type SchemaField } from './schema';
+
+/** Annotations a link may name besides those saved: a batch's items, by local id (ADR 0037). */
+export interface ExtraLink {
+  id: string;
+  profile: string;
+  value: unknown;
+  quote: string;
+}
+export const EXTRA_LINKS: InjectionKey<Ref<ExtraLink[]>> = Symbol('extra links');
+
+/** The extras that `link` may name, labelled as suggestions. */
+export function extraCandidates(
+  extras: readonly ExtraLink[],
+  link: AnnotationLink,
+): LinkCandidate[] {
+  return extras
+    .filter((e) => e.profile === link.profile)
+    .map((e) => ({
+      id: e.id,
+      label: `${labelOf(e.value, link.label) ?? e.id} (suggested)`,
+      quote: e.quote,
+    }));
+}
 
 export interface LinkCandidate {
   id: string;
