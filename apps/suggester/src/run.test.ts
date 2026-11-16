@@ -7,7 +7,8 @@ import { answer, createFakeEndpoint } from '@curanno/extract/testing';
 import { builtinProfiles, caseFamilyProfile, individualProfile } from '@curanno/model';
 import { describe, expect, it } from 'vitest';
 import { articleFromBioc } from './bioc.ts';
-import { loadProfiles, rerunKey, suggestFor } from './run.ts';
+import { loadProfiles, profileForKind, rerunKey } from './profiles.ts';
+import { suggestFor } from './run.ts';
 import { State } from './state.ts';
 
 const article = articleFromBioc(
@@ -56,16 +57,15 @@ describe('suggestFor', () => {
             },
           ]),
     );
-    const profiles = await loadProfiles(api, ['case-family', 'individual/1']);
-    expect(profiles.chosen.map((p) => p.iri)).toEqual([
-      caseFamilyProfile.iri,
-      individualProfile.iri,
-    ]);
+    const { all, validate } = await loadProfiles(api);
+    const kinds = ['case-family', 'individual/1'].map((k) => profileForKind(all, k));
+    expect(kinds.map((p) => p.iri)).toEqual([caseFamilyProfile.iri, individualProfile.iri]);
     const outcome = await suggestFor(article, {
       api,
       group: GROUP,
       endpoint: { url: 'http://127.0.0.1:1234', model: 'qwen' },
-      profiles,
+      kinds,
+      validate,
       fetch: model.fetch,
     });
     expect(outcome).toMatchObject({ items: 2, rejected: 0, skipped: [], batch: 'b1' });
@@ -82,7 +82,7 @@ describe('suggestFor', () => {
           version: '0.1.0 / prompt 3',
           nickname: 'qwen / prompt 3',
         },
-        key: rerunKey(profiles.chosen),
+        key: rerunKey(kinds),
         items: [
           {
             id: '_:s1',
@@ -110,10 +110,11 @@ describe('suggestFor', () => {
     ]);
   });
 
-  it('refuses a profile that is computed or unknown', async () => {
+  it('refuses a kind that is computed or unknown', async () => {
     const { api } = fakeApi();
-    await expect(loadProfiles(api, ['case-individual'])).rejects.toThrow(/computed/);
-    await expect(loadProfiles(api, ['nothing'])).rejects.toThrow(/no profile nothing/);
+    const { all } = await loadProfiles(api);
+    expect(() => profileForKind(all, 'case-individual')).toThrow(/computed/);
+    expect(() => profileForKind(all, 'nothing')).toThrow(/no kind nothing/);
   });
 });
 

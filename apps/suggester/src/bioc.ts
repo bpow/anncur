@@ -9,7 +9,7 @@ import type { components } from '@curanno/api-client';
 
 type DocumentMetadata = components['schemas']['DocumentMetadata'];
 
-interface Passage {
+interface BiocPassage {
   infons?: Record<string, string>;
   offset?: number;
   text?: string;
@@ -17,13 +17,22 @@ interface Passage {
 
 interface BiocDocument {
   id?: string;
-  passages?: Passage[];
+  passages?: BiocPassage[];
+}
+
+export interface Passage {
+  /** 1-based, in reading order, for pointing at a passage. */
+  n: number;
+  /** BioC's section type, such as `CASE`, `RESULTS` or `TABLE`. */
+  section: string;
+  text: string;
 }
 
 export interface Article {
   pmcid: string;
   title?: string;
   scope: ScopeText;
+  passages: Passage[];
   document: DocumentMetadata;
 }
 
@@ -56,9 +65,11 @@ export function articleFromBioc(json: unknown): Article {
   let text = '';
   let length = 0;
   const blockStarts: number[] = [];
+  const read: Passage[] = [];
   for (const p of passages) {
     blockStarts.push(length);
     const block = p.text!.trim();
+    read.push({ n: read.length + 1, section: p.infons?.['section_type'] ?? '', text: block });
     text += block;
     length += [...block].length;
   }
@@ -67,6 +78,7 @@ export function articleFromBioc(json: unknown): Article {
     pmcid,
     ...(title ? { title } : {}),
     scope: { key: 'body', text, blockStarts: blockStarts.slice(1) },
+    passages: read,
     document: {
       uri: self,
       ...(title ? { title } : {}),
