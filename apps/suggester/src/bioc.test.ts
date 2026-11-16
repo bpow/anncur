@@ -15,6 +15,11 @@ describe('articleFromBioc', () => {
       text: 'A family with cardiomyopathyPatient 1, a 14-year-old boy, presented with syncope.His parents are first cousins.',
       blockStarts: [28, 81],
     });
+    expect(article.passages.map((p) => [p.n, p.section])).toEqual([
+      [1, 'TITLE'],
+      [2, 'CASE'],
+      [3, 'CASE'],
+    ]);
     expect(article.document).toEqual({
       uri: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC0000001/',
       title: 'A family with cardiomyopathy',
