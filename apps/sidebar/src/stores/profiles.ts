@@ -1,4 +1,12 @@
-import type { Body, BodyProfile, Motivation, ValidationError } from '@curanno/model';
+import {
+  LOCAL_PLACEHOLDER,
+  isStructuredBody,
+  replaceLocalIds,
+  type Body,
+  type BodyProfile,
+  type Motivation,
+  type ValidationError,
+} from '@curanno/model';
 import { defineStore } from 'pinia';
 import { ref, shallowRef } from 'vue';
 import { useApi } from '../api/client';
@@ -27,9 +35,16 @@ export const useProfilesStore = defineStore('profiles', () => {
     return registry.value.get(iri);
   }
 
-  /** Validation errors for one body; empty when it is valid or no profile applies. */
+  /**
+   * Validation errors for one body; empty when it is valid or no profile applies.
+   * A suggestion's links to other items of its batch (`_:` ids) pass: the API
+   * resolves them when the item is accepted.
+   */
   function validate(body: Body): ValidationError[] {
-    const result = registry.value.validate(body);
+    const checked = isStructuredBody(body)
+      ? replaceLocalIds(body, registry.value, (id) => `${LOCAL_PLACEHOLDER}${id.slice(2)}`)
+      : body;
+    const result = registry.value.validate(checked);
     return result && !result.ok ? result.errors : [];
   }
 

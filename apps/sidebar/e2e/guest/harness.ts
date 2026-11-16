@@ -77,7 +77,11 @@ export interface StubApi {
   annotations: Map<string, Record<string, unknown>>;
   /** URIs that search treats as another document's, as document identity links them. */
   aliases: Map<string, string>;
+  /** Suggestion batches posted, by id, with the page they are on (ADR 0037). */
+  batches: Map<string, { uri: string; batch: Record<string, unknown> }>;
 }
+
+export const E2E_GROUP = { id: '66666666-6666-4666-8666-666666666666', name: 'E2E curators' };
 
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}) => ({
   status,
@@ -88,7 +92,12 @@ const json = (body: unknown, status = 200, headers: Record<string, string> = {})
 
 /** Answers the sidebar's API calls on its own origin. */
 export async function stubApi(context: BrowserContext, pageUrl: string): Promise<StubApi> {
-  const stub: StubApi = { calls: [], annotations: new Map(), aliases: new Map() };
+  const stub: StubApi = {
+    calls: [],
+    annotations: new Map(),
+    aliases: new Map(),
+    batches: new Map(),
+  };
   stub.annotations.set(PUBLIC_ANNOTATION_ID, annotation(pageUrl));
   let counter = 0;
   await context.route(
@@ -113,7 +122,107 @@ export async function stubApi(context: BrowserContext, pageUrl: string): Promise
         stub.annotations.delete(`${API_ORIGIN}${url.pathname}`);
         return route.fulfill({ status: 204 });
       }
+      const create = (body: Record<string, unknown>) => {
+        const id = `${API_ORIGIN}/annotations/44444444-4444-4444-8444-${String(++counter).padStart(12, '0')}`;
+        const created = {
+          '@context': 'http://www.w3.org/ns/anno.jsonld',
+          ...body,
+          id,
+          creator: {
+            id: `${API_ORIGIN}/x/users/55555555-5555-4555-8555-555555555555`,
+            type: 'Person',
+            name: 'E2E User',
+          },
+          created: new Date().toISOString(),
+          modified: new Date().toISOString(),
+          permissions: ['read', 'update', 'delete', 'share'],
+        };
+        stub.annotations.set(id, created);
+        return created;
+      };
+      const batchPath = /^\/x\/suggestion-batches\/([0-9a-f-]{36})(?:\/(accept|reject))?$/.exec(
+        url.pathname,
+      );
+      const entry = batchPath && stub.batches.get(batchPath[1]!);
+      if (entry) {
+        type Item = { id: string; status: string; annotation?: string };
+        const items = entry.batch['items'] as Item[];
+        const decide = (ids: string[], status: string, annotations: string[] = []) => {
+          ids.forEach((id, i) => {
+            const item = items.find((x) => x.id === id);
+            if (item)
+              Object.assign(item, {
+                status,
+                ...(annotations[i] ? { annotation: annotations[i] } : {}),
+              });
+          });
+          const pending = items.filter((x) => x.status === 'pending').length;
+          entry.batch['counts'] = { pending, accepted: items.length - pending, rejected: 0 };
+        };
+        if (call.method === 'GET' && !batchPath[2]) return route.fulfill(json(entry.batch));
+        if (batchPath[2] === 'accept') {
+          const asked = (
+            call.body as { items: { id: string; annotation: Record<string, unknown> }[] }
+          ).items;
+          const made = asked.map((a) => create(a.annotation)['id']);
+          decide(
+            asked.map((a) => a.id),
+            'accepted',
+            made,
+          );
+          return route.fulfill(
+            json({ items: asked.map((a, i) => ({ id: a.id, annotation: made[i] })) }),
+          );
+        }
+        if (batchPath[2] === 'reject') {
+          decide((call.body as { items: string[] }).items, 'rejected');
+          return route.fulfill(json(entry.batch));
+        }
+      }
+      if (call.method === 'PUT' && /^\/x\/annotations\/[^/]+\/acl$/.test(url.pathname)) {
+        return route.fulfill(json([]));
+      }
       switch (key) {
+        case 'GET /x/me':
+          return route.fulfill(
+            json({
+              id: '55555555-5555-4555-8555-555555555555',
+              iri: `${API_ORIGIN}/x/users/55555555-5555-4555-8555-555555555555`,
+              isAdmin: false,
+              service: false,
+              created: '2026-10-30T08:00:00Z',
+              groups: [E2E_GROUP],
+            }),
+          );
+        case 'GET /x/suggestion-batches': {
+          const uri = url.searchParams.get('uri');
+          const items = [...stub.batches.values()]
+            .filter((b) => b.uri === uri && (b.batch['counts'] as { pending: number }).pending > 0)
+            .map((b) => b.batch);
+          return route.fulfill(json({ total: items.length, items }));
+        }
+        case 'POST /x/suggestion-batches': {
+          const input = call.body as {
+            group: string;
+            document: { uri: string };
+            engine: unknown;
+            items: Record<string, unknown>[];
+          };
+          const id = `77777777-7777-4777-8777-${String(stub.batches.size + 1).padStart(12, '0')}`;
+          const batch = {
+            id,
+            group: input.group,
+            groupName: E2E_GROUP.name,
+            document: '33333333-3333-4333-8333-333333333333',
+            engine: input.engine,
+            creator: '55555555-5555-4555-8555-555555555555',
+            created: new Date().toISOString(),
+            counts: { pending: input.items.length, accepted: 0, rejected: 0 },
+            items: input.items.map((i) => ({ ...i, status: 'pending' })),
+          };
+          stub.batches.set(id, { uri: input.document.uri, batch });
+          return route.fulfill(json(batch, 201));
+        }
         case 'GET /x/profiles':
           return route.fulfill(json([]));
         case 'GET /x/search': {
@@ -143,22 +252,8 @@ export async function stubApi(context: BrowserContext, pageUrl: string): Promise
           );
         }
         case 'POST /annotations/': {
-          const id = `${API_ORIGIN}/annotations/44444444-4444-4444-8444-${String(++counter).padStart(12, '0')}`;
-          const created = {
-            '@context': 'http://www.w3.org/ns/anno.jsonld',
-            ...(call.body as Record<string, unknown>),
-            id,
-            creator: {
-              id: `${API_ORIGIN}/x/users/55555555-5555-4555-8555-555555555555`,
-              type: 'Person',
-              name: 'E2E User',
-            },
-            created: new Date().toISOString(),
-            modified: new Date().toISOString(),
-            permissions: ['read', 'update', 'delete', 'share'],
-          };
-          stub.annotations.set(id, created);
-          return route.fulfill(json(created, 201, { etag: '"1"', location: id }));
+          const created = create(call.body as Record<string, unknown>);
+          return route.fulfill(json(created, 201, { etag: '"1"', location: created.id }));
         }
         default:
           return route.fulfill(
@@ -186,9 +281,12 @@ export async function stubViewerConfig(context: BrowserContext): Promise<void> {
 
 /**
  * The sidebar's `config.json`. It names the issuer and the client the stored
- * session belongs to, which the build's defaults may not.
+ * session belongs to, which the build's defaults may not; `extra` adds to it.
  */
-async function stubSidebarConfig(context: BrowserContext): Promise<void> {
+export async function stubSidebarConfig(
+  context: BrowserContext,
+  extra: Record<string, unknown> = {},
+): Promise<void> {
   await context.route(`${SIDEBAR_URL}config.json`, (route) =>
     route.fulfill(
       json({
@@ -196,6 +294,7 @@ async function stubSidebarConfig(context: BrowserContext): Promise<void> {
         oidcClientId: OIDC_CLIENT_ID,
         apiUrl: '',
         pdfViewerOrigin: VIEWER_ORIGIN,
+        ...extra,
       }),
     ),
   );

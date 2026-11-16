@@ -32,4 +32,12 @@ export {
   type ValidationError,
   type ValidationResult,
 } from './registry.js';
+export {
+  LOCAL_PLACEHOLDER,
+  checkItems,
+  isLocalId,
+  localLinks,
+  replaceLocalIds,
+  type ItemInput,
+} from './batch-items.js';
 export { summarizeIndividuals, type IndividualSummary, type Summaries } from './summary.js';

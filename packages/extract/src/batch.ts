@@ -6,8 +6,9 @@
  * in between. The sidebar and the bulk suggester both run this.
  */
 import {
+  LOCAL_PLACEHOLDER,
   linkFieldsOf,
-  linkedIris,
+  replaceLocalIds,
   type AnnotationLink,
   type BodyProfile,
   type JsonValue,
@@ -71,16 +72,8 @@ export function runOrder(profiles: readonly BodyProfile[]): BodyProfile[] {
 
 /** `body` with local ids in its link fields swapped for IRIs, so that a profile's IRI pattern accepts it. */
 export function withPlaceholders(body: StructuredBody, profile: BodyProfile): StructuredBody {
-  const value = body.value;
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) return body;
-  const next: Record<string, JsonValue> = { ...value };
-  const swap = (v: string) => (v.startsWith('_:') ? `urn:x-curanno-local:${v.slice(2)}` : v);
-  for (const { field } of linkFieldsOf(profile.schema)) {
-    const current = value[field];
-    if (Array.isArray(current)) next[field] = linkedIris(current).map(swap);
-    else if (typeof current === 'string') next[field] = swap(current);
-  }
-  return { ...body, value: next };
+  const one = { get: (iri: string) => (iri === profile.iri ? profile : undefined) };
+  return replaceLocalIds(body, one, (id) => `${LOCAL_PLACEHOLDER}${id.slice(2)}`);
 }
 
 function labelOf(value: JsonValue, field: string | undefined): string | undefined {
