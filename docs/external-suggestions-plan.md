@@ -259,3 +259,14 @@ Step 5 is done on `feat/suggestion-batches`, in ADR 0037 (Proposed). What differ
 - **No events yet.** The sidebar finds batches when it loads a document (`GET /x/suggestion-batches?uri=…&pending=true`).
 - **Rejection cascades only through required link fields.** An item left with an empty required link field is rejected too; one whose link field is optional keeps its other values.
 - **Limits:** 2000 items per batch and 500 per accept call, in the OpenAPI document. `DELETE /x/suggestion-batches/{id}` removes a batch; annotations made from it stay.
+
+## 12. Status note (2026-11-15): Part 3
+
+Step 7 is done on `feat/access-tokens`, in ADR 0038 (Proposed). What differs from section 4:
+
+- **Token routes are under the user:** `/x/users/{id}/tokens`. People manage their own tokens there and on **/me**. Administrators list and revoke anyone's, and make tokens only for service accounts.
+- **A token never carries administration,** whoever owns it, and its scope's operations are listed in `apps/api/src/auth/tokens.ts`. `suggestions:write` allows `GET /x/me`, and posting, listing and reading suggestion batches.
+- **Service accounts** are users with `is_service`, recorded with an issuer that is not a URL (`urn:x-curanno:service-account`), so no token can sign them in. `POST /x/users` creates one.
+- **Suggesters.** `suggester` is a third group role. It is left out of the caller's principals, so it grants nothing that membership does. A suggester cannot see the group's page or members, and sees only the batches it posted.
+- **Merging accounts** moves tokens a person made for others, drops the loser's own tokens, and ranks roles as suggester, member, admin.
+
