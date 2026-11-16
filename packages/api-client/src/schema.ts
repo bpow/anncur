@@ -344,7 +344,11 @@ export interface paths {
          */
         get: operations["listUsers"];
         put?: never;
-        post?: never;
+        /**
+         * Create a service account
+         * @description Administrators only. A service account cannot sign in or be made an administrator; it acts through access tokens an administrator makes for it.
+         */
+        post: operations["createServiceAccount"];
         delete?: never;
         options?: never;
         head?: never;
@@ -372,6 +376,55 @@ export interface paths {
          * @description Administrators only. An administrator cannot disable themselves (409).
          */
         patch: operations["updateUser"];
+        trace?: never;
+    };
+    "/x/users/{id}/tokens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["userId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * List a user's access tokens
+         * @description The user themself, or an administrator. Revoked and expired tokens are listed too.
+         */
+        get: operations["listAccessTokens"];
+        put?: never;
+        /**
+         * Make an access token
+         * @description The user themself, or an administrator for a service account. The secret is in the response and nowhere else.
+         */
+        post: operations["createAccessToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/x/users/{id}/tokens/{tokenId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["userId"];
+                tokenId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Revoke an access token
+         * @description The user themself, or an administrator. It stops working at once.
+         */
+        delete: operations["revokeAccessToken"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/x/applications": {
@@ -937,8 +990,11 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
-        /** @enum {string} */
-        GroupRole: "member" | "admin";
+        /**
+         * @description A `suggester` may post suggestion batches for the group and read the ones it posted, and is not otherwise a member (ADR 0038).
+         * @enum {string}
+         */
+        GroupRole: "member" | "admin" | "suggester";
         GroupRef: {
             /** Format: uuid */
             id: string;
@@ -964,6 +1020,8 @@ export interface components {
             displayName?: string;
             email?: string;
             isAdmin: boolean;
+            /** @description A service account, which cannot sign in and acts only through access tokens. */
+            service: boolean;
             /**
              * @description Only an `active` user acts as themself. Others (waiting for approval, rejected, disabled) read as the public and can retrieve only their own record.
              * @enum {string}
@@ -975,6 +1033,41 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /**
+         * @description `suggestions:write`: `GET /x/me`, and posting, listing and reading suggestion batches.
+         * @enum {string}
+         */
+        TokenScope: "suggestions:write";
+        AccessTokenInput: {
+            /** @description What the token is for, such as the job that uses it. */
+            name: string;
+            scopes: components["schemas"]["TokenScope"][];
+            expiresInDays: number;
+        } & {
+            [key: string]: unknown;
+        };
+        AccessToken: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            scopes: components["schemas"]["TokenScope"][];
+            /** Format: date-time */
+            created: string;
+            /** Format: date-time */
+            expires: string;
+            /** Format: date-time */
+            lastUsed?: string;
+            /** Format: date-time */
+            revoked?: string;
+        } & {
+            [key: string]: unknown;
+        };
+        NewAccessToken: components["schemas"]["AccessToken"] & ({
+            /** @description The bearer token. It is shown only this once. */
+            token: string;
+        } & {
+            [key: string]: unknown;
+        });
         UserPatch: {
             displayName?: string;
             isAdmin?: boolean;
@@ -1443,6 +1536,7 @@ export interface components {
     };
     parameters: {
         annotationId: string;
+        userId: string;
         batchId: string;
         groupId: string;
         /** @description Page number, starting at 0. Without it the container itself is returned. */
@@ -1510,6 +1604,10 @@ export type GroupRole = components['schemas']['GroupRole'];
 export type GroupRef = components['schemas']['GroupRef'];
 export type UserRef = components['schemas']['UserRef'];
 export type User = components['schemas']['User'];
+export type TokenScope = components['schemas']['TokenScope'];
+export type AccessTokenInput = components['schemas']['AccessTokenInput'];
+export type AccessToken = components['schemas']['AccessToken'];
+export type NewAccessToken = components['schemas']['NewAccessToken'];
 export type UserPatch = components['schemas']['UserPatch'];
 export type Application = components['schemas']['Application'];
 export type ApplicationList = components['schemas']['ApplicationList'];
@@ -1553,6 +1651,7 @@ export type ResponsePreconditionFailed = components['responses']['PreconditionFa
 export type ResponsePreconditionRequired = components['responses']['PreconditionRequired'];
 export type ResponseUnprocessableContent = components['responses']['UnprocessableContent'];
 export type ParameterAnnotationId = components['parameters']['annotationId'];
+export type ParameterUserId = components['parameters']['userId'];
 export type ParameterBatchId = components['parameters']['batchId'];
 export type ParameterGroupId = components['parameters']['groupId'];
 export type ParameterPage = components['parameters']['page'];
@@ -2243,6 +2342,37 @@ export interface operations {
             403: components["responses"]["Forbidden"];
         };
     };
+    createServiceAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    displayName: string;
+                } & {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description The service account */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
     getUser: {
         parameters: {
             query?: never;
@@ -2296,6 +2426,83 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+        };
+    };
+    listAccessTokens: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["userId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tokens, newest first, without their secrets */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessToken"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createAccessToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["userId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessTokenInput"];
+            };
+        };
+        responses: {
+            /** @description The token, with its secret */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NewAccessToken"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    revokeAccessToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["userId"];
+                tokenId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Revoked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     listApplications: {
