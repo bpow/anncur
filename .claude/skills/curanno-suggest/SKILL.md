@@ -14,7 +14,7 @@ The plan behind this skill is `docs/claude-skills-plan.md`.
 
 You need two things from the user's request, and should ask for any that are missing:
 
-- **The article:** a PMC id such as `PMC1234567`, or a BioC JSON file.
+- **The article:** a PMC id such as `PMC1234567`, a BioC JSON file, or the article's web page saved from the browser, as HTML, with its URL.
 - **The gene of interest:** an HGNC symbol such as `MYH7`.
 
 These are optional:
@@ -39,7 +39,12 @@ Work in `.curanno-drafts/<PMCID>/`.
    - Read `references/kinds/<kind>.md` for each chosen kind, and no others.
 2. **Read the article.**
    - Run `node apps/suggester/src/cli.ts text --pmcid <PMCID> --save .curanno-drafts/<PMCID>/article.bioc.json --out .curanno-drafts/<PMCID>/article.json`.
-   - Read `article.json` from start to end, tables included: they are passages with section `TABLE`. For a long article, read it in parts, but read all of it before writing.
+   - **If PMC has no text for the article,** because its publisher does not allow it ("not in PMC's open-access BioC service"), ask the user to save the article's PMC page from their browser, as HTML only, into `.curanno-drafts/<PMCID>/page.html`. Then run `text --html .curanno-drafts/<PMCID>/page.html --url https://pmc.ncbi.nlm.nih.gov/articles/<PMCID>/ --out .curanno-drafts/<PMCID>/article.json`.
+     - The page's text is what the curator's sidebar sees, so quotes match it exactly.
+     - It also includes the site's navigation and the references, which you ignore.
+     - From here on, pass `--html … --url …` to `check`, `summarize` and `post` in place of `--bioc …`.
+   - Read `article.json` from start to end, tables included. For a long article, read it in parts, but read all of it before writing.
+   - In a BioC file, table text is a passage with section `TABLE`. On a saved page, every table cell is a passage of its own, so a table reads as a run of short passages. See `references/tables.md`.
 3. **Find the individuals.**
    - Find every individual the authors assert carries a variant in the gene of interest.
    - For each, note:
@@ -60,7 +65,9 @@ Work in `.curanno-drafts/<PMCID>/`.
    4. Run `check` again.
 
    Stop after five rounds and report what still fails. Do not drop items to make the check pass without saying so.
-6. **Report.** Tell the user:
+6. **Report.**
+   - Run `node apps/suggester/src/cli.ts summarize …` with the same arguments as `check`. It shows each individual's whole record as the facts add it up. Look for duplicated or conflicting values, and individuals missing a variant.
+   - Then tell the user:
    - the individuals found, each with their number of facts by kind;
    - phenotypes kept as text;
    - everything in `notInBatch`;
