@@ -13,6 +13,8 @@
  *          ontology terms matching QUERY, through the API (JSON)
  *   check  DRAFT [--bioc FILE | --html FILE [--url URL]]
  *          a draft batch checked against the article and the profiles (JSON); exit 1 on problems
+ *   summarize DRAFT [--bioc FILE | --html FILE [--url URL]]
+ *          the whole-individual records the draft's facts add up to (JSON)
  *   post   DRAFT --group ID [--bioc FILE | --html FILE [--url URL]]
  *          check, then post the batch
  *
@@ -23,7 +25,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 import { createApiClient, unwrap, type ApiClient } from '@curanno/api-client';
 import { PROMPT_VERSION, outputSchema } from '@curanno/extract';
-import { linkFieldsOf, type BodyProfile } from '@curanno/model';
+import { linkFieldsOf, summarizeIndividuals, type BodyProfile } from '@curanno/model';
 import { articleFromBioc, fetchBioc, type Article } from './bioc.ts';
 import { checkDraft, type Draft } from './draft.ts';
 import { articleFromHtml } from './html.ts';
@@ -185,6 +187,35 @@ const commands: Record<string, () => Promise<number>> = {
     const { result } = await checked(client(false));
     print(result);
     return result.problems.length ? 1 : 0;
+  },
+
+  /** The whole-individual records the draft's facts add up to, as if every item were accepted. */
+  async summarize() {
+    const api = client(false);
+    const { result } = await checked(api);
+    if (!result.batch) {
+      print(result);
+      return 1;
+    }
+    const { registry } = await profiles(api);
+    const annotations = result.batch.items.map((i) => ({ id: i.id, body: i.body }));
+    const { individuals, unlinked } = summarizeIndividuals(
+      annotations as Parameters<typeof summarizeIndividuals>[0],
+      (body) => {
+        const r = registry.validate(body);
+        return r && !r.ok ? r.errors : [];
+      },
+    );
+    print({
+      individuals: individuals.map((i) => ({
+        individual: i.individual,
+        facts: i.facts.length,
+        value: i.value,
+        ...(i.errors.length ? { incomplete: i.errors.map((e) => e.message) } : {}),
+      })),
+      unlinked,
+    });
+    return 0;
   },
 
   async post() {
