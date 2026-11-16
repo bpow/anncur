@@ -44,6 +44,8 @@ export const HANDLING: Record<string, 'moved' | 'merged' | 'dropped' | 'self'> =
   'login_tickets.principal_id': 'dropped',
   'suggestion_batches.created_by': 'moved',
   'suggestion_items.decided_by': 'moved',
+  'access_tokens.principal_id': 'dropped',
+  'access_tokens.created_by': 'moved',
 };
 
 export class MergeError extends Error {}
@@ -140,7 +142,22 @@ export async function mergeAccounts(
       ),
     )
     .execute();
-  // Memberships: where both belong, the stronger role wins.
+  // Memberships: where both belong, the stronger role wins (suggester, member, admin).
+  await trx
+    .updateTable('group_memberships')
+    .set({ role: 'member' })
+    .where('user_id', '=', survivor)
+    .where('role', '=', 'suggester')
+    .where(
+      'group_id',
+      'in',
+      trx
+        .selectFrom('group_memberships')
+        .select('group_id')
+        .where('user_id', '=', loser)
+        .where('role', '=', 'member'),
+    )
+    .execute();
   await trx
     .updateTable('group_memberships')
     .set({ role: 'admin' })
@@ -176,6 +193,7 @@ export async function mergeAccounts(
     ['applications', 'decided_by'],
     ['suggestion_batches', 'created_by'],
     ['suggestion_items', 'decided_by'],
+    ['access_tokens', 'created_by'],
   ] as const) {
     await sql`update ${sql.table(table)} set ${sql.ref(column)} = ${survivor} where ${sql.ref(column)} = ${loser}`.execute(
       trx,

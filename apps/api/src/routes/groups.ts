@@ -61,7 +61,9 @@ export function groupHandlers(ctx: AppContext): Handlers {
     const caller = requireUser(request);
     const { id } = request.params as { id: string };
     const row = await groupQuery(caller).where('groups.principal_id', '=', id).executeTakeFirst();
-    if (!row || (!caller.isAdmin && row.role === null)) throw notFound(`no group ${id}`);
+    // A suggester posts for the group but is not a member of it (ADR 0038).
+    const member = row?.role === 'member' || row?.role === 'admin';
+    if (!row || (!caller.isAdmin && !member)) throw notFound(`no group ${id}`);
     return { caller, group: row };
   }
 
@@ -215,7 +217,9 @@ export function groupHandlers(ctx: AppContext): Handlers {
       const { id } = request.params as { id: string };
       const row = await groupQuery(caller).where('groups.principal_id', '=', id).executeTakeFirst();
       if (!row) throw notFound(`no group ${id}`);
-      if (!caller.isAdmin && row.role === null) throw forbidden('members only');
+      if (!caller.isAdmin && (row.role === null || row.role === 'suggester')) {
+        throw forbidden('members only');
+      }
       const members = await db
         .selectFrom('group_memberships')
         .innerJoin('users', 'users.principal_id', 'group_memberships.user_id')
@@ -264,7 +268,9 @@ export function groupHandlers(ctx: AppContext): Handlers {
       const caller = requireUser(request);
       const { id, userId } = request.params as { id: string; userId: string };
       const row = await groupQuery(caller).where('groups.principal_id', '=', id).executeTakeFirst();
-      if (!row || (!caller.isAdmin && row.role === null)) throw notFound(`no group ${id}`);
+      // A suggester posts for the group but is not a member of it (ADR 0038).
+      const member = row?.role === 'member' || row?.role === 'admin';
+      if (!row || (!caller.isAdmin && !member)) throw notFound(`no group ${id}`);
       if (!caller.isAdmin && row.role !== 'admin' && caller.userId !== userId) {
         throw forbidden('group administrators only, or the member themself');
       }

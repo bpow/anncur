@@ -27,7 +27,15 @@ export async function loadUsers(
   if (ids.length === 0) return [];
   const rows = await db
     .selectFrom('users')
-    .select(['principal_id', 'display_name', 'email', 'is_admin', 'status', 'created_at'])
+    .select([
+      'principal_id',
+      'display_name',
+      'email',
+      'is_admin',
+      'is_service',
+      'status',
+      'created_at',
+    ])
     .where('principal_id', 'in', ids)
     .execute();
   const memberships = await db
@@ -49,6 +57,7 @@ export async function loadUsers(
         ...(row.display_name !== null ? { displayName: row.display_name } : {}),
         ...(privileged && row.email !== null ? { email: row.email } : {}),
         isAdmin: row.is_admin,
+        service: row.is_service,
         status: row.status,
         created: isoDate(row.created_at),
         groups: privileged
@@ -73,6 +82,9 @@ const ownView = {
   status: 'active' as const,
   principalIds: [] as string[],
 };
+
+/** The issuer recorded for service accounts (ADR 0038); it is not a URL, so no token names it. */
+export const SERVICE_ISSUER = 'urn:x-curanno:service-account';
 
 const like = (q: string): string => `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
 
@@ -120,6 +132,32 @@ export function userHandlers(ctx: AppContext): Handlers {
       };
     },
 
+    async createServiceAccount(request, reply) {
+      const caller = requireAdmin(request);
+      const { displayName } = request.body as { displayName: string };
+      const id = await db.transaction().execute(async (trx) => {
+        const principal = await trx
+          .insertInto('principals')
+          .values({ kind: 'user' })
+          .returning('id')
+          .executeTakeFirstOrThrow();
+        // An issuer no token can come from: the account has no way to sign in.
+        await trx
+          .insertInto('users')
+          .values({
+            principal_id: principal.id,
+            issuer: SERVICE_ISSUER,
+            subject: principal.id,
+            display_name: displayName,
+            is_service: true,
+          })
+          .execute();
+        return principal.id;
+      });
+      reply.code(201);
+      return loadUser(db, id, caller);
+    },
+
     async getUser(request) {
       const caller = requireUser(request);
       const { id } = request.params as { id: string };
@@ -132,6 +170,14 @@ export function userHandlers(ctx: AppContext): Handlers {
       const patch = request.body as UserPatch;
       if (id === caller.userId && patch.status !== undefined && patch.status !== 'active') {
         throw conflict('administrators cannot disable themselves');
+      }
+      if (patch.isAdmin) {
+        const target = await db
+          .selectFrom('users')
+          .select('is_service')
+          .where('principal_id', '=', id)
+          .executeTakeFirst();
+        if (target?.is_service) throw conflict('a service account cannot be an administrator');
       }
       const updated = await db
         .updateTable('users')

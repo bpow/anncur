@@ -18,6 +18,7 @@ import {
   type ResolveOptions,
   type UserCaller,
 } from './caller.js';
+import { TOKEN_PREFIX, resolveToken, scopesAllow } from './tokens.js';
 import type { TokenVerifier } from './verifier.js';
 
 declare module 'fastify' {
@@ -53,6 +54,15 @@ export function installAuth(app: FastifyInstance, options: AuthOptions): void {
     const match = /^Bearer\s+(\S+)$/i.exec(header);
     if (!match) throw unauthorized('Authorization header must be "Bearer <token>"');
     const token = match[1] as string;
+    if (token.startsWith(TOKEN_PREFIX)) {
+      const caller = await resolveToken(options.db, token);
+      request.caller = caller;
+      request.log = request.log.child({ tokenId: caller.token?.id });
+      if (!scopesAllow(caller.token?.scopes ?? [], request.method, request.routeOptions.url)) {
+        throw forbidden("the access token's scopes do not allow this request");
+      }
+      return;
+    }
     const now = Date.now();
     const cached = cache.get(token);
     if (cached && cached.expiresAt > now) {

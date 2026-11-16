@@ -206,6 +206,16 @@ describe.skipIf(!databaseUrl)('merging accounts', () => {
         .executeTakeFirstOrThrow();
       ids['batch'] = batch.id;
     },
+    'access_tokens.principal_id': async () => {
+      await sql`insert into access_tokens (principal_id, name, scopes, secret_hash, expires_at) values (${loser}, 'own', '{suggestions:write}', 'h1', now() + interval '1 day')`.execute(
+        ctx.db,
+      );
+    },
+    'access_tokens.created_by': async () => {
+      await sql`insert into access_tokens (principal_id, name, scopes, secret_hash, created_by, expires_at) values (${third}, 'made', '{suggestions:write}', 'h2', ${loser}, now() + interval '1 day')`.execute(
+        ctx.db,
+      );
+    },
     'suggestion_items.decided_by': async () => {
       await ctx.db
         .insertInto('suggestion_items')
