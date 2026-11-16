@@ -12,6 +12,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { GUEST_KEY } from '../guest';
 import { createFakeGuest, type FakeGuest } from '../guest/fake';
 import { useAnnotationsStore } from '../stores/annotations';
+import { useCurrentLinksStore } from '../stores/current-links';
 import { useProfilesStore } from '../stores/profiles';
 import { installFakeApi, json } from '../test/fake-api';
 import IndividualsPanel from './IndividualsPanel.vue';
@@ -77,5 +78,22 @@ describe('IndividualsPanel', () => {
     await wrapper.vm.$nextTick();
     expect(wrapper.find('.incomplete').exists()).toBe(false);
     expect(wrapper.find('.variant').text()).toContain('c.1A>G');
+  });
+
+  it('marks individuals as current, until the page changes', async () => {
+    const store = useAnnotationsStore();
+    store.upsert(annotation(1, individualProfile.iri, { case: 'II-1' }));
+    store.upsert(annotation(2, individualProfile.iri, { case: 'II-2' }));
+    const wrapper = mountPanel();
+    const current = useCurrentLinksStore();
+    const boxes = wrapper.findAll('label.current input');
+    await boxes[1]!.setValue(true);
+    expect(current.of(individualProfile.iri)).toEqual([iri(2)]);
+    expect(current.initialValue(caseFamilyProfile)).toEqual({ individuals: [iri(2)] });
+    expect(current.initialValue(caseIndividualProfile)).toEqual({});
+
+    guest.setDocument('https://example.org/other');
+    await wrapper.vm.$nextTick();
+    expect(current.of(individualProfile.iri)).toEqual([]);
   });
 });

@@ -1,7 +1,14 @@
-import { PROFILE_BASE, caseIndividualProfile, evidenceExcerptProfile } from '@curanno/model';
+import {
+  PROFILE_BASE,
+  caseFamilyProfile,
+  caseIndividualProfile,
+  evidenceExcerptProfile,
+  individualProfile,
+} from '@curanno/model';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { useCurrentLinksStore } from '../stores/current-links';
 import { useProfilesStore } from '../stores/profiles';
 import { installFakeApi, json } from '../test/fake-api';
 import type { AnnotationDraft } from '../api/annotations';
@@ -15,7 +22,7 @@ describe('AnnotationEditor', () => {
     installFakeApi(({ url }) =>
       url.pathname === '/x/profiles'
         ? json(
-            [evidenceExcerptProfile, caseIndividualProfile].map((p) => ({
+            [evidenceExcerptProfile, caseIndividualProfile, caseFamilyProfile].map((p) => ({
               ...p,
               builtin: true,
               enabled: true,
@@ -133,13 +140,29 @@ describe('AnnotationEditor', () => {
         .find('select[name="profile"]')
         .findAll('option')
         .map((o) => o.text());
-    expect(options({ text: '', tags: [] })).toEqual(['None', 'Evidence excerpt']);
+    expect(options({ text: '', tags: [] })).toEqual([
+      'None',
+      'Evidence excerpt',
+      'Case family history',
+    ]);
     expect(
       options({
         text: '',
         tags: [],
         structured: { profile: caseIndividualProfile.iri, value: { case: 'P1' } },
       }),
-    ).toEqual(['None', 'Evidence excerpt', 'Case individual']);
+    ).toEqual(['None', 'Evidence excerpt', 'Case family history', 'Case individual']);
+  });
+
+  it('links a new fact to the current individuals', async () => {
+    const individual = 'https://x.example/annotations/1';
+    useCurrentLinksStore().toggle(individualProfile.iri, individual);
+    const wrapper = mount(AnnotationEditor, { props: { draft: { text: '', tags: [] } } });
+    await wrapper.find('select[name="profile"]').setValue(caseFamilyProfile.iri);
+    await wrapper.find('textarea[name="familyInfo"]').setValue('Father affected.');
+    await wrapper.find('form').trigger('submit');
+    expect(wrapper.emitted('save')?.[0]?.[0]).toMatchObject({
+      structured: { value: { individuals: [individual], familyInfo: 'Father affected.' } },
+    });
   });
 });

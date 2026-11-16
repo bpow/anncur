@@ -4,6 +4,7 @@ import type { JsonValue, Permission, ValidationError } from '@curanno/model';
 import { computed, ref, shallowRef, watch } from 'vue';
 import type { AnnotationDraft } from '../api/annotations';
 import { writable } from '../profiles/schema';
+import { useCurrentLinksStore } from '../stores/current-links';
 import { useProfilesStore } from '../stores/profiles';
 import AclEditor from './AclEditor.vue';
 import ProblemAlert from './ProblemAlert.vue';
@@ -22,6 +23,7 @@ const props = defineProps<{
 const emit = defineEmits<{ save: [draft: AnnotationDraft]; cancel: []; reload: [] }>();
 
 const profiles = useProfilesStore();
+const currentLinks = useCurrentLinksStore();
 
 const text = ref(props.draft.text);
 const tags = ref<string[]>([...props.draft.tags]);
@@ -57,7 +59,7 @@ const empty = computed(
 
 function onProfileChange(event: Event): void {
   profileIri.value = (event.target as HTMLSelectElement).value;
-  structuredValue.value = {};
+  structuredValue.value = profile.value ? currentLinks.initialValue(profile.value) : {};
   errors.value = [];
 }
 
