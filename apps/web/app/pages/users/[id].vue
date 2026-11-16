@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { definePageMeta, useRoute } from '#imports';
 import { useApi } from '../../api/client';
+import AccessTokens from '../../components/AccessTokens.vue';
 import ProblemAlert from '../../components/ProblemAlert.vue';
 import UserCard from '../../components/UserCard.vue';
 import { useAuth } from '../../composables/auth';
@@ -30,7 +31,10 @@ async function save(): Promise<void> {
   const updated = await edit.perform(() =>
     api.PATCH('/x/users/{id}', {
       params: { path: { id: id.value } },
-      body: { displayName: displayName.value.trim(), isAdmin: isAdmin.value },
+      body: {
+        displayName: displayName.value.trim(),
+        ...(user.data.value?.service ? {} : { isAdmin: isAdmin.value }),
+      },
     }),
   );
   if (updated) {
@@ -53,12 +57,13 @@ async function save(): Promise<void> {
             Display name
             <input v-model="displayName" type="text" required />
           </label>
-          <label class="field">
+          <label v-if="!user.data.value.service" class="field">
             <span><input v-model="isAdmin" type="checkbox" /> Platform administrator</span>
           </label>
           <button type="submit" class="primary" :disabled="edit.busy.value">Save</button>
         </form>
         <ProblemAlert :problem="edit.problem.value" />
+        <AccessTokens v-if="user.data.value.service" :user-id="user.data.value.id" />
       </template>
     </template>
     <p v-else-if="user.pending.value" class="muted">Loading…</p>

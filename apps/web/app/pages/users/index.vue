@@ -5,7 +5,7 @@ import { definePageMeta, navigateTo, useRoute } from '#imports';
 import { useApi } from '../../api/client';
 import ResultPager from '../../components/ResultPager.vue';
 import ProblemAlert from '../../components/ProblemAlert.vue';
-import { useRequest } from '../../composables/request';
+import { useAction, useRequest } from '../../composables/request';
 import { formatDate } from '../../util/time';
 
 definePageMeta({ middleware: 'admin' });
@@ -25,6 +25,15 @@ const users = useRequest(
     }),
   [q, offset],
 );
+
+const make = useAction();
+const serviceName = ref('');
+async function createService(): Promise<void> {
+  const created = await make.perform(() =>
+    api.POST('/x/users', { body: { displayName: serviceName.value.trim() } }),
+  );
+  if (created) await navigateTo(`/users/${created.id}`);
+}
 
 const search = () =>
   navigateTo({ path: '/users', query: draft.value.trim() ? { q: draft.value.trim() } : {} });
@@ -60,7 +69,10 @@ const page = (next: number) =>
               <NuxtLink :to="`/users/${user.id}`">{{ user.displayName ?? user.id }}</NuxtLink>
             </td>
             <td>{{ user.email ?? '' }}</td>
-            <td><span v-if="user.isAdmin" class="badge">admin</span></td>
+            <td>
+              <span v-if="user.isAdmin" class="badge">admin</span>
+              <span v-if="user.service" class="badge">service</span>
+            </td>
             <td class="muted">{{ (user.groups ?? []).map((g) => g.name).join(', ') }}</td>
             <td class="muted">{{ formatDate(user.created) }}</td>
           </tr>
@@ -72,5 +84,19 @@ const page = (next: number) =>
       <ResultPager :total="users.data.value.total" :offset="offset" :limit="LIMIT" @change="page" />
     </template>
     <p v-else-if="users.pending.value" class="muted">Loading…</p>
+
+    <h2>New service account</h2>
+    <p class="muted">
+      For a program that posts suggested annotations. It cannot sign in; make it an access token on
+      its page, and make it a group's suggester.
+    </p>
+    <form class="inline" @submit.prevent="createService">
+      <label class="field">
+        Name
+        <input v-model="serviceName" type="text" name="service-name" required maxlength="200" />
+      </label>
+      <button type="submit" class="primary" :disabled="make.busy.value">Create</button>
+    </form>
+    <ProblemAlert :problem="make.problem.value" />
   </section>
 </template>

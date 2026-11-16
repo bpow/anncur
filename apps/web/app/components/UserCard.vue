@@ -13,7 +13,9 @@ defineProps<{ user: User }>();
     <dt>Email</dt>
     <dd>{{ user.email ?? '—' }}</dd>
     <dt>Role</dt>
-    <dd>{{ user.isAdmin ? 'Platform administrator' : 'User' }}</dd>
+    <dd>
+      {{ user.service ? 'Service account' : user.isAdmin ? 'Platform administrator' : 'User' }}
+    </dd>
     <dt>Member since</dt>
     <dd>{{ formatDate(user.created) }}</dd>
     <dt>Groups</dt>
