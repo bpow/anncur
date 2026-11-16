@@ -208,3 +208,45 @@ On `feat/claude-skills`:
 - **Looking up variant IDs.** ClinGen asks curators to register variants without a ClinVar ID in the Allele Registry and record the CAID. A `variant` subcommand could look a variant up in the Allele Registry by HGVS and record the CAID with a note that it was looked up, not stated. This sends variant descriptions, which are public, to an outside service.
 - **Article-level findings.** "NoEvidence" and "InsufficientEvidence" belong to the article, not an individual. A page-level note would need a target without a quote, which batches do not allow yet.
 - **Several articles per run,** as one subagent per article, once single articles pass `check` without many rounds.
+
+## 9. Status note (2026-11-16)
+
+Steps 2, 3 and 5 are done on `feat/claude-skills`. The evaluation mode of step 4 is not built. What differs from the sections above:
+
+- **Shared checks.** The batch-item checks (local ids, links, placeholders) moved from the API to `@curanno/model`, so `check`, the batch builder and the server share them.
+- **Saved pages.** `text`, `check`, `summarize` and `post` also take `--html FILE --url URL`, an article page saved from the browser.
+  - Text comes from the page body by the model's text rules, as the guest reads it.
+  - Identifiers come from the guest's own metadata reader (`@curanno/guest/document-metadata`).
+  - Quotes therefore match the page a curator opens character for character.
+- **`summarize`** is a new command: it prints each individual's computed record, as the sidebar's Individuals view would show it once every item is accepted.
+
+### Trial: PMC3370286, gene ABCC9
+
+*Cantú syndrome is caused by mutations in ABCC9* (van Bon et al., AJHG 2012).
+
+- **Getting the text.** PMC's BioC service and E-utilities refuse the full text: the publisher does not allow XML downloads. The article's PMC page, saved as HTML, works.
+- **Result.** The draft passed `check` after one round, with 39 items:
+
+  | Kind | Items |
+  | --- | --- |
+  | `individual` | 11 (the cohort's individuals with an ABCC9 mutation; 9a, 9b and 10 have none) |
+  | `case-phenotypes` | 11 |
+  | `case-variant` | 8 |
+  | `case-family` | 4 |
+  | `case-testing` | 4 |
+  | `case-disease` | 1 |
+
+- **What `check` caught.** "Congenital hypertrichosis" was not unique on the page: the row label also occurs in two reference titles. That fact was moved to `notInBatch`.
+- **What `summarize` showed.**
+  - Two variants each for individuals 2a and 4. The article's text and Table 1 disagree on these, and the draft records both, saying so.
+  - Individual 1's variant twice, in two notations, from the text and from the table. Summaries merge only identical values, so a curator merges these by hand.
+- **Findings:**
+  1. **Tables carry most of the per-individual data,** and each cell of a saved page is a passage of its own.
+     - Only rows with a value in every column can be matched to individuals; blank cells vanish.
+     - Cells are too short to quote, so facts are anchored on the row label.
+     - The skill's `references/tables.md` now says this. A selector for a table cell, a range over the cell's element, would anchor better, and is open.
+  2. **The text and the table disagree** on three variants: individuals 2a and 4, and c.3461G>T given as p.Arg1154Gln for individual 7. These are flagged in `variantEvidence` and `notInBatch`. This is the kind of thing that needs a curator, and the summary makes it visible.
+  3. **Not attempted.** The supplementary tables and figures were not read, and the table's partly filled rows (inheritance, most cardiac rows, previously published) were left for the curator.
+
+The draft is in `.curanno-drafts/PMC3370286/`, which is ignored by git. It was not posted.
+

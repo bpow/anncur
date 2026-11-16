@@ -27,6 +27,21 @@ CURANNO_TOKEN=cat_… pnpm --filter @curanno/suggester suggest -- \
 
 Scheduling is the caller's choice: run it from cron or a Kubernetes CronJob, away from peak times.
 
+## Commands for an assistant
+
+The `curanno-suggest` skill (`.claude/skills/curanno-suggest`) has Claude Code write a draft batch itself, instead of a model behind an endpoint. These commands support it (`docs/claude-skills-plan.md`):
+
+| Command | Does |
+| --- | --- |
+| `text --pmcid … \| --bioc FILE \| --html FILE --url URL` | The article as numbered passages. `--html` reads the article page saved from a browser, for articles PMC will not serve as text. |
+| `kinds [--profile …]` | The kinds of annotation and the value each takes. |
+| `terms ONTOLOGY QUERY` | Ontology terms matching the query. |
+| `check DRAFT` | The draft checked against the article and the profiles: quotes verbatim, terms resolved, values valid, links sound. |
+| `summarize DRAFT` | The whole-individual records the draft's facts add up to. |
+| `post DRAFT --group ID` | Check, then post. |
+
+`CURANNO_API` may stand in for `--api`.
+
 ## What is sent
 
 - **To the model:** the article's text, and each kind's schema.
