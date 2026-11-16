@@ -1,6 +1,6 @@
 # Linked facts and suggestions from outside the sidebar: plan
 
-**Status:** Proposed, 2026-11-15. Part 1 revises ADR 0035 and the case facts plan ([case-facets-plan.md](case-facets-plan.md)) before they are accepted. Parts 2–6 are new.
+**Status:** Proposed, 2026-11-15. Part 1 revises ADR 0035 and the case facts plan ([case-facets-plan.md](case-facets-plan.md)) before they are accepted, and is implemented on `feat/case-facets-plan` (see the status note at the end). Parts 2–6 are new.
 
 The case facts work splits a case individual into small annotations, but getting them into the system takes too many steps. The curator saves individuals, then runs each fact profile separately, links each fact, and reviews everything as it arrives. Model runs are slow, and they can only run in a sidebar that is open on the document.
 
@@ -237,3 +237,13 @@ Steps 5 and 7 are independent. Step 6 needs 5, and step 8 needs 5 and 7.
 - **Entities beyond individuals.** Variant-level facts (`variantEvidence`, `gnomad`; case facts plan, section 6) are the next candidate for an entity that other facts link to. Batches already handle it.
 - **Engine confidence.** Should items carry a score that the review list can sort by? Not until an engine produces one that means something.
 - **Retention.** How long rejected items, and batches whose items are all decided, are kept.
+
+## 10. Status note (2026-11-15)
+
+Part 1 (steps 1–4) is done. What differs from section 2:
+
+- **No `cases` field.** The model's view keeps the field name `individuals`, with labels from the `enum` in place of IRIs, and the pipeline swaps the labels for IRIs. A label that names no saved individual is dropped; a suggestion left with none fails validation.
+- **No "partly linked" report.** `summarizeIndividuals` counts a fact toward every individual it names that the reader can see, and lists it as unlinked only when it names none. Unresolved links show in the fact itself, as "not on this page".
+- **Split is on the card.** A saved fact naming several individuals has a **Split…** menu on its card, not on the editor's chips. The copy is shared like the original, and is made before the original changes.
+- **Current individuals.** A **Current** checkbox on each individual in the Individuals view. Choosing a fact profile in the editor starts the value linked to them. There is no chip in the composer header; the editor's Individuals field shows them. Suggestions always arrive linked, so nothing fills them on acceptance.
+- **Evaluation needs no change.** `eval --facts` scores the computed summaries, which already group facts by individual.
