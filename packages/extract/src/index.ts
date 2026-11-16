@@ -5,6 +5,16 @@
  * sidebar and the evaluation CLI share it.
  */
 export {
+  extractBatch,
+  runOrder,
+  withPlaceholders,
+  type BatchInput,
+  type BatchItem,
+  type BatchOptions,
+  type BatchProgress,
+  type BatchResult,
+} from './batch.js';
+export {
   chunkText,
   DEFAULT_MAX_CHARS,
   DEFAULT_OVERLAP_CHARS,
