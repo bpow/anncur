@@ -283,3 +283,18 @@ Step 6 is done on `feat/batch-review`. What differs from section 5:
 - **The Suggest panel** ticks several kinds, puts the kinds others link to first, links facts to the run's own individuals by local id, and posts one batch for a chosen group. The in-memory list and its card are gone.
 - **Events.** New batches still do not arrive on the event stream. The review reloads when the page or the account changes, and after the panel posts.
 
+## 14. Status note (2026-11-16): Parts 5 and 6
+
+Step 8 is done on `feat/suggester`, and step 9 on `feat/suggestion-worklist`. What differs from sections 6 and 7:
+
+- **Shared batch building.** The run order, local ids and links between kinds moved from the sidebar into `@curanno/extract` (`extractBatch`). The sidebar and the suggester build batches with the same code.
+- **The suggester** is `apps/suggester`, run with `pnpm --filter @curanno/suggester suggest`.
+  - It reads PMC's BioC JSON, by id from the BioC service or from a file, one block per passage, leaving out the references.
+  - It posts only a quote selector per item, with no offsets.
+  - Profiles are named by IRI or by its end (`individual`, `case-family/1`), and computed profiles are refused.
+  - A lint rule keeps it to `@curanno/model`, `@curanno/extract` and `@curanno/api-client`.
+- **The token scope** also allows `GET /x/profiles` and ontology term search. Both are public reads, which the engine needs to fill and resolve values.
+- **Endpoint keys.** An endpoint may carry an API key, sent as a bearer token. The sidebar never sets one.
+- **The anchoring metric** (the share of PMC quotes that anchor on the PMC page and in the publisher's PDF) is not built. Run the suggester on a few articles and open them in the sidebar to see how many items show "Not found on this page".
+- **The worklist** is the site's **Suggestions** page. For each of the caller's groups it lists the documents with pending items, linked to the document's own URL, with who suggested them, the counts, and **Discard**. Batch summaries now carry `documentUri` and `documentTitle`. Counts by profile are not shown.
+
