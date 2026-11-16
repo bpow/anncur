@@ -1,0 +1,38 @@
+[
+  {
+    "source": "PMC",
+    "documents": [
+      {
+        "id": "0000001",
+        "passages": [
+          {
+            "infons": {
+              "section_type": "TITLE",
+              "type": "front",
+              "article-id_pmc": "0000001",
+              "article-id_doi": "10.1000/example.1",
+              "article-id_pmid": "11111111"
+            },
+            "offset": 0,
+            "text": "A family with cardiomyopathy"
+          },
+          {
+            "infons": { "section_type": "CASE", "type": "paragraph" },
+            "offset": 29,
+            "text": "Patient 1, a 14-year-old boy, presented with syncope."
+          },
+          {
+            "infons": { "section_type": "CASE", "type": "paragraph" },
+            "offset": 83,
+            "text": "His parents are first cousins."
+          },
+          {
+            "infons": { "section_type": "REF", "type": "ref" },
+            "offset": 114,
+            "text": "Smith J. A reference. 2020."
+          }
+        ]
+      }
+    ]
+  }
+]
