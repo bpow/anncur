@@ -75,6 +75,24 @@ export default tseslint.config(
     },
   },
   {
+    // The suggester is a client of the public API like any other engine
+    // (ADR 0037): it may use the shared packages, never an app's code.
+    files: ['apps/suggester/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/apps/*', '../../*', '@curanno/api', '@curanno/sidebar', '@curanno/web'],
+              message: 'Use @curanno/model, @curanno/extract and @curanno/api-client only.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['**/*.js', '**/*.mjs'],
     ...tseslint.configs.disableTypeChecked,
   },
