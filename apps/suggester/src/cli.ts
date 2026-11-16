@@ -5,15 +5,15 @@
  *
  *   run    --pmcid … --profile … --endpoint URL --model NAME --group ID
  *          a model behind an OpenAI-compatible endpoint suggests, and the batch is posted
- *   text   --pmcid … | --bioc FILE [--save FILE] [--out FILE]
+ *   text   --pmcid … | --bioc FILE | --html FILE [--url URL] [--save FILE] [--out FILE]
  *          the article as numbered passages (JSON), for an assistant to read
  *   kinds  [--profile …]
  *          the kinds of annotation and the value each takes (JSON)
  *   terms  ONTOLOGY QUERY
  *          ontology terms matching QUERY, through the API (JSON)
- *   check  DRAFT [--bioc FILE]
+ *   check  DRAFT [--bioc FILE | --html FILE [--url URL]]
  *          a draft batch checked against the article and the profiles (JSON); exit 1 on problems
- *   post   DRAFT --group ID [--bioc FILE]
+ *   post   DRAFT --group ID [--bioc FILE | --html FILE [--url URL]]
  *          check, then post the batch
  *
  * Every command but `text` needs --api (or CURANNO_API), and `post` and
@@ -26,6 +26,7 @@ import { PROMPT_VERSION, outputSchema } from '@curanno/extract';
 import { linkFieldsOf, type BodyProfile } from '@curanno/model';
 import { articleFromBioc, fetchBioc, type Article } from './bioc.ts';
 import { checkDraft, type Draft } from './draft.ts';
+import { articleFromHtml } from './html.ts';
 import {
   loadProfiles,
   profileForKind,
@@ -53,6 +54,8 @@ const { values, positionals } = parseArgs({
     pmcid: { type: 'string', multiple: true, default: [] },
     list: { type: 'string' },
     bioc: { type: 'string', multiple: true, default: [] },
+    html: { type: 'string' },
+    url: { type: 'string' },
     'bioc-url': { type: 'string' },
     save: { type: 'string' },
     out: { type: 'string' },
@@ -89,8 +92,12 @@ async function profiles(api: ApiClient): Promise<Profiles> {
 
 const biocOptions = () => (values['bioc-url'] ? { base: values['bioc-url'] } : {});
 
-/** The one article a command is about: a BioC file, or a PMC id fetched from the service. */
+/** The one article a command is about: a saved page, a BioC file, or a PMC id fetched from the service. */
 async function oneArticle(pmcid?: string): Promise<{ article: Article; raw: unknown }> {
+  if (values.html) {
+    const html = await readFile(values.html, 'utf8');
+    return { article: articleFromHtml(html, values.url), raw: undefined };
+  }
   const file = values.bioc[0];
   const raw = file
     ? (JSON.parse(await readFile(file, 'utf8')) as unknown)
@@ -121,7 +128,7 @@ function draftValueSchema(profile: BodyProfile): unknown {
 const commands: Record<string, () => Promise<number>> = {
   async text() {
     const { article, raw } = await oneArticle();
-    if (values.save) await writeFile(values.save, JSON.stringify(raw));
+    if (values.save && raw !== undefined) await writeFile(values.save, JSON.stringify(raw));
     const text = {
       pmcid: article.pmcid,
       ...(article.title ? { title: article.title } : {}),

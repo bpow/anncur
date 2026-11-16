@@ -8,15 +8,17 @@
     "curanno-suggester": "./src/cli.ts"
   },
   "scripts": {
-    "build": "tsc -b ../../packages/model ../../packages/api-client ../../packages/extract",
+    "build": "tsc -b ../../packages/model ../../packages/api-client ../../packages/extract ../../packages/guest",
     "suggest": "pnpm build && node src/cli.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@curanno/api-client": "workspace:*",
     "@curanno/extract": "workspace:*",
+    "@curanno/guest": "workspace:*",
     "@curanno/model": "workspace:*",
     "ajv": "^8.20.0",
-    "ajv-formats": "^3.0.1"
+    "ajv-formats": "^3.0.1",
+    "happy-dom": "^21.0.4"
   }
 }
