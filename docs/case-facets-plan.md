@@ -1,6 +1,6 @@
 # Case individuals as facts where they appear: plan
 
-**Status:** Implemented on `feat/case-facets-plan`, 2026-11-13, in ADRs 0035 and 0036 (both Proposed). The status note at the end records what differs from the plan.
+**Status:** Implemented on `feat/case-facets-plan`, 2026-11-13, in ADRs 0035 and 0036 (both Proposed). The status note at the end records what differs from the plan. Revised on 2026-11-15: a fact now names a list of individuals and stores no labels ([external-suggestions-plan.md](external-suggestions-plan.md), section 2).
 
 Curators have recorded each case individual as one `case-individual/1` annotation, anchored where the individual first appears, holding everything found anywhere in the article. This plan splits that into small annotations, each anchored on the passage that states one kind of fact about one individual, and computes the whole-individual record from them.
 
