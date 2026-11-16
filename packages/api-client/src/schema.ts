@@ -535,6 +535,105 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/x/suggestion-batches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the batches of the caller's groups
+         * @description Newest first, without their items. `uri` finds the document as `GET /x/documents` does; a URI that identifies no document gives an empty list.
+         */
+        get: operations["listSuggestionBatches"];
+        put?: never;
+        /**
+         * Post a batch of suggested annotations
+         * @description Members of the group only. The document is found or created from `document` as by
+         *     `POST /x/documents`, without merging documents. Items may link to each other by local
+         *     id in their link fields (ADR 0035, 0037). With a `key`, the pending items of earlier
+         *     batches with the same group, document, engine name and key are removed.
+         */
+        post: operations["createSuggestionBatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/x/suggestion-batches/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["batchId"];
+            };
+            cookie?: never;
+        };
+        /** Retrieve a batch with its items */
+        get: operations["getSuggestionBatch"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete a batch
+         * @description Members of the group only. Annotations made from its items stay.
+         */
+        delete: operations["deleteSuggestionBatch"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/x/suggestion-batches/{id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["batchId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept pending items
+         * @description For each item, in order, either creates `annotation` as the caller or records that the
+         *     item stands for the `existing` annotation, which the caller must be able to read and
+         *     which must have a body of the item's profile. Local ids in the link fields of the new
+         *     annotations' structured bodies are replaced with the annotations of items accepted
+         *     before, in this request or an earlier one; a link to an item that is not accepted is a
+         *     conflict (409). All or nothing.
+         */
+        post: operations["acceptSuggestions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/x/suggestion-batches/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["batchId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reject pending items
+         * @description The rejected items are removed from the link fields of pending items. A pending item left without a link its profile requires is rejected too.
+         */
+        post: operations["rejectSuggestions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -727,6 +826,114 @@ export interface components {
             created: string;
             /** Format: date-time */
             modified: string;
+        } & {
+            [key: string]: unknown;
+        };
+        /** @description An item's id within its batch, which links between items name. */
+        SuggestionLocalId: string;
+        SuggestionEngine: {
+            name: string;
+            version: string;
+            /** @description The model and prompt, for example; the sidebar names the body's creator with it. */
+            nickname?: string;
+        } & {
+            [key: string]: unknown;
+        };
+        SuggestionItemInput: {
+            id: string;
+            selector: components["schemas"]["Selector"] | components["schemas"]["Selector"][];
+            body: components["schemas"]["StructuredBody"];
+        } & {
+            [key: string]: unknown;
+        };
+        SuggestionBatchInput: {
+            /** Format: uuid */
+            group: string;
+            document: components["schemas"]["DocumentMetadata"];
+            engine: components["schemas"]["SuggestionEngine"];
+            key?: string;
+            items: components["schemas"]["SuggestionItemInput"][];
+        } & {
+            [key: string]: unknown;
+        };
+        /** @enum {string} */
+        SuggestionStatus: "pending" | "accepted" | "rejected";
+        SuggestionItem: {
+            id: components["schemas"]["SuggestionLocalId"];
+            selector: components["schemas"]["Selector"] | components["schemas"]["Selector"][];
+            body: components["schemas"]["StructuredBody"];
+            status: components["schemas"]["SuggestionStatus"];
+            /**
+             * Format: iri
+             * @description The annotation an accepted item became or stands for.
+             */
+            annotation?: string;
+            /** Format: uuid */
+            decidedBy?: string;
+            /** Format: date-time */
+            decided?: string;
+        } & {
+            [key: string]: unknown;
+        };
+        SuggestionCounts: {
+            pending: number;
+            accepted: number;
+            rejected: number;
+        } & {
+            [key: string]: unknown;
+        };
+        SuggestionBatchSummary: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            group: string;
+            /** Format: uuid */
+            document: string;
+            engine: components["schemas"]["SuggestionEngine"];
+            key?: string;
+            /** Format: uuid */
+            creator: string;
+            /** Format: date-time */
+            created: string;
+            counts: components["schemas"]["SuggestionCounts"];
+        } & {
+            [key: string]: unknown;
+        };
+        SuggestionBatch: components["schemas"]["SuggestionBatchSummary"] & ({
+            items: components["schemas"]["SuggestionItem"][];
+        } & {
+            [key: string]: unknown;
+        });
+        SuggestionBatchList: {
+            total: number;
+            items: components["schemas"]["SuggestionBatchSummary"][];
+        } & {
+            [key: string]: unknown;
+        };
+        SuggestionAcceptInput: {
+            items: (({
+                id: components["schemas"]["SuggestionLocalId"];
+                annotation: components["schemas"]["AnnotationInput"];
+            } & {
+                [key: string]: unknown;
+            }) | ({
+                id: components["schemas"]["SuggestionLocalId"];
+                /** Format: iri */
+                existing: string;
+            } & {
+                [key: string]: unknown;
+            }))[];
+        } & {
+            [key: string]: unknown;
+        };
+        SuggestionDecisions: {
+            items: ({
+                id: components["schemas"]["SuggestionLocalId"];
+                /** Format: iri */
+                annotation: string;
+            } & {
+                [key: string]: unknown;
+            })[];
         } & {
             [key: string]: unknown;
         };
@@ -1236,6 +1443,7 @@ export interface components {
     };
     parameters: {
         annotationId: string;
+        batchId: string;
         groupId: string;
         /** @description Page number, starting at 0. Without it the container itself is returned. */
         page: number;
@@ -1286,6 +1494,18 @@ export type DocumentUriRelation = components['schemas']['DocumentUriRelation'];
 export type DocumentLink = components['schemas']['DocumentLink'];
 export type DocumentMetadata = components['schemas']['DocumentMetadata'];
 export type Document = components['schemas']['Document'];
+export type SuggestionLocalId = components['schemas']['SuggestionLocalId'];
+export type SuggestionEngine = components['schemas']['SuggestionEngine'];
+export type SuggestionItemInput = components['schemas']['SuggestionItemInput'];
+export type SuggestionBatchInput = components['schemas']['SuggestionBatchInput'];
+export type SuggestionStatus = components['schemas']['SuggestionStatus'];
+export type SuggestionItem = components['schemas']['SuggestionItem'];
+export type SuggestionCounts = components['schemas']['SuggestionCounts'];
+export type SuggestionBatchSummary = components['schemas']['SuggestionBatchSummary'];
+export type SuggestionBatch = components['schemas']['SuggestionBatch'];
+export type SuggestionBatchList = components['schemas']['SuggestionBatchList'];
+export type SuggestionAcceptInput = components['schemas']['SuggestionAcceptInput'];
+export type SuggestionDecisions = components['schemas']['SuggestionDecisions'];
 export type GroupRole = components['schemas']['GroupRole'];
 export type GroupRef = components['schemas']['GroupRef'];
 export type UserRef = components['schemas']['UserRef'];
@@ -1333,6 +1553,7 @@ export type ResponsePreconditionFailed = components['responses']['PreconditionFa
 export type ResponsePreconditionRequired = components['responses']['PreconditionRequired'];
 export type ResponseUnprocessableContent = components['responses']['UnprocessableContent'];
 export type ParameterAnnotationId = components['parameters']['annotationId'];
+export type ParameterBatchId = components['parameters']['batchId'];
 export type ParameterGroupId = components['parameters']['groupId'];
 export type ParameterPage = components['parameters']['page'];
 export type ParameterIris = components['parameters']['iris'];
@@ -2396,6 +2617,177 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    listSuggestionBatches: {
+        parameters: {
+            query?: {
+                group?: string;
+                document?: string;
+                uri?: string;
+                /** @description `true` for only the batches that still have pending items. */
+                pending?: boolean;
+                limit?: components["parameters"]["limit"];
+                offset?: components["parameters"]["offset"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Batches */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionBatchList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    createSuggestionBatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestionBatchInput"];
+            };
+        };
+        responses: {
+            /** @description The stored batch */
+            201: {
+                headers: {
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionBatch"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["UnprocessableContent"];
+        };
+    };
+    getSuggestionBatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["batchId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The batch */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionBatch"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    deleteSuggestionBatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["batchId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    acceptSuggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["batchId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestionAcceptInput"];
+            };
+        };
+        responses: {
+            /** @description The annotation each item became */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionDecisions"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["UnprocessableContent"];
+        };
+    };
+    rejectSuggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["batchId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    items: components["schemas"]["SuggestionLocalId"][];
+                } & {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description The batch after the change */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionBatch"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
         };
