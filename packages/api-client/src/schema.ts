@@ -940,6 +940,7 @@ export interface components {
             id: string;
             /** Format: uuid */
             group: string;
+            groupName: string;
             /** Format: uuid */
             document: string;
             engine: components["schemas"]["SuggestionEngine"];
