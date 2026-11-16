@@ -15,6 +15,9 @@ export const TOKEN_PREFIX = 'cat_';
 export const SCOPES: Record<string, readonly string[]> = {
   'suggestions:write': [
     'GET /x/me',
+    // Public reads an engine needs: the profiles to fill, and ontology terms to resolve labels.
+    'GET /x/profiles',
+    'GET /x/ontologies/:name/terms',
     'POST /x/suggestion-batches',
     'GET /x/suggestion-batches',
     'GET /x/suggestion-batches/:id',

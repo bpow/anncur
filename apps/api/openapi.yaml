@@ -2173,7 +2173,7 @@ components:
             $ref: '#/components/schemas/GroupRef'
     TokenScope:
       description: >-
-        `suggestions:write`: `GET /x/me`, and posting, listing and reading suggestion batches.
+        `suggestions:write`: `GET /x/me`, `GET /x/profiles`, ontology term search, and posting, listing and reading suggestion batches.
       type: string
       enum: ['suggestions:write']
     AccessTokenInput:
