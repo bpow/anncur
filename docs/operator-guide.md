@@ -247,6 +247,12 @@ The new Deployment takes over the running pods, whose labels already match, and 
 - The PDF viewer fetches PDFs from the browser, so a PDF's host must allow cross-origin reads; otherwise users open the file from their computer. No fetching proxy is deployed (ADR 0021).
 - The sidebar's CSP allows `'unsafe-eval'` because Ajv compiles profile schemas in the browser (`apps/sidebar/README.md`).
 - Suggested annotations (ADR 0032) are off until `EXTRACT_ENDPOINTS` (chart: `extract.endpoints`) lists at least one OpenAI-compatible endpoint, as `[{"label": "This computer (Ollama)", "url": "http://localhost:11434", "models": ["llama3.1:8b"]}]`. The curator's browser sends the document's text to the endpoint directly; the API never sees it. Each endpoint's origin is added to the sidebar's `connect-src`, so the sidebar can reach the listed endpoints and no others. `EXTRACT_LOCAL_ONLY=true` (chart: `extract.localOnly`) makes the API refuse to start when an endpoint is not on `localhost`, `127.0.0.1` or `[::1]`: use it where document text must stay on the curator's machine. No credential is sent, so a hosted endpoint must not need one; do not list an endpoint you would not send every curated document to. Local servers must allow the sidebar's origin (Ollama's `OLLAMA_ORIGINS`, LM Studio's CORS setting); the user guide, section 3a, has the steps for curators. To compare models before offering them, run `pnpm --filter @curanno/extract eval -- --endpoint URL --model NAME` from a source tree (`packages/extract/corpus/README.md`).
+- Suggestion engines outside the sidebar (ADR 0037, 0038) post batches to `POST /x/suggestion-batches` with an access token. To set one up:
+  1. An administrator creates a service account on the site's users page.
+  2. On the account's page, they make a token. The token is shown once; keep it in the job's secret store.
+  3. A group administrator makes the account the group's **suggester**. A suggester posts batches for the group and reads the ones it posted. It cannot read the group's annotations or members, and cannot accept or reject items.
+
+  Tokens (`cat_…`) are checked against the database on every request. Revoking one, or disabling its user, takes effect at once. Tokens expire within a year, and reach only the operations of their scope (`suggestions:write`). Request logs carry the token's id (`tokenId`), never the token. Leaked tokens can be found by the `cat_` prefix in secret scanners.
 
 ## 8. Checks on a new cluster
 
