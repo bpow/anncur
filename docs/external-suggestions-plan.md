@@ -270,3 +270,16 @@ Step 7 is done on `feat/access-tokens`, in ADR 0038 (Proposed). What differs fro
 - **Suggesters.** `suggester` is a third group role. It is left out of the caller's principals, so it grants nothing that membership does. A suggester cannot see the group's page or members, and sees only the batches it posted.
 - **Merging accounts** moves tokens a person made for others, drops the loser's own tokens, and ranks roles as suggester, member, admin.
 
+## 13. Status note (2026-11-15): Part 4
+
+Step 6 is done on `feat/batch-review`. What differs from section 5:
+
+- **Grouping.** Each item that others link to heads a group. An item linking to several heads goes under the first. Items linking to nothing in the batch are listed together after the groups.
+- **"Same as"** on a head accepts it as an individual already saved on the page (`existing`), so a rerun's individuals can be joined to earlier ones.
+- **Saving one item** also saves the pending items it links to, so a fact never fails for want of its individual.
+- **Not found on this page** is a note on the item's card, not a separate section.
+- **Duplicates** are only items with no local links whose profile and value equal a saved annotation's. They get a note; rejecting them is still a click.
+- **Sharing.** Saved suggestions start out readable by the batch's group; the review form can change that. The API now names the group in a batch summary (`groupName`).
+- **The Suggest panel** ticks several kinds, puts the kinds others link to first, links facts to the run's own individuals by local id, and posts one batch for a chosen group. The in-memory list and its card are gone.
+- **Events.** New batches still do not arrive on the event stream. The review reloads when the page or the account changes, and after the panel posts.
+
