@@ -9,3 +9,5 @@ coverage/
 .pnpm-store/
 # Signs packed builds of apps/extension; its public half is the manifest key.
 deploy/extension/extension-key.pem
+# Drafts the curanno-suggest skill writes while it works (.claude/skills/curanno-suggest).
+.curanno-drafts/

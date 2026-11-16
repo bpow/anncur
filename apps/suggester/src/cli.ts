@@ -5,7 +5,7 @@
  *
  *   run    --pmcid … --profile … --endpoint URL --model NAME --group ID
  *          a model behind an OpenAI-compatible endpoint suggests, and the batch is posted
- *   text   --pmcid … | --bioc FILE [--save FILE]
+ *   text   --pmcid … | --bioc FILE [--save FILE] [--out FILE]
  *          the article as numbered passages (JSON), for an assistant to read
  *   kinds  [--profile …]
  *          the kinds of annotation and the value each takes (JSON)
@@ -16,8 +16,8 @@
  *   post   DRAFT --group ID [--bioc FILE]
  *          check, then post the batch
  *
- * Every command but `text` needs --api, and `post` and `run` the token in
- * CURANNO_TOKEN (or --token-env). See README.md and docs/claude-skills-plan.md.
+ * Every command but `text` needs --api (or CURANNO_API), and `post` and
+ * `run` the token in CURANNO_TOKEN (or --token-env). See README.md and docs/claude-skills-plan.md.
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
@@ -40,7 +40,10 @@ import { State } from './state.ts';
 const { values, positionals } = parseArgs({
   allowPositionals: true,
   options: {
-    api: { type: 'string' },
+    api: {
+      type: 'string',
+      ...(process.env['CURANNO_API'] ? { default: process.env['CURANNO_API'] } : {}),
+    },
     'token-env': { type: 'string', default: 'CURANNO_TOKEN' },
     group: { type: 'string' },
     endpoint: { type: 'string' },
@@ -52,6 +55,7 @@ const { values, positionals } = parseArgs({
     bioc: { type: 'string', multiple: true, default: [] },
     'bioc-url': { type: 'string' },
     save: { type: 'string' },
+    out: { type: 'string' },
     instructions: { type: 'string' },
     state: { type: 'string' },
     force: { type: 'boolean', default: false },
@@ -118,12 +122,18 @@ const commands: Record<string, () => Promise<number>> = {
   async text() {
     const { article, raw } = await oneArticle();
     if (values.save) await writeFile(values.save, JSON.stringify(raw));
-    print({
+    const text = {
       pmcid: article.pmcid,
       ...(article.title ? { title: article.title } : {}),
       document: article.document,
       passages: article.passages,
-    });
+    };
+    if (values.out) {
+      await writeFile(values.out, `${JSON.stringify(text, null, 2)}\n`);
+      console.error(`${article.pmcid}: ${article.passages.length} passages in ${values.out}`);
+    } else {
+      print(text);
+    }
     return 0;
   },
 
