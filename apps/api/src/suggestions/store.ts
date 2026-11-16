@@ -96,6 +96,15 @@ export class SuggestionStore {
           sql<string>`(select g.name from groups g where g.principal_id = suggestion_batches.group_id)`.as(
             'group_name',
           ),
+          sql<
+            string | null
+          >`(select d.title from documents d where d.id = suggestion_batches.document_id)`.as(
+            'document_title',
+          ),
+          // The page's own URL first, as the document was first reported (ADR 0014).
+          sql<string>`(select u.uri from document_uris u where u.document_id = suggestion_batches.document_id order by (u.relation = 'self') desc, u.created_at, u.uri_normalized limit 1)`.as(
+            'document_uri',
+          ),
           count('pending').as('pending'),
           count('accepted').as('accepted'),
           count('rejected').as('rejected'),
@@ -111,6 +120,8 @@ export class SuggestionStore {
       group: row.group_id,
       groupName: row.group_name,
       document: row.document_id,
+      documentUri: row.document_uri,
+      ...(row.document_title !== null ? { documentTitle: row.document_title } : {}),
       engine: {
         name: row.engine_name,
         version: row.engine_version,
