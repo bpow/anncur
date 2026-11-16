@@ -12,6 +12,7 @@ import AccountStatusBanner from '../components/AccountStatusBanner.vue';
       <nav aria-label="Main">
         <NuxtLink to="/groups">Groups</NuxtLink>
         <NuxtLink to="/browse">Annotations</NuxtLink>
+        <NuxtLink to="/suggestions">Suggestions</NuxtLink>
         <ClientOnly><AdminNav /></ClientOnly>
       </nav>
       <ClientOnly>
