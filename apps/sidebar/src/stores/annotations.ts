@@ -258,6 +258,17 @@ export const useAnnotationsStore = defineStore('annotations', () => {
     remove(iri);
   }
 
+  /** Undoes `destroy`, putting the annotation back under the document it was shown for. */
+  async function restore(iri: string, uri?: string): Promise<Versioned> {
+    const started = session;
+    const result = await useApi().POST('/x/annotations/{id}/restore', {
+      params: { path: { id: annotationUuid(iri) } },
+    });
+    const annotation = unwrap(result);
+    if (started === session) upsert(annotation, uri ?? documentUri.value);
+    return { annotation, etag: result.response.headers.get('etag') ?? undefined };
+  }
+
   /**
    * Merges one event from a document's stream. Updates for annotations not
    * yet seen are additions, attributed to that document.
@@ -334,6 +345,7 @@ export const useAnnotationsStore = defineStore('annotations', () => {
     share,
     aclOf,
     destroy,
+    restore,
     applyEvent,
     upsert,
     remove,

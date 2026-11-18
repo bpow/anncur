@@ -11,6 +11,7 @@ import FakeGuestPanel from './components/FakeGuestPanel.vue';
 import HintTooltip from './components/HintTooltip.vue';
 import ProblemAlert from './components/ProblemAlert.vue';
 import SuggestPanel from './components/SuggestPanel.vue';
+import UndoList from './components/UndoList.vue';
 import UserMenu from './components/UserMenu.vue';
 import { forgetCurrentUser } from './current-user';
 import { createGuest, isFakeGuest, provideGuest } from './guest';
@@ -18,6 +19,7 @@ import { useAnnotationsStore } from './stores/annotations';
 import { useProfilesStore } from './stores/profiles';
 import { useBatchesStore } from './stores/batches';
 import { useSuggestionsStore } from './stores/suggestions';
+import { useUndoStore } from './stores/undo';
 import { useTextSize } from './text-size';
 import { useGuestSync } from './use-guest-sync';
 
@@ -29,6 +31,7 @@ const store = useAnnotationsStore();
 const profiles = useProfilesStore();
 const suggestions = useSuggestionsStore();
 const batches = useBatchesStore();
+const undo = useUndoStore();
 const textSize = useTextSize();
 
 // Everything the list shows depends on who is asking (ADR 0006), so a new
@@ -46,6 +49,7 @@ watch(
       forgetCurrentUser();
       suggestions.clear();
       batches.clear(guest);
+      undo.clear();
     }
     if (!joined) return;
     const uris = joined.split('\n');
@@ -114,6 +118,7 @@ useGuestSync(guest, store);
         </span>
       </p>
       <ProblemAlert :problem="profiles.problem" />
+      <UndoList />
       <AnnotationComposer v-if="auth.status === 'authenticated' && guest.document.value" />
       <SuggestPanel v-if="auth.status === 'authenticated' && guest.document.value" />
       <BatchReview v-if="auth.status === 'authenticated' && guest.document.value" />
