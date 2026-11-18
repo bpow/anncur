@@ -1,5 +1,10 @@
 import type { Annotation, SuggestionBatch } from '@curanno/api-client';
-import { caseFamilyProfile, individualProfile } from '@curanno/model';
+import {
+  caseFamilyProfile,
+  individualProfile,
+  pageFragmentSelector,
+  type Selector,
+} from '@curanno/model';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { TooltipProvider } from 'reka-ui';
@@ -140,6 +145,27 @@ describe('BatchReview', () => {
     (details.element as HTMLDetailsElement).open = true;
     await details.trigger('toggle');
     expect(guest.anchoring.value.size).toBe(2);
+  });
+
+  it('shows PDF evidence quotes and the quoted context of suggested link choices', async () => {
+    batch.items = batch.items.map((item) => ({
+      ...item,
+      selector: pageFragmentSelector(2, [
+        item.selector as Selector,
+      ]) as SuggestionBatch['items'][number]['selector'],
+    }));
+    const wrapper = mountReview();
+    await flushPromises();
+    expect(wrapper.findAll('blockquote').map((q) => q.text())).toEqual([
+      'II-1, a boy of 12',
+      'His parents are cousins.',
+    ]);
+    const fact = wrapper.find('.members li.suggestion');
+    await fact
+      .findAll('button')
+      .find((b) => b.text() === 'Review and save')!
+      .trigger('click');
+    expect(fact.find('.chip').attributes('title')).toBe('II-1, a boy of 12');
   });
 
   it('does not reload when the guest republishes the same documents', async () => {

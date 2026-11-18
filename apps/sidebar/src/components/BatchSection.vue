@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toProblem, type AclEntry, type Problem, type SuggestionBatch } from '@curanno/api-client';
 import { stableStringify } from '@curanno/extract';
-import { linkFieldsOf, structuredBodies } from '@curanno/model';
+import { linkFieldsOf, quoteOf, structuredBodies } from '@curanno/model';
 import { computed, provide, ref } from 'vue';
 import { useGuest } from '../guest';
 import { EXTRA_LINKS, linkCandidates, type ExtraLink } from '../profiles/links';
@@ -32,9 +32,8 @@ provide(
   EXTRA_LINKS,
   computed<ExtraLink[]>(() =>
     props.batch.items.map((i) => {
-      const quote = [i.selector].flat().find((s) => s.type === 'TextQuoteSelector') as
-        { exact?: string } | undefined;
-      return { id: i.id, profile: i.body.profile, value: i.body.value, quote: quote?.exact ?? '' };
+      const quote = quoteOf({ target: { source: props.documentUri, selector: i.selector } });
+      return { id: i.id, profile: i.body.profile, value: i.body.value, quote: quote ?? '' };
     }),
   ),
 );
