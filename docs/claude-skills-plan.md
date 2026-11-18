@@ -218,6 +218,10 @@ Steps 2, 3 and 5 are done on `feat/claude-skills`. The evaluation mode of step 4
   - Text comes from the page body by the model's text rules, as the guest reads it.
   - Identifiers come from the guest's own metadata reader (`@curanno/guest/document-metadata`).
   - Quotes therefore match the page a curator opens character for character.
+- **Publishers' pages and PDFs** (2026-11-17).
+  - `--html` takes any site's saved article page, not only PMC's.
+  - `--pdf FILE [--url URL]` reads a PDF with PDF.js, page by page, through the guest's own text-layer model (`@curanno/guest/pdf-text`). Each page is a scope `page=N`, and `check` puts each quote in that page's fragment selector, as the sidebar does for suggestions on a PDF. A quote must lie on one page. The document is the fingerprint, plus the URL when given, so the batch shows on that file in the PDF viewer.
+  - An article's id, which the draft names, is its PMC id, else its DOI, else its URL or `urn:x-pdf:` fingerprint.
 - **`summarize`** is a new command: it prints each individual's computed record, as the sidebar's Individuals view would show it once every item is accepted.
 
 ### Trial: PMC3370286, gene ABCC9
