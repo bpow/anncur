@@ -2,6 +2,7 @@ import { caseIndividualProfile, evidenceExcerptProfile, type BodyProfile } from 
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { describe, expect, it } from 'vitest';
+import { installFakeApi, json } from '../test/fake-api';
 import StructuredBodyEditor from './StructuredBodyEditor.vue';
 
 describe('StructuredBodyEditor', () => {
@@ -156,6 +157,8 @@ describe('StructuredBodyEditor', () => {
 
   it('builds the case-individual form with a variant list', () => {
     setActivePinia(createPinia());
+    // Its phenotype field loads the ontology list.
+    installFakeApi(() => json([]));
     const wrapper = mount(StructuredBodyEditor, {
       props: { profile: caseIndividualProfile, modelValue: { case: 'P1', variants: [{}] } },
     });
