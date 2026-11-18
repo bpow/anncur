@@ -134,6 +134,26 @@ describe.skipIf(!databaseUrl)('suggestion batches', () => {
     ).toEqual(['/items/1/body/value/individuals', '/items/2/body/value/individuals']);
   });
 
+  it.each([
+    'https://annotations.test/annotations/1',
+    ['https://annotations.test/annotations/1', 42],
+  ])(
+    'rejects malformed link fields rather than storing a repaired validation copy: %j',
+    async (individuals) => {
+      const item = family('_:f1', [], 'Cousins.');
+      const res = await post(alice, [
+        {
+          ...item,
+          body: {
+            ...item.body,
+            value: { ...item.body.value, individuals },
+          },
+        },
+      ]);
+      expect(res.statusCode, res.body).toBe(422);
+    },
+  );
+
   it('accepts an individual and its fact together, linking the fact to the new annotation', async () => {
     const i1 = individual('_:i1', 'II-1');
     const f1 = family('_:f1', ['_:i1'], 'Her parents are cousins.');
