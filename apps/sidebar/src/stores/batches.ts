@@ -6,7 +6,15 @@
  * with or before them.
  */
 import { unwrap, type SuggestionBatch, type SuggestionItem } from '@curanno/api-client';
-import type { Agent, JsonValue, OneOrMany, Selector, SpecificResource } from '@curanno/model';
+import {
+  localLinks,
+  type Agent,
+  type BodyProfile,
+  type JsonValue,
+  type OneOrMany,
+  type Selector,
+  type SpecificResource,
+} from '@curanno/model';
 import { defineStore } from 'pinia';
 import { computed, shallowRef } from 'vue';
 import { buildInput, withEditor, type AnnotationDraft } from '../api/annotations';
@@ -53,6 +61,56 @@ export function draftOf(review: ReviewItem): AnnotationDraft {
       created: review.batch.created,
     },
   };
+}
+
+/** The reviewed drafts and their pending dependencies, in dependency order. */
+export function orderAcceptances(
+  selected: Acceptance[],
+  reviews: ReviewItem[],
+  profileOf: (iri: string) => BodyProfile | undefined,
+): Acceptance[] {
+  const batch = selected[0]?.item.batch.id;
+  if (selected.some((a) => a.item.batch.id !== batch)) {
+    throw new Error('Accept items of one batch at a time');
+  }
+  const byId = new Map(reviews.filter((r) => r.batch.id === batch).map((r) => [r.item.id, r]));
+  const explicit = new Map(selected.map((a) => [a.item.item.id, a]));
+  const visiting = new Set<string>();
+  const done = new Set<string>();
+  const ordered: Acceptance[] = [];
+  const visit = (acceptance: Acceptance): void => {
+    const id = acceptance.item.item.id;
+    if (done.has(id)) return;
+    if (visiting.has(id)) throw new Error('The reviewed items link to each other in a cycle');
+    visiting.add(id);
+    const draft = 'draft' in acceptance ? acceptance.draft : undefined;
+    if (draft?.structured) {
+      const body = { type: 'StructuredBody' as const, ...draft.structured };
+      for (const link of localLinks(body, { get: profileOf })) {
+        for (const dependency of link.ids) {
+          const review = byId.get(dependency);
+          if (!review || review.item.status === 'rejected') {
+            throw new Error(`The reviewed item links to unavailable suggestion ${dependency}`);
+          }
+          if (review.item.body.profile !== link.profile) {
+            throw new Error(`${dependency} is not a ${link.profile} suggestion`);
+          }
+          if (review.item.status === 'accepted') continue;
+          visit(
+            explicit.get(dependency) ?? {
+              item: review,
+              draft: { ...draftOf(review), ...(draft.acl ? { acl: draft.acl } : {}) },
+            },
+          );
+        }
+      }
+    }
+    visiting.delete(id);
+    done.add(id);
+    ordered.push(acceptance);
+  };
+  selected.forEach(visit);
+  return ordered;
 }
 
 export const useBatchesStore = defineStore('batches', () => {
@@ -175,6 +233,7 @@ export const useBatchesStore = defineStore('batches', () => {
     const { batch, documentUri } = first.item;
     const profiles = useProfilesStore();
     const annotations = useAnnotationsStore();
+    acceptances = orderAcceptances(acceptances, items.value, (iri) => profiles.byIri(iri));
     const entries = await Promise.all(
       acceptances.map(async (a) => {
         if ('existing' in a) return { id: a.item.item.id, existing: a.existing };
