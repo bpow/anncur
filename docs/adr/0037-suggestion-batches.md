@@ -6,7 +6,7 @@
 
 ## Context
 
-ADR 0032 kept suggestions in the sidebar's memory until a curator saved one. That rules out engines that run elsewhere: a bulk run over PubMed Central articles overnight, another language, a hosted model with credentials. It also loses a sidebar's suggestions on reload. An engine run over a case report suggests individuals and the facts that link to them (ADR 0035) together, before anyone has reviewed the individuals, so the facts cannot name annotation IRIs yet.
+Suggestions must survive a reload and support engines that run outside the sidebar: a bulk run over PubMed Central articles overnight, another language, or a hosted model with credentials. An engine run over a case report suggests individuals and the facts that link to them (ADR 0035) together, before anyone has reviewed the individuals, so the facts cannot name annotation IRIs yet.
 
 The options considered for where suggestions live:
 
@@ -35,7 +35,7 @@ The options considered for who owns a batch:
   - An item that links to a pending or rejected item cannot be accepted.
   - The body's `creator` stays the client's claim (ADR 0034).
 - **Rejecting** marks items as rejected and removes them from the link lists of pending items. A pending item left with no link in a required link field is rejected as well.
-- Accepted annotations are ordinary annotations, with the caller's default ACL. Sharing them is a separate request, as for any new annotation.
+- Accepted annotations are ordinary annotations, with the caller's default ACL. Sharing them is a separate request, as for any new annotation. The sidebar reflects committed decisions immediately, continues finishing other items after a loading or sharing failure, and offers a retry that does not accept the item again.
 
 ## Consequences
 

@@ -174,7 +174,7 @@ A new ADR: access tokens issued by the API, and service accounts. It records tha
   - each item can still be edited, accepted or rejected on its own.
 - The guest anchors items by quote. Items that do not anchor are listed under "Not found on this page", with their quote, to be rejected or anchored by hand on a selection.
 - A pending item whose value and quote equal an annotation already on the page is shown as a duplicate and can be rejected in one click. The server does not check for this, since the duplicate may be one the engine cannot see.
-- The Suggest panel's own runs post a batch for the current sharing group instead of holding suggestions in memory. A run with the individuals profile and the fact profiles together becomes one batch with links between its items, so there is no review in the middle. Reloading the page no longer loses suggestions.
+- The Suggest panel's own runs post a batch for the chosen review group. A run with the individuals profile and the fact profiles together becomes one batch with links between its items, so there is no review in the middle. Pending suggestions survive a page reload.
 
 ## 6. Part 5: the bulk engine
 
@@ -280,7 +280,7 @@ Step 6 is done on `feat/batch-review`. What differs from section 5:
 - **Not found on this page** is a note on the item's card, not a separate section.
 - **Duplicates** are only items with no local links whose profile and value equal a saved annotation's. They get a note; rejecting them is still a click.
 - **Sharing.** Saved suggestions start out readable by the batch's group; the review form can change that. The API now names the group in a batch summary (`groupName`).
-- **The Suggest panel** ticks several kinds, puts the kinds others link to first, links facts to the run's own individuals by local id, and posts one batch for a chosen group. The in-memory list and its card are gone.
+- **The Suggest panel** ticks several kinds, puts the kinds others link to first, links facts to the run's own individuals by local id, and posts one batch for a chosen group. The sidebar uses the same persistent batch review for suggestions from every engine.
 - **Events.** New batches still do not arrive on the event stream. The review reloads when the page or the account changes, and after the panel posts.
 
 ## 14. Status note (2026-11-16): Parts 5 and 6
@@ -297,4 +297,3 @@ Step 8 is done on `feat/suggester`, and step 9 on `feat/suggestion-worklist`. Wh
 - **Endpoint keys.** An endpoint may carry an API key, sent as a bearer token. The sidebar never sets one.
 - **The anchoring metric** (the share of PMC quotes that anchor on the PMC page and in the publisher's PDF) is not built. Run the suggester on a few articles and open them in the sidebar to see how many items show "Not found on this page".
 - **The worklist** is the site's **Suggestions** page. For each of the caller's groups it lists the documents with pending items, linked to the document's own URL, with who suggested them, the counts, and **Discard**. Batch summaries now carry `documentUri` and `documentTitle`. Counts by profile are not shown.
-

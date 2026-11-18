@@ -253,4 +253,3 @@ Steps 2, 3 and 5 are done on `feat/claude-skills`. The evaluation mode of step 4
   3. **Not attempted.** The supplementary tables and figures were not read, and the table's partly filled rows (inheritance, most cardiac rows, previously published) were left for the curator.
 
 The draft is in `.curanno-drafts/PMC3370286/`, which is ignored by git. It was not posted.
-
