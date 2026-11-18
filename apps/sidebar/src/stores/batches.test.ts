@@ -1,12 +1,12 @@
 import type { SuggestionBatch } from '@curanno/api-client';
-import { individualProfile } from '@curanno/model';
+import { individualProfile, type BodyProfile } from '@curanno/model';
 import { flushPromises } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createFakeGuest } from '../guest/fake';
 import { installFakeApi, json, type Route } from '../test/fake-api';
 import { useAnnotationsStore } from './annotations';
-import { draftOf, useBatchesStore } from './batches';
+import { draftOf, orderAcceptances, useBatchesStore, type ReviewItem } from './batches';
 
 const PAGE = 'https://example.org/article';
 const BATCH = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
@@ -70,6 +70,56 @@ async function setup(route: Route) {
 }
 
 beforeEach(() => setActivePinia(createPinia()));
+
+describe('reviewed dependencies', () => {
+  const linkedProfile: BodyProfile = {
+    iri: 'https://example.org/linked',
+    title: 'Linked',
+    schema: {
+      type: 'object',
+      properties: {
+        next: { type: 'string', annotation: { profile: 'https://example.org/linked' } },
+      },
+    },
+  };
+  function reviews(links: Record<string, string | undefined>): ReviewItem[] {
+    return Object.entries(links).map(([id, next]) => ({
+      batch,
+      documentUri: PAGE,
+      key: id,
+      target: { type: 'SpecificResource', source: PAGE },
+      item: {
+        ...batch.items[0]!,
+        id,
+        body: {
+          type: 'StructuredBody',
+          profile: linkedProfile.iri,
+          value: next ? { next } : {},
+        },
+      },
+    }));
+  }
+  it('orders transitive dependencies once, keeping explicitly reviewed drafts', () => {
+    const items = reviews({ '_:a': '_:b', '_:b': '_:c', '_:c': undefined });
+    const chosen = [
+      { item: items[0]!, draft: draftOf(items[0]!) },
+      { item: items[1]!, draft: { ...draftOf(items[1]!), text: 'Reviewed dependency' } },
+    ];
+    const ordered = orderAcceptances(chosen, items, () => linkedProfile);
+    expect(ordered.map((a) => a.item.item.id)).toEqual(['_:c', '_:b', '_:a']);
+    expect(ordered[1]).toBe(chosen[1]);
+  });
+  it('rejects cycles introduced during review before sending any acceptance', () => {
+    const items = reviews({ '_:a': '_:b', '_:b': '_:a' });
+    expect(() =>
+      orderAcceptances(
+        [{ item: items[0]!, draft: draftOf(items[0]!) }],
+        items,
+        () => linkedProfile,
+      ),
+    ).toThrow(/cycle/);
+  });
+});
 
 describe('batch review sessions', () => {
   it('does not start annotation reads after acceptance returns to another identity', async () => {

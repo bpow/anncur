@@ -203,6 +203,59 @@ describe('BatchReview', () => {
     });
   });
 
+  it('saves the individual chosen in the reviewed draft instead of the original one', async () => {
+    batch.items.push({
+      ...batch.items[0]!,
+      id: '_:i2',
+      body: { ...batch.items[0]!.body, value: { case: 'II-2' } },
+    });
+    const wrapper = mountReview();
+    await flushPromises();
+    const fact = wrapper.find('.members li.suggestion');
+    await fact
+      .findAll('button')
+      .find((b) => b.text() === 'Review and save')!
+      .trigger('click');
+    await fact.find('button.remove').trigger('click');
+    await fact.find('select[name="individuals"]').setValue('_:i2');
+    await fact.find('form.editor').trigger('submit');
+    await flushPromises();
+    const accept = api.calls.find((c) => c.url.pathname.endsWith('/accept'));
+    const items = (accept?.body as { items: { id: string }[] }).items;
+    expect(items.map((i) => i.id)).toEqual(['_:i2', '_:f1']);
+  });
+
+  it('does not save an unneeded individual after the link changes to a saved annotation', async () => {
+    const saved = `${BASE}99`;
+    useAnnotationsStore().upsert(
+      {
+        id: saved,
+        type: 'Annotation',
+        target: { source: PAGE },
+        body: {
+          type: 'StructuredBody',
+          profile: individualProfile.iri,
+          value: { case: 'Already saved' },
+        },
+      } as Annotation,
+      PAGE,
+    );
+    const wrapper = mountReview();
+    await flushPromises();
+    const fact = wrapper.find('.members li.suggestion');
+    await fact
+      .findAll('button')
+      .find((b) => b.text() === 'Review and save')!
+      .trigger('click');
+    await fact.find('button.remove').trigger('click');
+    await fact.find('select[name="individuals"]').setValue(saved);
+    await fact.find('form.editor').trigger('submit');
+    await flushPromises();
+    const accept = api.calls.find((c) => c.url.pathname.endsWith('/accept'));
+    const items = (accept?.body as { items: { id: string }[] }).items;
+    expect(items.map((i) => i.id)).toEqual(['_:f1']);
+  });
+
   it('takes an individual as one already on the page', async () => {
     const saved = `${BASE}99`;
     useAnnotationsStore().upsert(

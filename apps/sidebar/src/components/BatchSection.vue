@@ -83,14 +83,12 @@ async function run(work: () => Promise<void>): Promise<void> {
   }
 }
 
-/** The head with each member whose other links are already resolved. */
+/** The head and its members; the store resolves every draft's dependencies. */
 const saveGroup = (head: ReviewItem, members: ReviewItem[]) =>
   run(() =>
     batches.accept(guest, [
       { item: head, draft: { ...draftOf(head), acl: acl.value } },
-      ...members
-        .filter((m) => needs(m).every((n) => n.item.id === head.item.id))
-        .map((m) => ({ item: m, draft: { ...draftOf(m), acl: acl.value } })),
+      ...members.map((m) => ({ item: m, draft: { ...draftOf(m), acl: acl.value } })),
     ]),
   );
 

@@ -53,12 +53,7 @@ async function run(work: () => Promise<void>): Promise<void> {
 }
 
 const save = (next: AnnotationDraft) =>
-  run(() =>
-    batches.accept(guest, [
-      ...props.needs.map((n) => ({ item: n, draft: { ...draftOf(n), acl: props.acl } })),
-      { item: props.review, draft: next },
-    ]),
-  );
+  run(() => batches.accept(guest, [{ item: props.review, draft: next }]));
 const reject = () => run(() => batches.reject(guest, props.review));
 </script>
 
