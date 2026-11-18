@@ -10,13 +10,14 @@ import { GUEST_KEY } from '../guest';
 import { createFakeGuest, type FakeGuest } from '../guest/fake';
 import { useAnnotationsStore } from '../stores/annotations';
 import { useProfilesStore } from '../stores/profiles';
-import { installFakeApi, json, type FakeApi } from '../test/fake-api';
+import { installFakeApi, json, problem, type FakeApi } from '../test/fake-api';
 import BatchReview from './BatchReview.vue';
 
 const PAGE = 'https://example.org/article';
 const BASE = 'https://annotations.test/annotations/';
 const GROUP = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const BATCH = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+const made = (n: number) => `${BASE}${String(n).padStart(8, '0')}-1111-4111-8111-111111111111`;
 const quote = (exact: string) => ({ type: 'TextQuoteSelector', exact });
 
 function batchOf(statuses: Record<string, string> = {}): SuggestionBatch {
@@ -53,11 +54,15 @@ function batchOf(statuses: Record<string, string> = {}): SuggestionBatch {
 let api: FakeApi;
 let guest: FakeGuest;
 let batch: SuggestionBatch;
+let failedShares: Set<string>;
+let failedReads: Set<string>;
 
 beforeEach(async () => {
   setActivePinia(createPinia());
   forgetCurrentUser();
   batch = batchOf();
+  failedShares = new Set();
+  failedReads = new Set();
   let next = 1;
   api = installFakeApi(({ method, url, body }) => {
     const path = url.pathname;
@@ -76,7 +81,7 @@ beforeEach(async () => {
       const items = (body as { items: { id: string; existing?: string }[] }).items;
       const decided = items.map((i) => ({
         id: i.id,
-        annotation: i.existing ?? `${BASE}${next++}`,
+        annotation: i.existing ?? made(next++),
       }));
       batch = batchOf(Object.fromEntries(items.map((i) => [i.id, 'accepted'])));
       return json({ items: decided });
@@ -87,9 +92,13 @@ beforeEach(async () => {
     }
     if (path.startsWith('/annotations/') && method === 'GET') {
       const id = `${BASE}${path.split('/').pop()}`;
+      if (failedReads.has(id)) return problem(503, 'Could not load saved annotation');
       return json({ id, type: 'Annotation', target: { source: PAGE } });
     }
-    if (path.endsWith('/acl') && method === 'PUT') return json([]);
+    if (path.endsWith('/acl') && method === 'PUT') {
+      const iri = `${BASE}${path.split('/').at(-2)}`;
+      return failedShares.has(iri) ? problem(503, 'Sharing failed') : json([]);
+    }
     return undefined;
   });
   await useProfilesStore().load();
@@ -274,6 +283,49 @@ describe('BatchReview', () => {
     const accept = api.calls.find((c) => c.url.pathname.endsWith('/accept'));
     expect(accept?.body).toEqual({ items: [{ id: '_:i1', existing: saved }] });
   });
+
+  it.each(['sharing', 'loading'])(
+    'continues after failed %s and retries without accepting again',
+    async (failure) => {
+      const failed = failure === 'sharing' ? failedShares : failedReads;
+      failed.add(made(1));
+      const wrapper = mountReview();
+      await flushPromises();
+      await wrapper
+        .findAll('button')
+        .find((b) => b.text().startsWith('Save with its'))!
+        .trigger('click');
+      await flushPromises();
+      expect(wrapper.find('section.batch').exists()).toBe(false);
+      expect(guest.anchoring.value.size).toBe(0);
+      // The second saved annotation is shared even when finishing the first one failed.
+      expect(
+        api.calls.some(
+          (c) =>
+            c.method === 'PUT' &&
+            c.url.pathname === `/x/annotations/${made(2).slice(BASE.length)}/acl`,
+        ),
+      ).toBe(true);
+      expect(wrapper.text()).toContain('The annotation is saved.');
+      if (failure === 'sharing') expect(wrapper.text()).toContain('Saved, but not shared');
+      failed.clear();
+      await wrapper
+        .findAll('button')
+        .find((b) => b.text() === 'Retry loading and sharing')!
+        .trigger('click');
+      await flushPromises();
+      expect(wrapper.text()).not.toContain('needs another attempt');
+      expect(api.calls.filter((c) => c.url.pathname.endsWith('/accept'))).toHaveLength(1);
+      expect(
+        api.calls.some(
+          (c) =>
+            c.method === 'PUT' &&
+            c.url.pathname === `/x/annotations/${made(1).slice(BASE.length)}/acl`,
+        ),
+      ).toBe(true);
+      expect(useAnnotationsStore().rootsOf(PAGE)).toHaveLength(2);
+    },
+  );
 
   it('rejects a suggestion', async () => {
     const wrapper = mountReview();
