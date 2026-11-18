@@ -2177,10 +2177,12 @@ components:
           items:
             $ref: '#/components/schemas/GroupRef'
     TokenScope:
-      description: >-
+      description: |
         `suggestions:write`: `GET /x/me`, `GET /x/profiles`, ontology term search, and posting, listing and reading suggestion batches.
+        `annotations:read`: `GET /x/me`, profiles, ontologies, documents, the event stream, and reading and searching the annotations and ACLs the token's user may see.
+        `annotations:write`: everything in `annotations:read`, plus registering documents, and creating, updating, deleting and sharing annotations as the token's user.
       type: string
-      enum: ['suggestions:write']
+      enum: ['suggestions:write', 'annotations:read', 'annotations:write']
     AccessTokenInput:
       type: object
       required: [name, scopes, expiresInDays]

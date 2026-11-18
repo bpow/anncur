@@ -45,11 +45,16 @@ describe.skipIf(!databaseUrl)('access tokens', () => {
 
   const bearer = (token: string, options: InjectOptions): Promise<LightMyRequestResponse> =>
     ctx.app.inject({ ...options, headers: { authorization: `Bearer ${token}` } });
-  async function tokenFor(as: TestUser, userId: string, name = 'a job') {
+  async function tokenFor(
+    as: TestUser,
+    userId: string,
+    name = 'a job',
+    scopes = ['suggestions:write'],
+  ) {
     const res = await ctx.as(as, {
       method: 'POST',
       url: `/x/users/${userId}/tokens`,
-      payload: { name, scopes: ['suggestions:write'], expiresInDays: 30 },
+      payload: { name, scopes, expiresInDays: 30 },
     });
     expect(res.statusCode, res.body).toBe(201);
     return res.json<{ id: string; token: string }>();
@@ -94,6 +99,54 @@ describe.skipIf(!databaseUrl)('access tokens', () => {
     ).toBe(403);
     const used = await ctx.as(alice, { method: 'GET', url: `/x/users/${ids.get(alice)}/tokens` });
     expect(used.json<{ lastUsed?: string }[]>()[0]?.lastUsed).toBeDefined();
+  });
+
+  it('reads and writes annotations as its user with the annotation scopes', async () => {
+    const write = await tokenFor(bob, ids.get(bob)!, 'migration', ['annotations:write']);
+    const made = await bearer(write.token, {
+      method: 'POST',
+      url: '/annotations/',
+      payload: annotationOn(PAGE, 'Migrated'),
+    });
+    expect(made.statusCode, made.body).toBe(201);
+    const id = made.json<{ id: string }>().id.split('/').pop();
+    const shared = await bearer(write.token, {
+      method: 'PUT',
+      url: `/x/annotations/${id}/acl`,
+      payload: [{ principal: group, permission: 'read' }],
+    });
+    expect(shared.statusCode, shared.body).toBe(200);
+    const direct = await ctx.as(bob, {
+      method: 'POST',
+      url: '/annotations/',
+      payload: annotationOn(PAGE),
+    });
+    const read = await ctx.as(bob, { method: 'GET', url: `/annotations/${id}` });
+    expect(read.json<{ creator: unknown }>().creator).toEqual(
+      direct.json<{ creator: unknown }>().creator,
+    );
+
+    const reader = await tokenFor(bob, ids.get(bob)!, 'reader', ['annotations:read']);
+    expect(
+      (await bearer(reader.token, { method: 'GET', url: `/annotations/${id}` })).statusCode,
+    ).toBe(200);
+    const found = await bearer(reader.token, {
+      method: 'GET',
+      url: `/x/search?uri=${encodeURIComponent(PAGE)}`,
+    });
+    expect(found.statusCode, found.body).toBe(200);
+    expect(found.body).toContain(id);
+    expect(
+      (
+        await bearer(reader.token, {
+          method: 'POST',
+          url: '/annotations/',
+          payload: annotationOn(PAGE),
+        })
+      ).statusCode,
+    ).toBe(403);
+    expect((await bearer(reader.token, batch())).statusCode).toBe(403);
+    expect((await bearer(write.token, { method: 'GET', url: '/x/groups' })).statusCode).toBe(403);
   });
 
   it('stops working when revoked, expired, tampered with, or its user is disabled', async () => {
