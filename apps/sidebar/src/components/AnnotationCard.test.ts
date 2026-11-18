@@ -51,11 +51,14 @@ const fact = annotation(
 );
 
 // Cards live inside the App's tooltip provider.
-const mountCard = (options: { attachTo?: HTMLElement } = {}) =>
-  mount(() => h(TooltipProvider, () => h(AnnotationCard, { annotation: fact })), {
-    global: { provide: { [GUEST_KEY as symbol]: createFakeGuest() } },
-    ...options,
-  });
+const mountCard = (options: { attachTo?: HTMLElement; annotation?: Annotation } = {}) =>
+  mount(
+    () => h(TooltipProvider, () => h(AnnotationCard, { annotation: options.annotation ?? fact })),
+    {
+      global: { provide: { [GUEST_KEY as symbol]: createFakeGuest() } },
+      ...options,
+    },
+  );
 
 describe('AnnotationCard', () => {
   let api: FakeApi;
@@ -96,6 +99,22 @@ describe('AnnotationCard', () => {
     store.upsert(individual(1, 'II-1'), PAGE);
     store.upsert(individual(2, 'II-2'), PAGE);
     store.upsert(fact, PAGE);
+  });
+
+  it('renders the comment as Markdown, escaping raw HTML', () => {
+    const note = annotation(7, {
+      type: 'TextualBody',
+      value: '**Proband** has <b>no</b> [notes](https://example.org/n)',
+      purpose: 'commenting',
+    });
+    const comment = mountCard({ annotation: note }).find('.comment');
+    expect(comment.find('strong').text()).toBe('Proband');
+    expect(comment.find('b').exists()).toBe(false);
+    expect(comment.text()).toContain('<b>no</b>');
+    expect(comment.find('a').attributes()).toMatchObject({
+      href: 'https://example.org/n',
+      target: '_blank',
+    });
   });
 
   it('shows the linked individuals by their labels', () => {

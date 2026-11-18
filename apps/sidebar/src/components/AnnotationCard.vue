@@ -37,6 +37,7 @@ import { useGuest } from '../guest';
 import { linkFieldOf, linkLabels } from '../profiles/links';
 import { useAnnotationsStore } from '../stores/annotations';
 import { useProfilesStore } from '../stores/profiles';
+import { renderMarkdown } from '../util/markdown';
 import { formatTime } from '../util/time';
 import AnchoringBadge from './AnchoringBadge.vue';
 import AnnotationEditor from './AnnotationEditor.vue';
@@ -65,6 +66,7 @@ const replyDraft = ref<AnnotationDraft>({ text: '', tags: [] });
 const quote = computed(() => quoteOf(props.annotation));
 const creator = computed(() => creatorOf(props.annotation));
 const comment = computed(() => commentOf(props.annotation));
+const commentHtml = computed(() => (comment.value ? renderMarkdown(comment.value) : ''));
 const tags = computed(() => tagsOf(props.annotation));
 const structured = computed(() => structuredBodies(props.annotation));
 const anchoring = computed(
@@ -310,7 +312,8 @@ async function repair(): Promise<void> {
       />
     </template>
     <template v-else>
-      <p v-if="comment" class="comment">{{ comment }}</p>
+      <!-- eslint-disable-next-line vue/no-v-html -- markdown-it escapes raw HTML (util/markdown.ts) -->
+      <div v-if="comment" class="comment" v-html="commentHtml"></div>
       <StructuredBodyView v-for="(body, i) in structured" :key="i" :body="body" />
       <ul v-if="tags.length" class="tags" aria-label="Tags">
         <li v-for="tag in tags" :key="tag">{{ tag }}</li>
@@ -476,8 +479,78 @@ header {
 
 .comment {
   margin: 0.3rem 0;
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.comment :deep(> :first-child) {
+  margin-top: 0;
+}
+
+.comment :deep(> :last-child) {
+  margin-bottom: 0;
+}
+
+.comment :deep(:is(p, ul, ol, pre, blockquote, table, h1, h2, h3, h4, h5, h6)) {
+  margin: 0.4rem 0;
+}
+
+.comment :deep(:is(h1, h2, h3, h4, h5, h6)) {
+  font-size: 1em;
+  font-weight: 600;
+}
+
+.comment :deep(:is(ul, ol)) {
+  padding-left: 1.4rem;
+}
+
+.comment :deep(li.task-item) {
+  list-style: none;
+}
+
+.comment :deep(input.task) {
+  margin: 0 0.3rem 0 -1.2rem;
+  vertical-align: middle;
+}
+
+.comment :deep(code) {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+  background: var(--surface-2);
+  border-radius: 3px;
+  padding: 0.05rem 0.25rem;
+}
+
+.comment :deep(pre) {
+  background: var(--surface-2);
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+  overflow-x: auto;
+}
+
+.comment :deep(pre code) {
+  background: none;
+  padding: 0;
+}
+
+.comment :deep(blockquote) {
+  border-left: 3px solid var(--border);
+  padding-left: 0.6rem;
+  color: var(--muted);
+}
+
+.comment :deep(table) {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.comment :deep(:is(th, td)) {
+  border: 1px solid var(--border);
+  padding: 0.15rem 0.4rem;
+}
+
+.comment :deep(a) {
+  color: var(--accent);
 }
 
 .tags {
