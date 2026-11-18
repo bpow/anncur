@@ -26,7 +26,7 @@ The options considered for the protocol:
 - The operator lists the endpoints in `EXTRACT_ENDPOINTS`, a JSON array of `{label, url, models?}`. The list reaches the sidebar through `config.json`, and each endpoint's origin is added to the sidebar's `connect-src`. That makes the CSP the enforcement point: the sidebar cannot send text to an endpoint the operator did not list. An empty list turns the feature off.
 - `EXTRACT_LOCAL_ONLY=true` makes the server refuse to start when an endpoint's host is not loopback (`localhost`, `127.0.0.1`, `[::1]`). This lets a deployment guarantee that document text stays on the curator's machine.
 - A quote counts only if it occurs verbatim in the scope's text, after whitespace and typographic punctuation are folded. Fuzzy matching is not used: a quote the model changed is one we cannot vouch for.
-- Suggestions live only in the sidebar's memory until the curator accepts one, and that becomes an ordinary annotation the curator creates.
+- Suggestions are posted as persistent batches for a group to review (ADR 0037). Accepting an item creates an ordinary annotation under the curator's account; pending suggestions remain outside the annotation tables.
 
 ## Consequences
 

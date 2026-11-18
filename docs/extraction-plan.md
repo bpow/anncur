@@ -1,13 +1,13 @@
 # Suggested annotations: extraction plan
 
-**Status:** Implemented, 2026-11-13, in ADRs 0032–0034 and the commits that follow them. The status note at the end records what changed from this plan and what is still open.
+**Status:** Implemented through persistent group batches (ADRs 0032–0038). The status note at the end records what changed from this plan and what is still open.
 
 How the sidebar asks a language model for annotation suggestions on the open document. Each suggestion is a quote plus a structured body for a registered profile. The model runs behind a configured endpoint, which can be a local Ollama, so a deployment can keep document text on the user's machine. This plan covers what to build, in what order, and how we know each step works. The decisions it makes get ADRs before code (step 0).
 
 ## 1. Goals
 
 - A curator picks a profile and asks for suggestions on the open page or PDF. The sidebar shows candidate annotations, each anchored in the page and holding a body that already validates against the profile. The curator accepts, edits or discards each one.
-- Nothing is saved until the curator accepts it. An accepted suggestion becomes an ordinary annotation made by the curator, with provenance that records the model.
+- Suggestions are stored as batches for a group to review. An accepted suggestion becomes an ordinary annotation made by the curator, with provenance that records the model; pending suggestions stay outside the annotation tables.
 - The endpoint is configuration. The first target is an OpenAI-compatible chat completions API. Ollama, llama.cpp's server, vLLM and LM Studio all serve one, and most hosted providers do too.
 - A deployment can require that document text never leaves the machine by allowing only loopback endpoints.
 
@@ -35,7 +35,9 @@ How the sidebar asks a language model for annotation suggestions on the open doc
                                  resolve ontology labels (/x/ontologies)
                     ◄──────── annotations.anchor (suggestion ids)
  draw "suggested" highlights
-                               curator accepts → POST /annotations (ordinary create)
+                               POST /x/suggestion-batches → persistent group batch
+                               curator accepts → POST /x/suggestion-batches/{id}/accept
+                               share accepted annotations through their ordinary ACLs
 ```
 
 The guest/sidebar principles still hold ([RPC §1](guest-sidebar-rpc.md)). The new messages carry page text from the guest to the sidebar, which the page already has, and nothing from the sidebar to the page except selectors and suggestion ids. The page never sees bodies, model output or the endpoint.
@@ -119,7 +121,7 @@ The corpus starts with a handful of open-access case reports annotated by hand w
 - **Highlights.** Suggestions are anchored with the existing `annotations.anchor` under their `urn:uuid` ids. The guest needs no new message, but it needs a highlight style for suggestions. This plan proposes an optional `style: "suggested"` field on `AnchorRequest`, which is additive. Withdrawing a suggestion uses `annotations.unanchor`.
 - **Spec and tests.** Update `docs/guest-sidebar-rpc.md`, the guards in `packages/model/src/rpc/` and their tests, the fake sidebar, and the guest's `connection.test.ts`. Add browser tests that check `text.report` against the text-model fixtures for HTML and against a PDF from the corpus.
 
-Page text is untrusted input to the model, so prompt injection is expected. What limits the damage: the model has no tools; its output must anchor as verbatim quotes and validate against the profile; nothing is saved without a person accepting it; and the result is only ever shown to the person who asked. The security review gets an entry that says so.
+Page text is untrusted input to the model, so prompt injection is expected. What limits the damage: the model has no tools; its output must anchor as verbatim quotes and validate against the profile; nothing becomes an annotation without a person accepting it; and the results are reviewed by the batch's group. The security review gets an entry that says so.
 
 ## 5. Configuration and serving
 
@@ -135,11 +137,11 @@ Page text is untrusted input to the model, so prompt injection is expected. What
 
 ## 6. Sidebar
 
-- **Entry point.** A "Suggest annotations" action on the document panel, shown when there are endpoints, the guest has `capabilities.text`, and the curator can create annotations. A dialog asks for the profile (from `/x/profiles`), the endpoint and model, and optional instructions. It shows which host the text will go to ("Document text will be sent to localhost:11434"), and it has a cancel button wired to `AbortSignal`.
-- **Store.** A suggestions store per document, kept in memory and discarded on reload or navigation. Progress shows chunks done out of total.
-- **List.** Suggestions appear in their own section above the annotations, as cards in the suggested style. Each card shows the quote, a `StructuredBodyView` of the value, and its unresolved terms. Hovering or activating a card works as it does for annotations.
-- **Accept.** This opens `AnnotationComposer` with the target and the value filled in, and the profile's `defaultPurpose`. Saving is an ordinary create, with the ACL defaults the composer already applies. The suggestion is then withdrawn. "Accept all" is not provided in the first version.
-- **Discard.** Discarding withdraws the suggestion from the store and from the guest.
+- **Entry point.** A "Suggest annotations" action on the document panel, shown when there are endpoints, the guest has `capabilities.text`, and the curator can create annotations. The form asks for the kinds of annotation, the group, the endpoint and model, and optional instructions. It names the host that will receive the text and provides a stop button wired to `AbortSignal`.
+- **Run and storage.** Progress and cancellation belong to the current run. `extractBatch` asks for linked kinds in dependency order and posts the result as a group-owned batch (ADR 0037). The batches are loaded from the API when a document opens, so suggestions survive navigation and reload.
+- **List.** Suggestions appear above the annotations, grouped by batch and linked individual, with quotes and structured values. A collapsible section controls both the cards and their suggested highlights. PDF quotes are read from the page selector's refinements.
+- **Accept.** The curator may accept an item as-is, review and edit it, or identify it as an annotation already saved. Dependencies come from the reviewed draft and are accepted first in the same transaction. Created annotations start out readable by the batch's group unless the curator changes sharing in the form. Committed decisions leave the pending list immediately; failed loading or sharing can be retried separately without accepting again.
+- **Reject.** Rejection is stored in the batch. The API removes rejected local links from pending items and rejects items left without a required link. Discarding a batch leaves accepted annotations in place.
 - **Provenance.** This uses the W3C model's own terms, with no extension:
   - **Annotation `creator`** is the curator, which the server already assigns from the token.
   - **Body `creator`** records the model that suggested the body, for example `{"type": "Software", "name": "curanno-extract", "nickname": "<model> / prompt <PROMPT_VERSION>"}`. The W3C model allows a creator on each body, and more than one when agents worked together. If the curator edits the value before saving, they are added as a second `Person` creator. Body `created` is the time of the suggestion.
@@ -155,7 +157,7 @@ A hosted endpoint would be a small service we run in front of a model. The plan 
 
 - The extract pipeline is unchanged, because the endpoint is just another URL in `EXTRACT_ENDPOINTS`.
 - Authentication is the one open problem. The sidebar must not hold third-party API keys. It should also not send the user's access token to a service the token was not issued for. A hosted endpoint we run would accept tokens issued for its own audience, for example through token exchange, or sit behind the API under `/x/extract` as a proxy that forwards to a model with a server-side key. The proxy is simpler, and it would mean document text passes through the deployment, which `EXTRACT_LOCAL_ONLY` deployments forbid.
-- Batch extraction (a folder of PDFs, or a corpus) could reuse `packages/extract` from a CLI or from a desktop shell. That is where the Tauri idea comes back.
+- `apps/suggester` reuses `packages/extract` for unattended runs over PMC articles. Its scoped access token posts batches for a group to review (ADRs 0037 and 0038); endpoint credentials remain outside the browser.
 
 ## 8. Steps
 
@@ -210,4 +212,3 @@ Still open:
 - The rest of the step 1 spike, above.
 - A corpus of real, curator-annotated case reports to replace the synthetic one.
 - A hosted endpoint and its authentication (section 7).
-

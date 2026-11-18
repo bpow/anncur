@@ -90,7 +90,9 @@ When you review, each suggested individual heads its facts:
 - **Same as** says that the individual is one already saved on the page, such as II-1 from an earlier run. The facts then link to that annotation.
 - **Reject** on an individual also rejects the facts that were only about them.
 
-Saving a fact on its own also saves the individuals it names.
+Saving a fact on its own also saves the pending individuals named in the reviewed form, including any you chose while editing.
+
+If loading or sharing a saved annotation fails, its suggestion still leaves the pending list. The sidebar shows a separate notice with **Retry loading and sharing**. Retrying finishes the existing annotation; it does not create another one. Other accepted items continue to be loaded and shared.
 
 The **Individuals** section above the annotations brings each individual's facts together in the **Case individual** form's shape, with a link from each value to the passage it came from. It is computed from the annotations you can see and is not saved, so it changes as facts are added, edited or deleted. "Incomplete" means that the summary is still missing something the form requires, such as a variant. **Case individual** is no longer offered for new annotations; existing ones can still be edited.
 
