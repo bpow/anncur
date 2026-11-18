@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toProblem, type AclEntry, type Problem } from '@curanno/api-client';
-import type { JsonValue, StructuredBody } from '@curanno/model';
+import { quoteOf, type JsonValue, type StructuredBody } from '@curanno/model';
 import { computed, ref } from 'vue';
 import type { AnnotationDraft } from '../api/annotations';
 import { useGuest } from '../guest';
@@ -26,11 +26,7 @@ const editing = ref(false);
 const busy = ref(false);
 const problem = ref<Problem>();
 
-const quote = computed(() => {
-  const selectors = [props.review.item.selector].flat();
-  const q = selectors.find((s) => s.type === 'TextQuoteSelector') as { exact?: string } | undefined;
-  return q?.exact ?? '';
-});
+const quote = computed(() => quoteOf({ target: props.review.target }) ?? '');
 const body = computed<StructuredBody>(() => ({
   type: 'StructuredBody',
   profile: props.review.item.body.profile,
