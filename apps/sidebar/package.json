@@ -14,12 +14,13 @@
     "e2e:guest": "playwright test -c playwright.guest.config.ts"
   },
   "dependencies": {
-    "@vueuse/core": "^14.4.0",
     "@curanno/api-client": "workspace:*",
     "@curanno/extract": "workspace:*",
     "@curanno/model": "workspace:*",
+    "@vueuse/core": "^14.4.0",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
+    "markdown-it": "^14.3.3",
     "oidc-client-ts": "^3.5.0",
     "pinia": "^4.1.0",
     "reka-ui": "^2.11.0",
@@ -29,6 +30,7 @@
     "@axe-core/playwright": "4.14.0",
     "@curanno/guest": "workspace:*",
     "@playwright/test": "1.64.1",
+    "@types/markdown-it": "^14.2.0",
     "@vitejs/plugin-vue": "^6.0.10",
     "@vue/test-utils": "^2.5.1",
     "vite": "^7.3.7",
