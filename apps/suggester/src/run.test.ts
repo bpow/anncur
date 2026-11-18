@@ -8,7 +8,7 @@ import { builtinProfiles, caseFamilyProfile, individualProfile } from '@curanno/
 import { describe, expect, it } from 'vitest';
 import { articleFromBioc } from './bioc.ts';
 import { loadProfiles, profileForKind, rerunKey } from './profiles.ts';
-import { suggestFor } from './run.ts';
+import { runKey, suggestFor } from './run.ts';
 import { State } from './state.ts';
 
 const article = articleFromBioc(
@@ -128,5 +128,56 @@ describe('State', () => {
     expect(again.isDone('PMC1', 'run-a')).toBe(true);
     expect(again.isDone('PMC1', 'run-b')).toBe(false);
     expect(JSON.parse(await readFile(file, 'utf8'))).toMatchObject({ version: 1 });
+  });
+
+  const identity = {
+    apiUrl: 'https://curanno.test',
+    group: GROUP,
+    endpoint: { url: 'http://localhost:1234', model: 'qwen' },
+    kinds: [individualProfile],
+    instructions: 'Only cases in MYH7',
+  };
+  it.each([
+    { ...identity, apiUrl: 'https://another-curanno.test' },
+    { ...identity, group: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' },
+    { ...identity, endpoint: { ...identity.endpoint, url: 'http://localhost:4321' } },
+    { ...identity, endpoint: { ...identity.endpoint, model: 'another-model' } },
+    { ...identity, instructions: 'Only cases in MYBPC3' },
+    {
+      ...identity,
+      kinds: [{ ...individualProfile, schema: { ...individualProfile.schema, required: [] } }],
+    },
+  ])('does not reuse a checkpoint after the run configuration changes: %j', async (changed) => {
+    const file = path.join(await mkdtemp(path.join(tmpdir(), 'suggester-')), 'state.json');
+    const state = await State.open(file);
+    await state.record('PMC1', runKey(identity), 'b1');
+    const again = await State.open(file);
+    expect(again.isDone('PMC1', runKey(identity))).toBe(true);
+    expect(again.isDone('PMC1', runKey(changed))).toBe(false);
+  });
+
+  it('normalizes equivalent destinations and profile order without mutating the inputs', () => {
+    const kinds = [individualProfile, caseFamilyProfile];
+    const first = runKey({ ...identity, kinds });
+    expect(
+      runKey({
+        ...identity,
+        apiUrl: `${identity.apiUrl}/`,
+        endpoint: { ...identity.endpoint, url: `${identity.endpoint.url}/v1/` },
+        kinds: [...kinds].reverse(),
+        instructions: ` ${identity.instructions} `,
+      }),
+    ).toBe(first);
+    expect(kinds).toEqual([individualProfile, caseFamilyProfile]);
+  });
+
+  it('ignores profile bookkeeping timestamps returned by the API', () => {
+    const listed = {
+      ...individualProfile,
+      builtin: true,
+      enabled: true,
+      modified: '2026-11-18T10:00:00Z',
+    };
+    expect(runKey({ ...identity, kinds: [listed] })).toBe(runKey(identity));
   });
 });

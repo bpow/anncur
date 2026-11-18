@@ -24,7 +24,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 import { ApiError, createApiClient, unwrap, type ApiClient } from '@curanno/api-client';
-import { PROMPT_VERSION, outputSchema } from '@curanno/extract';
+import { outputSchema } from '@curanno/extract';
 import { linkFieldsOf, summarizeIndividuals, type BodyProfile } from '@curanno/model';
 import { articleFromBioc, fetchBioc, type Article } from './bioc.ts';
 import { checkDraft, type Draft } from './draft.ts';
@@ -33,12 +33,11 @@ import { articleFromPdf } from './pdf.ts';
 import {
   loadProfiles,
   profileForKind,
-  rerunKey,
   shortKind,
   termResolver,
   type Profiles,
 } from './profiles.ts';
-import { suggestFor } from './run.ts';
+import { runKey, suggestFor } from './run.ts';
 import { State } from './state.ts';
 
 const { values, positionals } = parseArgs({
@@ -253,7 +252,13 @@ const commands: Record<string, () => Promise<number>> = {
     if (!values.profile.length) throw new Error('name at least one --profile, such as individual');
     const { all, validate } = await profiles(api);
     const kinds = values.profile.map((k) => profileForKind(all, k));
-    const run = `${rerunKey(kinds)} ${endpoint.model} prompt ${PROMPT_VERSION}`;
+    const run = runKey({
+      apiUrl: required('api'),
+      group,
+      endpoint,
+      kinds,
+      ...(values.instructions ? { instructions: values.instructions } : {}),
+    });
     const state = await State.open(values.state);
 
     const ids = [...values.pmcid];
