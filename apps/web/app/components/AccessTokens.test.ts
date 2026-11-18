@@ -62,12 +62,13 @@ describe('AccessTokens', () => {
     expect(wrapper.text()).toContain('old job');
 
     await wrapper.find('input[name="token-name"]').setValue('nightly run');
+    await wrapper.find('input[value="annotations:read"]').setValue(true);
     await wrapper.find('select[name="token-days"]').setValue('30');
     await wrapper.find('form').trigger('submit');
     await flushPromises();
     expect(api.calls.find((c) => c.method === 'POST')?.body).toEqual({
       name: 'nightly run',
-      scopes: ['suggestions:write'],
+      scopes: ['suggestions:write', 'annotations:read'],
       expiresInDays: 30,
     });
     expect(wrapper.find('.secret').text()).toBe(SECRET);

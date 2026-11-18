@@ -251,6 +251,29 @@ describe.skipIf(!databaseUrl)('events', () => {
     ]);
   });
 
+  it('streams to an annotations:read token until it is revoked', async () => {
+    const me = (await ctx.as(alice, { method: 'GET', url: '/x/me' })).json<{ id: string }>().id;
+    const made = await ctx.as(alice, {
+      method: 'POST',
+      url: `/x/users/${me}/tokens`,
+      payload: { name: 'reader', scopes: ['annotations:read'], expiresInDays: 1 },
+    });
+    expect(made.statusCode, made.body).toBe(201);
+    const { id: tokenId, token } = made.json<{ id: string; token: string }>();
+    const asToken = await openStream(base, `/x/events?uri=${encodeURIComponent(PAGE)}`, token);
+    streams.push(asToken);
+
+    const note = await create(alice, 'seen through a token');
+    expect((await asToken.next()).data.id).toBe(note.id);
+
+    const revoked = await ctx.as(alice, {
+      method: 'DELETE',
+      url: `/x/users/${me}/tokens/${tokenId}`,
+    });
+    expect(revoked.statusCode).toBe(204);
+    await asToken.ended;
+  });
+
   it('ignores other documents and replays from Last-Event-ID', async () => {
     const elsewhere = await openStream(
       base,

@@ -11,6 +11,22 @@ import { groupsOf, principalsOf, type UserCaller } from './caller.js';
 
 export const TOKEN_PREFIX = 'cat_';
 
+const ANNOTATIONS_READ = [
+  'GET /x/me',
+  'GET /x/context.jsonld',
+  'GET /x/profiles',
+  'GET /x/profiles/:iri',
+  'GET /x/ontologies',
+  'GET /x/ontologies/:name/terms',
+  'GET /x/documents',
+  'GET /x/documents/:id',
+  'GET /annotations/',
+  'GET /annotations/:id',
+  'GET /x/search',
+  'GET /x/annotations/:id/acl',
+  'GET /x/events',
+];
+
 /** The operations each scope allows, as `METHOD route`, in Fastify's route syntax. */
 export const SCOPES: Record<string, readonly string[]> = {
   'suggestions:write': [
@@ -21,6 +37,18 @@ export const SCOPES: Record<string, readonly string[]> = {
     'POST /x/suggestion-batches',
     'GET /x/suggestion-batches',
     'GET /x/suggestion-batches/:id',
+  ],
+  'annotations:read': ANNOTATIONS_READ,
+  // What the sidebar does to annotate: register the document, then create, edit or share.
+  'annotations:write': [
+    ...ANNOTATIONS_READ,
+    'POST /x/documents',
+    'POST /annotations/',
+    'PUT /annotations/:id',
+    'DELETE /annotations/:id',
+    'PUT /x/annotations/:id/acl',
+    'POST /x/annotations/:id/acl',
+    'DELETE /x/annotations/:id/acl/:principalId/:permission',
   ],
 };
 
