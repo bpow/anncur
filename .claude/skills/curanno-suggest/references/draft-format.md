@@ -17,6 +17,7 @@
 - **`id`** is the item's local id: `_:` followed by letters, digits, `-` or `_`. Use `_:i1`, `_:i2` … for individuals, and any other ids for facts. A fact's link field (`individuals`) lists local ids of `individual` items in the same draft.
 - **`kind`** is a kind's short name, as `kinds` prints it.
 - **`passage`** is the number of the passage the quote is from, as `text` prints it. It only helps messages point at the right place.
+- **`article`** is the `id` that `text` printed: a PMC id, a DOI, a URL or a `urn:x-pdf:` fingerprint.
 - **`quote`** is copied exactly from that passage: whole sentences, never joined across passages, never shortened, and with no added or changed characters. Differences in whitespace and typographic quotes or dashes are tolerated; anything else is not. The quote must also be unique in the article, so quote enough to tell repeated sentences apart.
 - **`value`** follows the kind's schema from `kinds`. Phenotype lists take labels (strings), which `check` resolves to HPO terms.
 - **`notInBatch`** lists, for the curator, what you found but could not put in the batch.
@@ -30,6 +31,7 @@
   | Message | Meaning |
   | --- | --- |
   | "the quote is not in the article word for word" | Copy the sentence again, exactly, from the passage named. |
+  | "the quote is not on any one page word for word" (a PDF) | Copy it again from the page named, with its hyphens, and split a sentence that runs onto the next page. |
   | "the quote occurs more than once" | Quote more of the sentence, or a neighbouring clause. |
   | "the quote is too short" | Quote at least a whole sentence. |
   | "there is no kind …" or "… is computed from facts" | Use a kind `kinds` lists, other than `case-individual`. |
