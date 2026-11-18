@@ -101,7 +101,10 @@ describe('extract', () => {
       answer([
         { quote: 'The enzyme was inactive.', value: { kind: 'functional' } },
         { quote: 'reduced activity', value: { kind: 'functional' } },
-        { quote: 'The variant was absent from gnomAD.', value: { kind: 'rumour' } },
+        {
+          quote: 'The variant was absent from gnomAD.',
+          value: { kind: 'population', identifiers: ['not a curie'] },
+        },
         { quote: 'ok', value: { kind: 'other' } },
       ]),
     );
@@ -117,7 +120,7 @@ describe('extract', () => {
       'invalid',
       'too-short',
     ]);
-    expect(result.rejected[2]?.errors?.[0]?.instancePath).toBe('/value/kind');
+    expect(result.rejected[2]?.errors?.[0]?.instancePath).toBe('/value/identifiers/0');
   });
 
   it('asks again once when the answer is not JSON, then gives up on that chunk', async () => {

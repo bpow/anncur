@@ -369,7 +369,7 @@ describe.skipIf(!databaseUrl)('W3C protocol', () => {
         payload: annotationOn(PAGE, 'x', {
           body: [
             { type: 'TextualBody', value: 'fine' },
-            { type: 'StructuredBody', profile, value: { kind: 'rumour', bogus: 1 } },
+            { type: 'StructuredBody', profile, value: { kind: '', bogus: 1 } },
           ],
         }),
       });
@@ -450,7 +450,7 @@ describe.skipIf(!databaseUrl)('W3C protocol', () => {
             type: 'TextualBody',
             format: 'application/json',
             purpose: 'classifying',
-            value: '{"kind": "nope"}',
+            value: '{"kind": ""}',
           },
         }),
       });

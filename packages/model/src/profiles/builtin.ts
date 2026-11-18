@@ -24,9 +24,11 @@ export const evidenceExcerptProfile: BodyProfile = {
     additionalProperties: false,
     properties: {
       kind: {
-        description: 'The kind of evidence the excerpt provides.',
+        description:
+          'The kind of evidence the excerpt provides, for example functional, segregation or population.',
         type: 'string',
-        enum: ['case', 'functional', 'segregation', 'population', 'computational', 'other'],
+        minLength: 1,
+        maxLength: 200,
       },
       identifiers: {
         description:

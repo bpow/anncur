@@ -37,7 +37,7 @@ describe('ProfileRegistry', () => {
     const result = registry.validate({
       type: 'StructuredBody',
       profile: evidenceExcerptProfile.iri,
-      value: { kind: 'rumour', identifiers: ['not a curie'], extra: 1 },
+      value: { kind: '', identifiers: ['not a curie'], extra: 1 },
     });
     expect(result).toMatchObject({ ok: false, reason: 'schema' });
     const paths = (result as { errors: { instancePath: string }[] }).errors.map(

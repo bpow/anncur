@@ -19,20 +19,17 @@ describe('StructuredBodyEditor', () => {
     const wrapper = mount(StructuredBodyEditor, {
       props: { profile: evidenceExcerptProfile, modelValue: {} },
     });
-    const kind = wrapper.find('select[name="kind"]');
+    const kind = wrapper.find('input[name="kind"]');
     expect(kind.exists()).toBe(true);
     expect(kind.attributes('required')).toBeDefined();
-    expect(kind.findAll('option').map((o) => o.text())).toEqual([
+    const confidence = wrapper.find('select[name="confidence"]');
+    expect(confidence.findAll('option').map((o) => o.text())).toEqual([
       '—',
-      'case',
-      'functional',
-      'segregation',
-      'population',
-      'computational',
-      'other',
+      'low',
+      'medium',
+      'high',
     ]);
     expect(wrapper.find('textarea[name="summary"]').exists()).toBe(true);
-    expect(wrapper.find('select[name="confidence"]').exists()).toBe(true);
     expect(wrapper.find('input[name="identifiers"]').exists()).toBe(true);
   });
 
@@ -50,11 +47,11 @@ describe('StructuredBodyEditor', () => {
     expect(identifiers().attributes('aria-required')).toBe('true');
   });
 
-  it('emits the value with enum, list and text fields set and empty ones dropped', async () => {
+  it('emits the value with text, list and textarea fields set and empty ones dropped', async () => {
     const wrapper = mount(StructuredBodyEditor, {
       props: { profile: evidenceExcerptProfile, modelValue: { summary: 'old' } },
     });
-    await wrapper.find('select[name="kind"]').setValue('case');
+    await wrapper.find('input[name="kind"]').setValue('case');
     expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([
       { summary: 'old', kind: 'case' },
     ]);

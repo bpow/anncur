@@ -85,9 +85,9 @@ describe('outputSchema', () => {
     const { valueSchema } = outputSchema(evidenceExcerptProfile);
     expect(valueSchema['required']).toEqual(['kind']);
     expect(valueSchema['additionalProperties']).toBe(false);
-    const kind = (valueSchema['properties'] as Record<string, Record<string, unknown>>)['kind'];
-    expect(kind?.['enum']).toContain('functional');
-    expect(kind?.['description']).toMatch(/kind of evidence/);
+    const properties = valueSchema['properties'] as Record<string, Record<string, unknown>>;
+    expect(properties['confidence']?.['enum']).toEqual(['low', 'medium', 'high']);
+    expect(properties['kind']?.['description']).toMatch(/kind of evidence/);
   });
 
   it('finds ontology fields inside array items', () => {

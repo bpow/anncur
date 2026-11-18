@@ -66,7 +66,7 @@ test('alice annotates, shares with bob, and bob follows the changes live', async
   await alice.getByLabel('Add tag').fill('segregation');
   await alice.getByLabel('Add tag').press('Enter');
   await alice.getByLabel('Structured data').selectOption({ label: 'Evidence excerpt' });
-  await alice.locator('select[name="kind"]').selectOption('segregation');
+  await alice.locator('input[name="kind"]').fill('segregation');
   await alice.getByRole('button', { name: 'Post' }).click();
 
   const aliceCard = alice.locator('article.card').first();
