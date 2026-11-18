@@ -3,8 +3,8 @@
  * structured body), plus the per-annotation checks its cards make. Reading
  * annotations is in `@curanno/model`.
  */
+import { stableStringify } from '@curanno/model';
 import type { AclEntry, Annotation, AnnotationInput } from '@curanno/api-client';
-import { stableStringify } from '@curanno/extract';
 import {
   commentOf,
   isStructuredBody,
