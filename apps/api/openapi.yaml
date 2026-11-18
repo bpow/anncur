@@ -256,7 +256,7 @@ paths:
       summary: Delete an annotation
       description: >-
         Deletes the annotation. `If-Match` is required. Requires the `delete` permission. Later
-        requests for the IRI answer 410.
+        requests for the IRI answer 410 until it is restored (`restoreAnnotation`).
       parameters:
         - $ref: '#/components/parameters/ifMatch'
       responses:
@@ -374,6 +374,37 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+
+  /x/annotations/{id}/restore:
+    parameters:
+      - $ref: '#/components/parameters/annotationId'
+    post:
+      operationId: restoreAnnotation
+      tags: [protocol]
+      summary: Restore a deleted annotation
+      description: >-
+        Undoes a deletion: the annotation is served again, with a new ETag, and event streams
+        report it as `created`. Requires the `delete` permission. Restoring an annotation that
+        is not deleted changes nothing.
+      responses:
+        '200':
+          description: The restored annotation
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/ld+json:
+              schema:
+                $ref: '#/components/schemas/Annotation'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Annotation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /x/annotations/{id}/acl:
     parameters:

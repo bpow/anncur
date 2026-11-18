@@ -328,7 +328,8 @@ export class AnnotationStore {
       await this.claimVersion(
         trx
           .updateTable('annotations')
-          .set({ deleted_at: sql`now()`, updated_at: sql`now()`, version: sql`version + 1` })
+          // `updated_at` is the body's and target's (`modified`), so a restore brings it back as it was.
+          .set({ deleted_at: sql`now()`, version: sql`version + 1` })
           .where('id', '=', current.id),
         expected,
       );
@@ -338,6 +339,29 @@ export class AnnotationStore {
           annotation_id: current.id,
           document_id: current.document_id,
           kind: 'deleted',
+          actor_id: caller.userId,
+        })
+        .execute();
+    });
+  }
+
+  /** Undo `softDelete`. A no-op for an annotation that is not deleted. */
+  async restore(current: AnnotationRecord, caller: UserCaller): Promise<void> {
+    await this.db.transaction().execute(async (trx) => {
+      const restored = await trx
+        .updateTable('annotations')
+        .set({ deleted_at: null, version: sql`version + 1` })
+        .where('id', '=', current.id)
+        .where('deleted_at', 'is not', null)
+        .executeTakeFirst();
+      if (restored.numUpdatedRows === 0n) return;
+      // Streams treat it as new: subscribers dropped it on the deletion event.
+      await trx
+        .insertInto('annotation_events')
+        .values({
+          annotation_id: current.id,
+          document_id: current.document_id,
+          kind: 'created',
           actor_id: caller.userId,
         })
         .execute();
