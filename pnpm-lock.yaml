@@ -222,6 +222,9 @@ importers:
       happy-dom:
         specifier: ^21.0.4
         version: 21.0.4
+      pdfjs-dist:
+        specifier: 6.4.299
+        version: 6.4.299
 
   apps/web:
     dependencies:
