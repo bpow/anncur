@@ -5,7 +5,14 @@
  * curator reviewed; the server links facts to the individuals accepted
  * with or before them.
  */
-import { unwrap, type SuggestionBatch, type SuggestionItem } from '@curanno/api-client';
+import {
+  toProblem,
+  unwrap,
+  type AclEntry,
+  type Problem,
+  type SuggestionBatch,
+  type SuggestionItem,
+} from '@curanno/api-client';
 import {
   localLinks,
   type Agent,
@@ -36,6 +43,15 @@ export interface ReviewItem {
 /** One item to accept: as the reviewed draft, or as an annotation already saved. */
 export type Acceptance =
   { item: ReviewItem; draft: AnnotationDraft } | { item: ReviewItem; existing: string };
+
+/** A committed annotation whose loading or sharing can be retried without accepting again. */
+export interface SaveFailure {
+  annotation: string;
+  documentUri: string;
+  acl: AclEntry[];
+  problem: Problem;
+}
+type SaveTask = Omit<SaveFailure, 'problem'>;
 
 const keyOf = (batch: string, local: string) =>
   `urn:x-curanno-suggestion:${batch}/${local.slice(2)}`;
@@ -118,6 +134,7 @@ export const useBatchesStore = defineStore('batches', () => {
   const byDocument = shallowRef(new Map<string, SuggestionBatch[]>());
   /** Whether pending items are highlighted in the page; off while the sidebar folds them away. */
   const shown = shallowRef(true);
+  const saveFailures = shallowRef<SaveFailure[]>([]);
   let session = 0;
   let loadGeneration = 0;
 
@@ -196,12 +213,61 @@ export const useBatchesStore = defineStore('batches', () => {
 
   /** Forget the batches of documents no longer open. */
   function keepOnly(guest: Guest, uris: string[]): void {
+    saveFailures.value = saveFailures.value.filter((f) => uris.includes(f.documentUri));
     for (const uri of byDocument.value.keys()) {
       if (!uris.includes(uri)) {
         unhighlight(guest, uri);
         replace(uri, []);
       }
     }
+  }
+
+  /** Reflect the server's committed decisions before attempting any follow-up requests. */
+  function accepted(
+    guest: Guest,
+    batch: SuggestionBatch,
+    uri: string,
+    decisions: Map<string, string>,
+  ): void {
+    unhighlight(guest, uri);
+    const next = (byDocument.value.get(uri) ?? []).flatMap((known) => {
+      if (known.id !== batch.id) return [known];
+      const items = known.items.map((item) => {
+        const annotation = decisions.get(item.id);
+        return annotation ? { ...item, status: 'accepted' as const, annotation } : item;
+      });
+      const counts = {
+        pending: items.filter((i) => i.status === 'pending').length,
+        accepted: items.filter((i) => i.status === 'accepted').length,
+        rejected: items.filter((i) => i.status === 'rejected').length,
+      };
+      return counts.pending ? [{ ...known, items, counts }] : [];
+    });
+    replace(uri, next);
+    highlight(guest, uri);
+  }
+
+  async function finishSave(task: SaveTask, started: number): Promise<void> {
+    if (started !== session) return;
+    const annotations = useAnnotationsStore();
+    try {
+      const { annotation } = await annotations.fetch(task.annotation);
+      if (started !== session) return;
+      annotations.upsert(annotation, task.documentUri);
+      if (task.acl.length) await annotations.share(task.annotation, task.acl);
+      if (started !== session) return;
+      saveFailures.value = saveFailures.value.filter((f) => f.annotation !== task.annotation);
+    } catch (err) {
+      if (started !== session) return;
+      saveFailures.value = [
+        ...saveFailures.value.filter((f) => f.annotation !== task.annotation),
+        { ...task, problem: toProblem(err) },
+      ];
+    }
+  }
+
+  async function retrySave(failure: SaveFailure): Promise<void> {
+    await finishSave(failure, session);
   }
 
   async function refresh(
@@ -232,7 +298,6 @@ export const useBatchesStore = defineStore('batches', () => {
     if (!first) return;
     const { batch, documentUri } = first.item;
     const profiles = useProfilesStore();
-    const annotations = useAnnotationsStore();
     acceptances = orderAcceptances(acceptances, items.value, (iri) => profiles.byIri(iri));
     const entries = await Promise.all(
       acceptances.map(async (a) => {
@@ -256,16 +321,14 @@ export const useBatchesStore = defineStore('batches', () => {
       }),
     );
     if (started !== session) return;
-    for (const [i, { annotation }] of decided.entries()) {
-      const acceptance = acceptances[i]!;
+    accepted(guest, batch, documentUri, new Map(decided.map((d) => [d.id, d.annotation])));
+    const byId = new Map(acceptances.map((a) => [a.item.item.id, a]));
+    for (const { id, annotation } of decided) {
+      const acceptance = byId.get(id)!;
       if ('existing' in acceptance) continue;
-      const { annotation: saved } = await annotations.fetch(annotation);
-      if (started !== session) return;
-      annotations.upsert(saved, documentUri);
-      if (acceptance.draft.acl?.length) await annotations.share(annotation, acceptance.draft.acl);
+      await finishSave({ annotation, documentUri, acl: acceptance.draft.acl ?? [] }, started);
       if (started !== session) return;
     }
-    await refresh(guest, batch, documentUri, started);
   }
 
   async function reject(guest: Guest, review: ReviewItem): Promise<void> {
@@ -297,6 +360,7 @@ export const useBatchesStore = defineStore('batches', () => {
     session++;
     for (const uri of byDocument.value.keys()) unhighlight(guest, uri);
     byDocument.value = new Map();
+    saveFailures.value = [];
   }
 
   return {
@@ -304,10 +368,12 @@ export const useBatchesStore = defineStore('batches', () => {
     items,
     pending,
     shown,
+    saveFailures,
     load,
     keepOnly,
     show,
     accept,
+    retrySave,
     reject,
     discardBatch,
     clear,

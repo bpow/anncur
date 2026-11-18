@@ -3,7 +3,7 @@ import { toProblem, type Problem } from '@curanno/api-client';
 import { computed, ref, watch } from 'vue';
 import { useAuthStore } from '../auth/store';
 import { useGuest } from '../guest';
-import { useBatchesStore } from '../stores/batches';
+import { useBatchesStore, type SaveFailure } from '../stores/batches';
 import BatchSection from './BatchSection.vue';
 import ProblemAlert from './ProblemAlert.vue';
 
@@ -12,6 +12,16 @@ const guest = useGuest();
 const batches = useBatchesStore();
 const auth = useAuthStore();
 const problem = ref<Problem>();
+const retrying = ref(false);
+
+async function retry(failure: SaveFailure): Promise<void> {
+  retrying.value = true;
+  try {
+    await batches.retrySave(failure);
+  } finally {
+    retrying.value = false;
+  }
+}
 
 const uris = computed(() => guest.documents.value.map((d) => d.uri));
 
@@ -39,8 +49,19 @@ const pendingCount = computed(() => batches.pending.length);
 </script>
 
 <template>
-  <div v-if="sections.length || problem" class="batches">
+  <div v-if="sections.length || problem || batches.saveFailures.length" class="batches">
     <ProblemAlert :problem="problem" />
+    <section
+      v-for="failure in batches.saveFailures"
+      :key="failure.annotation"
+      aria-label="Saved annotation needs attention"
+    >
+      <p>The annotation is saved. Its loading or sharing needs another attempt.</p>
+      <ProblemAlert :problem="failure.problem" />
+      <button type="button" :disabled="retrying" @click="retry(failure)">
+        Retry loading and sharing
+      </button>
+    </section>
     <details
       v-if="sections.length"
       :open="batches.shown"

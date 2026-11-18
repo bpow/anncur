@@ -60,6 +60,21 @@ function delayed(body: unknown) {
 describe('annotations store across sessions', () => {
   beforeEach(() => setActivePinia(createPinia()));
 
+  it('does not refetch a shared annotation after the identity changes', async () => {
+    const response = delayed([]);
+    const api = installFakeApi(({ method }) =>
+      method === 'PUT' ? response.response : json(annotation(1)),
+    );
+    const store = useAnnotationsStore();
+    const sharing = store.share(annotation(1).id, []);
+    await flushPromises();
+    store.resetSession();
+    response.send();
+    await sharing;
+    expect(api.calls.map((c) => c.method)).toEqual(['PUT']);
+    expect(store.all).toEqual([]);
+  });
+
   it("drops what an earlier session's stream delivers and subscribes again", async () => {
     const streams: ReturnType<typeof openEventStream>[] = [];
     const api = installFakeApi(({ url }) => {

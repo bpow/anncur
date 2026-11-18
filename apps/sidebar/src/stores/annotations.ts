@@ -226,6 +226,7 @@ export const useAnnotationsStore = defineStore('annotations', () => {
    * its `public` flag, which decides which pages see it (ADR 0025), is current.
    */
   async function share(iri: string, acl: AclEntry[]): Promise<void> {
+    const started = session;
     try {
       unwrap(
         await useApi().PUT('/x/annotations/{id}/acl', {
@@ -237,7 +238,7 @@ export const useAnnotationsStore = defineStore('annotations', () => {
       const problem = toProblem(err);
       throw new ApiError({ ...problem, title: `Saved, but not shared: ${problem.title}` });
     }
-    await fetch(iri);
+    if (started === session) await fetch(iri);
   }
 
   async function aclOf(iri: string): Promise<AclEntry[]> {
