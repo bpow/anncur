@@ -115,7 +115,9 @@ export function principalsOf(userId: string, groupIds: string[]): string[] {
 /**
  * The caller as the database now has them: memberships and the admin flag
  * reloaded, so that a long-lived request (an event stream) does not keep
- * permissions the user lost. Undefined when the user no longer exists.
+ * permissions the user lost. Undefined when the user no longer exists, or
+ * when an access token behind the caller was revoked or its user disabled,
+ * since those take effect at once (ADR 0038).
  */
 export async function refreshCaller(
   db: Kysely<Database>,
@@ -127,12 +129,24 @@ export async function refreshCaller(
     .where('principal_id', '=', caller.userId)
     .executeTakeFirst();
   if (!user) return undefined;
+  if (caller.token) {
+    if (user.status !== 'active') return undefined;
+    const live = await db
+      .selectFrom('access_tokens')
+      .select('id')
+      .where('id', '=', caller.token.id)
+      .where('revoked_at', 'is', null)
+      .where('expires_at', '>', sql<Date>`now()`)
+      .executeTakeFirst();
+    if (!live) return undefined;
+  }
   const groups = await groupsOf(db, caller.userId);
   return {
     ...caller,
     status: user.status,
     displayName: user.display_name ?? undefined,
-    isAdmin: user.is_admin,
+    // A token never carries administration, whoever it belongs to.
+    isAdmin: caller.token ? false : user.is_admin,
     principalIds: principalsOf(
       caller.userId,
       groups.map((g) => g.group_id),
