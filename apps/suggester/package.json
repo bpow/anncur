@@ -19,6 +19,7 @@
     "@curanno/model": "workspace:*",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
-    "happy-dom": "^21.0.4"
+    "happy-dom": "^21.0.4",
+    "pdfjs-dist": "6.4.299"
   }
 }

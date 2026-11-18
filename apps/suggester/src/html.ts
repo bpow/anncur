@@ -1,7 +1,7 @@
 /**
- * An article from a saved web page, such as a PMC article page saved from
- * the browser, for articles PMC will not serve as text (publishers who do
- * not allow it, author manuscripts). The text is the page's as the guest
+ * An article from a saved web page: a publisher's article page, or a PMC
+ * page for an article PMC will not serve as text (publishers who do not
+ * allow it, author manuscripts). The text is the page's as the guest
  * reads it (the body, by the model's text rules), so quotes found here are
  * found on the page the curator opens; the identifiers are those the guest
  * would report (ADR 0014).
@@ -9,7 +9,7 @@
 import { collectDocument } from '@curanno/guest/document-metadata';
 import { blockStarts, createDomAdapter, extractText, type DomLikeNode } from '@curanno/model';
 import { Window } from 'happy-dom';
-import type { Article, Passage } from './bioc.ts';
+import { articleIdOf, type Article, type Passage } from './bioc.ts';
 
 export function articleFromHtml(html: string, url?: string): Article {
   const probe = new Window().document;
@@ -34,17 +34,17 @@ export function articleFromHtml(html: string, url?: string): Article {
     if (text) passages.push({ n: passages.length + 1, section: '', text });
   }
   const found = collectDocument(document);
-  const pmcid = /\/(PMC\d+)\b/i.exec(href)?.[1]?.toUpperCase() ?? href;
   window.close();
-  return {
-    pmcid,
+  const metadata = {
+    uri: found.uri,
     ...(found.title ? { title: found.title } : {}),
-    scope: { key: 'body', text: map.text, blockStarts: starts },
+    links: found.links.map(({ uri, relation }) => ({ uri, relation })),
+  };
+  return {
+    id: articleIdOf(metadata),
+    ...(found.title ? { title: found.title } : {}),
+    scopes: [{ key: 'body', text: map.text, blockStarts: starts }],
     passages,
-    document: {
-      uri: found.uri,
-      ...(found.title ? { title: found.title } : {}),
-      links: found.links.map(({ uri, relation }) => ({ uri, relation })),
-    },
+    document: metadata,
   };
 }

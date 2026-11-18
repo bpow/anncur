@@ -9,12 +9,14 @@ const bioc = JSON.parse(
 describe('articleFromBioc', () => {
   it('reads the passages as blocks, without the references, and the identifiers', () => {
     const article = articleFromBioc(bioc);
-    expect(article.pmcid).toBe('PMC0000001');
-    expect(article.scope).toEqual({
-      key: 'body',
-      text: 'A family with cardiomyopathyPatient 1, a 14-year-old boy, presented with syncope.His parents are first cousins.',
-      blockStarts: [28, 81],
-    });
+    expect(article.id).toBe('PMC0000001');
+    expect(article.scopes).toEqual([
+      {
+        key: 'body',
+        text: 'A family with cardiomyopathyPatient 1, a 14-year-old boy, presented with syncope.His parents are first cousins.',
+        blockStarts: [28, 81],
+      },
+    ]);
     expect(article.passages.map((p) => [p.n, p.section])).toEqual([
       [1, 'TITLE'],
       [2, 'CASE'],

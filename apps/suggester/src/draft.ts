@@ -24,7 +24,7 @@ import {
   type ProfileRegistry,
   type StructuredBody,
 } from '@curanno/model';
-import type { Article } from './bioc.ts';
+import { selectorFor, type Article } from './bioc.ts';
 import { profileForKind, rerunKey } from './profiles.ts';
 
 type BatchInput = components['schemas']['SuggestionBatchInput'];
@@ -84,6 +84,29 @@ function givenTerms(value: unknown, out: { id: string; label: string }[] = []) {
   return out;
 }
 
+type ScopeView = ReturnType<typeof buildView>;
+type Located = Extract<ReturnType<typeof locateQuote>, { ok: true }>;
+
+/** The one place a quote is found across the scopes: once in one scope, nowhere else. */
+function locateInScopes(
+  views: { key: string; view: ScopeView }[],
+  quote: string,
+):
+  | (Located & { key: string; view: ScopeView })
+  | { ok: false; reason: Exclude<ReturnType<typeof locateQuote>, { ok: true }>['reason'] } {
+  let found: (Located & { key: string; view: ScopeView }) | undefined;
+  for (const { key, view } of views) {
+    const located = locateQuote(view, quote, { start: 0, end: view.text.length });
+    if (!located.ok) {
+      if (located.reason === 'not-found') continue;
+      return located;
+    }
+    if (found) return { ok: false, reason: 'ambiguous' };
+    found = { ...located, key, view };
+  }
+  return found ?? { ok: false, reason: 'not-found' };
+}
+
 export async function checkDraft(
   draft: Draft,
   article: Article,
@@ -96,11 +119,13 @@ export async function checkDraft(
   const problems: Problem[] = [];
   const unresolved: CheckResult['unresolved'] = [];
   const replacedIds: CheckResult['replacedIds'] = [];
-  if (draft.article.toUpperCase() !== article.pmcid.toUpperCase()) {
-    problems.push({ message: `the draft is for ${draft.article}, the text is ${article.pmcid}` });
+  if (draft.article.toUpperCase() !== article.id.toUpperCase()) {
+    problems.push({ message: `the draft is for ${draft.article}, the text is ${article.id}` });
   }
-  const view = buildView(article.scope.text, article.scope.blockStarts);
-  const whole = { start: 0, end: view.text.length };
+  const views = article.scopes.map((scope) => ({
+    key: scope.key,
+    view: buildView(scope.text, scope.blockStarts),
+  }));
   const items: BatchInput['items'] = [];
   const used = new Map<string, BodyProfile>();
   const seen = new Map<string, string>();
@@ -115,17 +140,20 @@ export async function checkDraft(
     }
     used.set(profile.iri, profile);
     const where = item.passage ? ` (passage ${item.passage})` : '';
-    const located = locateQuote(view, item.quote, whole);
+    const located = locateInScopes(views, item.quote);
     if (!located.ok) {
       const message = {
         'too-short': 'the quote is too short to find reliably; quote a whole sentence',
-        'not-found': `the quote is not in the article word for word${where}; copy it exactly, without joining or shortening`,
+        'not-found':
+          views.length > 1
+            ? `the quote is not on any one page word for word${where}; copy it exactly, and quote only what is on one page`
+            : `the quote is not in the article word for word${where}; copy it exactly, without joining or shortening`,
         ambiguous: 'the quote occurs more than once; quote more of the sentence',
       }[located.reason];
       problems.push({ item: item.id, path: 'quote', message: message ?? located.reason });
       continue;
     }
-    const source = view.source;
+    const { source } = located.view;
     const selectors = describeRange(source, {
       start: utf16ToCodePoint(source, located.start),
       end: utf16ToCodePoint(source, located.end),
@@ -162,7 +190,10 @@ export async function checkDraft(
     const body: StructuredBody = { type: 'StructuredBody', profile: profile.iri, value };
     items.push({
       id: item.id,
-      selector: selectors.quote as BatchInput['items'][number]['selector'],
+      selector: selectorFor(
+        located.key,
+        selectors.quote,
+      ) as BatchInput['items'][number]['selector'],
       body: body as BatchInput['items'][number]['body'],
     });
   }

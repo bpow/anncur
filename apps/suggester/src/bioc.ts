@@ -5,6 +5,7 @@
  * paragraphs; references are left out.
  */
 import type { ScopeText } from '@curanno/extract';
+import { pageFragmentSelector, type Selector } from '@curanno/model';
 import type { components } from '@curanno/api-client';
 
 type DocumentMetadata = components['schemas']['DocumentMetadata'];
@@ -29,9 +30,11 @@ export interface Passage {
 }
 
 export interface Article {
-  pmcid: string;
+  /** The PMC id, else the DOI, else the URL or `urn:x-pdf:` fingerprint; a draft names it as `article`. */
+  id: string;
   title?: string;
-  scope: ScopeText;
+  /** One scope, `body`, for a page; one per page, `page=N`, for a PDF, as the guest reports them. */
+  scopes: ScopeText[];
   passages: Passage[];
   document: DocumentMetadata;
 }
@@ -39,6 +42,24 @@ export interface Article {
 const SKIPPED_SECTIONS = new Set(['REF']);
 
 export const pmcUrl = (pmcid: string): string => `https://pmc.ncbi.nlm.nih.gov/articles/${pmcid}/`;
+
+/** A target's selector: the quote, inside a page fragment when the scope is a PDF page. */
+export function selectorFor(scopeKey: string, quote: Selector): Selector {
+  const page = /^page=(\d+)$/.exec(scopeKey)?.[1];
+  return page ? pageFragmentSelector(Number(page), [quote]) : quote;
+}
+
+/** The id a draft names an article by: its PMC id, else its DOI, else the document's own URI. */
+export function articleIdOf(document: DocumentMetadata): string {
+  const uris = [document.uri, ...(document.links ?? []).map((l) => l.uri)];
+  for (const uri of uris) {
+    const pmc = /\/(PMC\d+)\b/i.exec(uri)?.[1];
+    if (pmc) return pmc.toUpperCase();
+  }
+  const doi = (document.links ?? []).find((l) => l.relation === 'doi');
+  const name = doi && /10\.\d{4,9}\/\S+/.exec(doi.uri)?.[0];
+  return name ? name.toLowerCase() : document.uri;
+}
 
 /** The first document of a BioC JSON collection, or of a list of them as the PMC service sends. */
 function firstDocument(json: unknown): BiocDocument {
@@ -75,9 +96,9 @@ export function articleFromBioc(json: unknown): Article {
   }
   const self = pmcUrl(pmcid);
   return {
-    pmcid,
+    id: pmcid,
     ...(title ? { title } : {}),
-    scope: { key: 'body', text, blockStarts: blockStarts.slice(1) },
+    scopes: [{ key: 'body', text, blockStarts: blockStarts.slice(1) }],
     passages: read,
     document: {
       uri: self,
