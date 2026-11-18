@@ -243,7 +243,13 @@ resources:
 
 # Liveness only says the process answers; readiness also checks the database,
 # so a database outage takes pods out of the Service without restarting them.
+# Liveness waits for the startup probe, which allows periodSeconds *
+# failureThreshold for a start slowed by a throttled CPU.
 probes:
+  startup:
+    path: /healthz
+    periodSeconds: 5
+    failureThreshold: 24
   liveness:
     path: /healthz
     initialDelaySeconds: 5
