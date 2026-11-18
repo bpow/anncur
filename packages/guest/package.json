@@ -14,6 +14,10 @@
     "./document-metadata": {
       "types": "./dist/document-metadata.d.ts",
       "default": "./dist/document-metadata.js"
+    },
+    "./pdf-text": {
+      "types": "./dist/integrations/pdf-text.d.ts",
+      "default": "./dist/integrations/pdf-text.js"
     }
   },
   "files": [

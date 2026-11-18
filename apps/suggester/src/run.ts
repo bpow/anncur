@@ -7,7 +7,7 @@
 import { unwrap, type ApiClient, type SuggestionItemInput } from '@curanno/api-client';
 import { PROMPT_VERSION, extractBatch, type BatchProgress, type Endpoint } from '@curanno/extract';
 import type { BodyProfile, StructuredBody } from '@curanno/model';
-import type { Article } from './bioc.ts';
+import { selectorFor, type Article } from './bioc.ts';
 import { rerunKey, termResolver } from './profiles.ts';
 
 export const ENGINE_NAME = 'curanno-suggester';
@@ -39,7 +39,7 @@ export interface RunOutcome {
 export async function suggestFor(article: Article, config: RunConfig): Promise<RunOutcome> {
   const result = await extractBatch(
     {
-      scopes: [article.scope],
+      scopes: article.scopes,
       profiles: config.kinds,
       ...(config.instructions ? { instructions: config.instructions } : {}),
     },
@@ -60,7 +60,7 @@ export async function suggestFor(article: Article, config: RunConfig): Promise<R
   // Only the quote: offsets in PMC's text say nothing about the page a curator reads.
   const items: SuggestionItemInput[] = result.items.map((i) => ({
     id: i.id,
-    selector: i.selectors.quote as SuggestionItemInput['selector'],
+    selector: selectorFor(i.scope, i.selectors.quote) as SuggestionItemInput['selector'],
     body: { type: 'StructuredBody', profile: i.profile, value: i.value },
   }));
   const body = {

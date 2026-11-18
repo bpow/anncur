@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 /**
- * Suggested annotations for PubMed Central articles, posted for a group to
+ * Suggested annotations for articles (PMC, publishers' pages, PDFs), posted for a group to
  * review in CurAnno (ADR 0037, 0038). Commands:
  *
  *   run    --pmcid … --profile … --endpoint URL --model NAME --group ID
  *          a model behind an OpenAI-compatible endpoint suggests, and the batch is posted
- *   text   --pmcid … | --bioc FILE | --html FILE [--url URL] [--save FILE] [--out FILE]
+ *   text   --pmcid … | --bioc FILE | --html FILE [--url URL] | --pdf FILE [--url URL] [--save FILE] [--out FILE]
  *          the article as numbered passages (JSON), for an assistant to read
  *   kinds  [--profile …]
  *          the kinds of annotation and the value each takes (JSON)
  *   terms  ONTOLOGY QUERY
  *          ontology terms matching QUERY, through the API (JSON)
- *   check  DRAFT [--bioc FILE | --html FILE [--url URL]]
+ *   check  DRAFT [--bioc FILE | --html FILE [--url URL] | --pdf FILE [--url URL]]
  *          a draft batch checked against the article and the profiles (JSON); exit 1 on problems
- *   summarize DRAFT [--bioc FILE | --html FILE [--url URL]]
+ *   summarize DRAFT [same article options as check]
  *          the whole-individual records the draft's facts add up to (JSON)
- *   post   DRAFT --group ID [--bioc FILE | --html FILE [--url URL]]
+ *   post   DRAFT --group ID [same article options as check]
  *          check, then post the batch
  *
  * Every command but `text` needs --api (or CURANNO_API), and `post` and
@@ -29,6 +29,7 @@ import { linkFieldsOf, summarizeIndividuals, type BodyProfile } from '@curanno/m
 import { articleFromBioc, fetchBioc, type Article } from './bioc.ts';
 import { checkDraft, type Draft } from './draft.ts';
 import { articleFromHtml } from './html.ts';
+import { articleFromPdf } from './pdf.ts';
 import {
   loadProfiles,
   profileForKind,
@@ -57,6 +58,7 @@ const { values, positionals } = parseArgs({
     list: { type: 'string' },
     bioc: { type: 'string', multiple: true, default: [] },
     html: { type: 'string' },
+    pdf: { type: 'string' },
     url: { type: 'string' },
     'bioc-url': { type: 'string' },
     save: { type: 'string' },
@@ -94,8 +96,12 @@ async function profiles(api: ApiClient): Promise<Profiles> {
 
 const biocOptions = () => (values['bioc-url'] ? { base: values['bioc-url'] } : {});
 
-/** The one article a command is about: a saved page, a BioC file, or a PMC id fetched from the service. */
+/** The one article a command is about: a saved page, a PDF, a BioC file, or a PMC id fetched from the service. */
 async function oneArticle(pmcid?: string): Promise<{ article: Article; raw: unknown }> {
+  if (values.pdf) {
+    const data = new Uint8Array(await readFile(values.pdf));
+    return { article: await articleFromPdf(data, values.url), raw: undefined };
+  }
   if (values.html) {
     const html = await readFile(values.html, 'utf8');
     return { article: articleFromHtml(html, values.url), raw: undefined };
@@ -132,14 +138,14 @@ const commands: Record<string, () => Promise<number>> = {
     const { article, raw } = await oneArticle();
     if (values.save && raw !== undefined) await writeFile(values.save, JSON.stringify(raw));
     const text = {
-      pmcid: article.pmcid,
+      id: article.id,
       ...(article.title ? { title: article.title } : {}),
       document: article.document,
       passages: article.passages,
     };
     if (values.out) {
       await writeFile(values.out, `${JSON.stringify(text, null, 2)}\n`);
-      console.error(`${article.pmcid}: ${article.passages.length} passages in ${values.out}`);
+      console.error(`${article.id}: ${article.passages.length} passages in ${values.out}`);
     } else {
       print(text);
     }
@@ -275,8 +281,8 @@ const commands: Record<string, () => Promise<number>> = {
         console.error(`skipped: ${(err as Error).message}`);
         continue;
       }
-      if (!values.force && state.isDone(article.pmcid, run)) {
-        console.error(`${article.pmcid}: done already`);
+      if (!values.force && state.isDone(article.id, run)) {
+        console.error(`${article.id}: done already`);
         continue;
       }
       try {
@@ -290,7 +296,7 @@ const commands: Record<string, () => Promise<number>> = {
           dryRun: values['dry-run'],
           onProgress: (p) => {
             if (p.done === p.total) {
-              console.error(`${article.pmcid}: ${p.kind} (${p.step} of ${p.steps}) read`);
+              console.error(`${article.id}: ${p.kind} (${p.step} of ${p.steps}) read`);
             }
           },
         });
@@ -300,13 +306,13 @@ const commands: Record<string, () => Promise<number>> = {
           ...(outcome.skipped.length ? [`not asked about ${outcome.skipped.join(', ')}`] : []),
         ];
         if (values['dry-run']) print(outcome.body ?? null);
-        else await state.record(article.pmcid, run, outcome.batch);
+        else await state.record(article.id, run, outcome.batch);
         console.error(
-          `${article.pmcid}: ${notes.join('; ')}${outcome.batch ? `, posted as batch ${outcome.batch}` : ''}`,
+          `${article.id}: ${notes.join('; ')}${outcome.batch ? `, posted as batch ${outcome.batch}` : ''}`,
         );
       } catch (err) {
         failures++;
-        console.error(`${article.pmcid}: failed: ${(err as Error).message}`);
+        console.error(`${article.id}: failed: ${(err as Error).message}`);
       }
     }
     return failures ? 1 : 0;

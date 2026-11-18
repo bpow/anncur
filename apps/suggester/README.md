@@ -33,7 +33,7 @@ The `curanno-suggest` skill (`.claude/skills/curanno-suggest`) has Claude Code w
 
 | Command | Does |
 | --- | --- |
-| `text --pmcid … \| --bioc FILE \| --html FILE --url URL` | The article as numbered passages. `--html` reads the article page saved from a browser, for articles PMC will not serve as text. |
+| `text --pmcid … \| --bioc FILE \| --html FILE --url URL \| --pdf FILE [--url URL]` | The article as numbered passages, after its `id` (PMC id, else DOI, else URL or PDF fingerprint). `--html` reads an article page saved from a browser: a publisher's, or PMC's for articles PMC will not serve as text. `--pdf` reads a PDF, one scope per page as CurAnno's PDF viewer renders it, so the batch's targets name their page. |
 | `kinds [--profile …]` | The kinds of annotation and the value each takes. |
 | `terms ONTOLOGY QUERY` | Ontology terms matching the query. |
 | `check DRAFT` | The draft checked against the article and the profiles: quotes verbatim, terms resolved, values valid, links sound. |
