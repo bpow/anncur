@@ -167,6 +167,20 @@ describe('BatchReview', () => {
     expect(items.map((i) => i.id)).toEqual(['_:i1', '_:f1']);
   });
 
+  it('accepts a fact as suggested, with the individual it links to', async () => {
+    const wrapper = mountReview();
+    await flushPromises();
+    const fact = wrapper.find('.members li.suggestion');
+    await fact.findAll('button').find((b) => b.text() === 'Accept as-is')!.trigger('click');
+    await flushPromises();
+    const accept = api.calls.find((c) => c.url.pathname.endsWith('/accept'));
+    const items = (accept?.body as { items: { id: string; annotation: Annotation }[] }).items;
+    expect(items.map((i) => i.id)).toEqual(['_:i1', '_:f1']);
+    expect(items[1]?.annotation.body).toMatchObject({
+      value: { individuals: ['_:i1'], familyInfo: 'Parents are cousins.' },
+    });
+  });
+
   it('takes an individual as one already on the page', async () => {
     const saved = `${BASE}99`;
     useAnnotationsStore().upsert(

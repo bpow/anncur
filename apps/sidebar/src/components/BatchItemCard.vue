@@ -90,6 +90,7 @@ const reject = () => run(() => batches.reject(guest, props.review));
         <button type="button" class="primary" :disabled="busy" @click="editing = true">
           Review and save
         </button>
+        <button type="button" :disabled="busy" @click="save(draft)">Accept as-is</button>
         <button type="button" :disabled="busy" @click="reject">Reject</button>
       </div>
       <p v-if="needs.length" class="muted note">
