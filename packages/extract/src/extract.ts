@@ -8,6 +8,7 @@
 import {
   describeRange,
   linkedIris,
+  stableStringify,
   utf16ToCodePoint,
   type Agent,
   type BodyProfile,
@@ -135,19 +136,6 @@ function prune(value: unknown): unknown {
   if (value === null) return undefined;
   if (typeof value === 'string') return value.trim() ? value.trim() : undefined;
   return value;
-}
-
-/** JSON with object keys sorted, so equal values compare equal whatever order their keys came in. */
-export function stableStringify(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
-  if (typeof value === 'object' && value !== null) {
-    const record = value as Record<string, unknown>;
-    const entries = Object.keys(record)
-      .sort()
-      .map((k) => `${JSON.stringify(k)}:${stableStringify(record[k])}`);
-    return `{${entries.join(',')}}`;
-  }
-  return JSON.stringify(value);
 }
 
 function randomUrn(): string {
@@ -287,4 +275,4 @@ export async function extract(
   };
 }
 
-export { EndpointError };
+export { EndpointError, stableStringify };

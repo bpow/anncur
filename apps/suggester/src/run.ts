@@ -4,13 +4,13 @@
  * (ADR 0038). The engine never reads annotations: facts link only to the
  * individuals suggested in the same batch.
  */
+import { stableStringify } from '@curanno/model';
 import { createHash } from 'node:crypto';
 import { unwrap, type ApiClient, type SuggestionItemInput } from '@curanno/api-client';
 import {
   PROMPT_VERSION,
   completionsUrl,
   extractBatch,
-  stableStringify,
   type BatchProgress,
   type Endpoint,
 } from '@curanno/extract';

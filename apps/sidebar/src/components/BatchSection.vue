@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { stableStringify } from '@curanno/model';
 import { toProblem, type AclEntry, type Problem, type SuggestionBatch } from '@curanno/api-client';
-import { stableStringify } from '@curanno/extract';
 import { linkFieldsOf, quoteOf, structuredBodies } from '@curanno/model';
 import { computed, provide, ref } from 'vue';
 import { useGuest } from '../guest';

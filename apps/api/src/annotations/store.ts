@@ -12,12 +12,12 @@ import {
   type UpdateResult,
 } from 'kysely';
 import { jsonArrayFrom } from 'kysely/helpers/postgres';
-import type { AnchoringState, Permission } from '@curanno/model';
+import { stableStringify, type AnchoringState, type Permission } from '@curanno/model';
 import type { Caller, UserCaller } from '../auth/caller.js';
 import { PUBLIC_PRINCIPAL_ID, type Database } from '../db/index.js';
 import { documentForSource } from '../documents/service.js';
 import { preconditionFailed, unprocessable } from '../problems.js';
-import { stableJson, type ParsedAnnotation } from './input.js';
+import type { ParsedAnnotation } from './input.js';
 import { annotationIdFromIri, type AnnotationRecord } from './serialize.js';
 
 export interface SearchFilters {
@@ -279,7 +279,7 @@ export class AnnotationStore {
       if (
         before &&
         before.selectors !== null &&
-        stableJson(before.selectors) !== stableJson(target.selectors)
+        stableStringify(before.selectors) !== stableStringify(target.selectors)
       ) {
         throw unprocessable(
           `/target/${before.position}/selector is immutable (ADR 0010); record a repair in anchoring.repair instead`,

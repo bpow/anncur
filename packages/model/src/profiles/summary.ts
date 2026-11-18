@@ -17,6 +17,7 @@ import {
   individualProfile,
 } from './builtin.js';
 import { linkedIris } from './keywords.js';
+import { stableStringify } from '../json.js';
 import type { ValidationError } from './registry.js';
 
 type Value = Record<string, JsonValue>;
@@ -65,22 +66,6 @@ function pick(value: Value, fields: readonly string[]): Value {
   );
 }
 
-function same(a: JsonValue, b: JsonValue): boolean {
-  return JSON.stringify(sorted(a)) === JSON.stringify(sorted(b));
-}
-
-function sorted(value: JsonValue): JsonValue {
-  if (Array.isArray(value)) return value.map(sorted);
-  if (typeof value === 'object' && value !== null) {
-    return Object.fromEntries(
-      Object.keys(value)
-        .sort()
-        .map((k) => [k, sorted(value[k]!)]),
-    );
-  }
-  return value;
-}
-
 /** A term is the same term when its ID is, or, for text without an ID, its label is. */
 function termKey(term: JsonValue): string {
   if (typeof term === 'object' && term !== null && !Array.isArray(term)) {
@@ -114,7 +99,7 @@ function addFact(summary: IndividualSummary, id: string, body: StructuredBody, v
   if (body.profile === caseVariantProfile.iri) {
     const item = pick(value, VARIANT_FIELDS);
     const variants = (summary.value['variants'] ?? []) as JsonValue[];
-    if (variants.some((v) => same(v, item))) return;
+    if (variants.some((v) => stableStringify(v) === stableStringify(item))) return;
     summary.value['variants'] = [...variants, item];
     (summary.sources['variants'] ??= []).push(id);
     return;

@@ -131,15 +131,3 @@ function parseTarget(target: Target, path: string): ParsedTarget {
     data: { ...rest, [TARGET_SHAPE]: 'external' satisfies TargetShape },
   };
 }
-
-/** Deterministic JSON for comparing selectors regardless of key order. */
-export function stableJson(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
-  if (value && typeof value === 'object') {
-    const keys = Object.keys(value).sort();
-    return `{${keys
-      .map((k) => `${JSON.stringify(k)}:${stableJson((value as Record<string, unknown>)[k])}`)
-      .join(',')}}`;
-  }
-  return JSON.stringify(value);
-}
