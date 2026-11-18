@@ -103,6 +103,31 @@ describe('checkItems', () => {
       1,
     );
   });
+
+  it.each([
+    'https://annotations.test/annotations/1',
+    ['https://annotations.test/annotations/1', 42],
+    { id: 'https://annotations.test/annotations/1' },
+  ])('rejects an invalid link-field value without repairing it: %j', (individuals) => {
+    const issues = checkItems(
+      [
+        item('_:f', caseFamilyProfile.iri, {
+          individuals,
+          familyInfo: 'Cousins.',
+        }),
+      ],
+      registry,
+    );
+    expect(
+      issues.some((issue) => issue.instancePath.startsWith('/items/0/body/value/individuals')),
+    ).toBe(true);
+  });
+
+  it('rejects arrays in a single-link field, including local links', () => {
+    expect(
+      messages([item('_:a', ring.iri, { next: ['_:b', 42] }), item('_:b', ring.iri, {})]),
+    ).toHaveLength(1);
+  });
 });
 
 describe('replaceLocalIds', () => {

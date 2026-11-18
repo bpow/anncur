@@ -48,13 +48,20 @@ export function replaceLocalIds(
   const value = body.value;
   if (!profile || typeof value !== 'object' || value === null || Array.isArray(value)) return body;
   const next: Record<string, JsonValue> = { ...value };
-  for (const { field, multiple } of linkFieldsOf(profile.schema)) {
+  for (const { field } of linkFieldsOf(profile.schema)) {
     const current = value[field];
-    if (current === undefined) continue;
-    const ids = linkedIris(current).flatMap((v) => (isLocalId(v) ? (replace(v) ?? []) : [v]));
-    if (multiple) next[field] = ids;
-    else if (ids[0] !== undefined) next[field] = ids[0];
-    else delete next[field];
+    // Preserve invalid shapes and values so that profile validation can report them.
+    if (Array.isArray(current)) {
+      next[field] = current.flatMap((v) => {
+        if (typeof v !== 'string' || !isLocalId(v)) return [v];
+        const replacement = replace(v);
+        return replacement === undefined ? [] : [replacement];
+      });
+    } else if (typeof current === 'string' && isLocalId(current)) {
+      const replacement = replace(current);
+      if (replacement === undefined) delete next[field];
+      else next[field] = replacement;
+    }
   }
   return { ...body, value: next };
 }
