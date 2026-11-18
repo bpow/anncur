@@ -1039,9 +1039,11 @@ export interface components {
         };
         /**
          * @description `suggestions:write`: `GET /x/me`, `GET /x/profiles`, ontology term search, and posting, listing and reading suggestion batches.
+         *     `annotations:read`: `GET /x/me`, profiles, ontologies, documents, the event stream, and reading and searching the annotations and ACLs the token's user may see.
+         *     `annotations:write`: everything in `annotations:read`, plus registering documents, and creating, updating, deleting and sharing annotations as the token's user.
          * @enum {string}
          */
-        TokenScope: "suggestions:write";
+        TokenScope: "suggestions:write" | "annotations:read" | "annotations:write";
         AccessTokenInput: {
             /** @description What the token is for, such as the job that uses it. */
             name: string;
