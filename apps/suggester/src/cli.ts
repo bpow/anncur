@@ -23,7 +23,7 @@
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
-import { createApiClient, unwrap, type ApiClient } from '@curanno/api-client';
+import { ApiError, createApiClient, unwrap, type ApiClient } from '@curanno/api-client';
 import { PROMPT_VERSION, outputSchema } from '@curanno/extract';
 import { linkFieldsOf, summarizeIndividuals, type BodyProfile } from '@curanno/model';
 import { articleFromBioc, fetchBioc, type Article } from './bioc.ts';
@@ -343,6 +343,9 @@ command().then(
   (code) => process.exit(code),
   (err: unknown) => {
     console.error((err as Error).message);
+    if (err instanceof ApiError && err.problem.errors?.length) {
+      for (const e of err.problem.errors) console.error(`  ${e.instancePath || '/'}: ${e.message}`);
+    }
     process.exit(2);
   },
 );
