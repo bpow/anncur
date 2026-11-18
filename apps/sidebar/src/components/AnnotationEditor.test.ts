@@ -43,7 +43,7 @@ describe('AnnotationEditor', () => {
   it('validates a structured body against the profile before saving', async () => {
     const wrapper = mount(AnnotationEditor, { props: { draft: { text: '', tags: [] } } });
     await wrapper.find('select[name="profile"]').setValue(profileIri);
-    await wrapper.find('select[name="kind"]').setValue('case');
+    await wrapper.find('input[name="kind"]').setValue('case');
     const identifiers = wrapper.find('input[name="identifiers"]');
     const addIdentifier = async (text: string) => {
       await identifiers.setValue(text);
@@ -83,7 +83,7 @@ describe('AnnotationEditor', () => {
       },
     };
     const wrapper = mount(AnnotationEditor, { props: { draft } });
-    await wrapper.find('select[name="kind"]').setValue('functional');
+    await wrapper.find('input[name="kind"]').setValue('functional');
     await wrapper.find('form').trigger('submit');
     expect(wrapper.emitted('save')?.[0]?.[0]).toMatchObject({
       structured: { value: { kind: 'functional' }, creator, created: '2026-11-13T12:00:00Z' },

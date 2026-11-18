@@ -60,7 +60,7 @@ The sidebar runs the same registry client-side, with the schemas it fetched from
 
 ## 5. The proof-of-concept profile
 
-`evidence-excerpt/1` classifies an excerpt as evidence of a kind (`case`, `functional`, `segregation`, `population`, `computational`, `other`), with CURIEs for the entities it concerns, an optional confidence and summary. It demonstrates the registry end to end and is expected to be replaced or extended by the curation team's own profiles; its schema is in `builtin.ts` and its tests in `registry.test.ts`.
+`evidence-excerpt/1` classifies an excerpt as evidence of a kind, given as free text (for example `functional` or `segregation`), with CURIEs for the entities it concerns, an optional confidence and summary. It demonstrates the registry end to end and is expected to be replaced or extended by the curation team's own profiles; its schema is in `builtin.ts` and its tests in `registry.test.ts`.
 
 ## 6. The case-individual profile
 

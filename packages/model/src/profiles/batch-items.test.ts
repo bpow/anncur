@@ -99,9 +99,9 @@ describe('checkItems', () => {
   });
 
   it('checks values that have no links as they are', () => {
-    expect(messages([item('_:e', evidenceExcerptProfile.iri, { kind: 'nonsense' })])).toHaveLength(
-      1,
-    );
+    expect(
+      messages([item('_:e', evidenceExcerptProfile.iri, { kind: 'case', confidence: 'certain' })]),
+    ).toHaveLength(1);
   });
 
   it.each([
