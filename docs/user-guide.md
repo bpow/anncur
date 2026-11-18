@@ -20,7 +20,7 @@ In Chrome and other Chromium browsers, the CurAnno extension does the same job w
 
 1. Click the bookmark. The sidebar shows the annotations on this page that you may read, newest first, and highlights their text in the page.
 2. **Sign in** from the sidebar's button if you are not already. Sign-in opens a small window from your organisation's login; close it when it has finished. Public annotations are visible without signing in.
-3. **Select text** in the page. The sidebar shows the selected text and an **Annotate selection** button. Press it, write your comment, add tags (type one and press Enter), optionally pick a **Structured data** form and fill it in, and **Post**.
+3. **Select text** in the page. The sidebar shows the selected text and an **Annotate selection** button. Press it, write your comment (Markdown, as on GitHub: `**bold**`, `_italic_`, `` `code` ``, lists, `- [ ]` task lists, tables, `~~strikethrough~~` and links; web addresses become links by themselves, and HTML and images show as text), add tags (type one and press Enter), optionally pick a **Structured data** form and fill it in, and **Post**.
 4. **New page note** writes an annotation about the page as a whole, without a selection.
 5. **Find an annotation in the page**: click its quoted text in the sidebar and the page scrolls to the highlight. Hover a card and its highlight is emphasised; click a highlight in the page and the sidebar scrolls to its card.
 6. **Reply**, **Edit**, **Share** and **Delete** are the icon buttons under each card you have the right to (hover one for its name). Edits keep the original selection; if someone changed the annotation since you opened it, the sidebar tells you and offers to load the latest version first.
