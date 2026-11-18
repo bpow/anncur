@@ -4,8 +4,16 @@
  * (ADR 0038). The engine never reads annotations: facts link only to the
  * individuals suggested in the same batch.
  */
+import { createHash } from 'node:crypto';
 import { unwrap, type ApiClient, type SuggestionItemInput } from '@curanno/api-client';
-import { PROMPT_VERSION, extractBatch, type BatchProgress, type Endpoint } from '@curanno/extract';
+import {
+  PROMPT_VERSION,
+  completionsUrl,
+  extractBatch,
+  stableStringify,
+  type BatchProgress,
+  type Endpoint,
+} from '@curanno/extract';
 import type { BodyProfile, StructuredBody } from '@curanno/model';
 import { selectorFor, type Article } from './bioc.ts';
 import { rerunKey, termResolver } from './profiles.ts';
@@ -34,6 +42,30 @@ export interface RunOutcome {
   /** The posted batch, or in a dry run the batch that would have been. */
   batch?: string;
   body?: unknown;
+}
+
+/** Resume only when both the destination and the inputs that affect a run still match. */
+export function runKey(
+  config: Pick<RunConfig, 'group' | 'endpoint' | 'kinds' | 'instructions'> & { apiUrl: string },
+): string {
+  const identity = {
+    api: new URL(config.apiUrl).href.replace(/\/+$/, ''),
+    group: config.group.toLowerCase(),
+    endpoint: new URL(completionsUrl(config.endpoint)).href,
+    model: config.endpoint.model,
+    profiles: [...config.kinds]
+      .sort((a, b) => (a.iri < b.iri ? -1 : a.iri > b.iri ? 1 : 0))
+      .map((p) => ({
+        iri: p.iri,
+        title: p.title,
+        description: p.description ?? '',
+        schema: p.schema,
+      })),
+    instructions: config.instructions?.trim() ?? '',
+    prompt: PROMPT_VERSION,
+    engine: ENGINE_VERSION,
+  };
+  return `run-${createHash('sha256').update(stableStringify(identity)).digest('hex')}`;
 }
 
 export async function suggestFor(article: Article, config: RunConfig): Promise<RunOutcome> {

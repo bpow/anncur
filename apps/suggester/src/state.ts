@@ -1,7 +1,7 @@
 /**
  * What has been posted already, so that an interrupted or nightly run picks
- * up where it left off. A document is done for a given run: the same kinds,
- * model and prompt. Any change runs it again, and the server's rerun key
+ * up where it left off. A document is done for a given run: the same API,
+ * group, endpoint, profiles, guidance, model and prompt. Any change runs it again, and the server's rerun key
  * replaces the earlier batch's pending items.
  */
 import { readFile, rename, writeFile } from 'node:fs/promises';
