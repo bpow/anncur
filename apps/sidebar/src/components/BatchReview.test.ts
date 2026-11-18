@@ -117,6 +117,22 @@ describe('BatchReview', () => {
     expect([...guest.anchoring.value.keys()]).toHaveLength(2);
   });
 
+  it('folds the suggestions away under a count of those pending', async () => {
+    const wrapper = mountReview();
+    await flushPromises();
+    const details = wrapper.find('details');
+    expect(details.find('summary').text()).toBe('Suggestions (2 pending)');
+    expect(details.attributes('open')).toBeDefined();
+    expect(details.find('section.batch').exists()).toBe(true);
+
+    (details.element as HTMLDetailsElement).open = false;
+    await details.trigger('toggle');
+    expect(guest.anchoring.value.size).toBe(0);
+    (details.element as HTMLDetailsElement).open = true;
+    await details.trigger('toggle');
+    expect(guest.anchoring.value.size).toBe(2);
+  });
+
   it('does not reload when the guest republishes the same documents', async () => {
     mountReview();
     await flushPromises();
@@ -159,7 +175,10 @@ describe('BatchReview', () => {
     const wrapper = mountReview();
     await flushPromises();
     const fact = wrapper.find('.members li.suggestion');
-    await fact.findAll('button').find((b) => b.text() === 'Review and save')!.trigger('click');
+    await fact
+      .findAll('button')
+      .find((b) => b.text() === 'Review and save')!
+      .trigger('click');
     await fact.find('form.editor').trigger('submit');
     await flushPromises();
     const accept = api.calls.find((c) => c.url.pathname.endsWith('/accept'));
@@ -171,7 +190,10 @@ describe('BatchReview', () => {
     const wrapper = mountReview();
     await flushPromises();
     const fact = wrapper.find('.members li.suggestion');
-    await fact.findAll('button').find((b) => b.text() === 'Accept as-is')!.trigger('click');
+    await fact
+      .findAll('button')
+      .find((b) => b.text() === 'Accept as-is')!
+      .trigger('click');
     await flushPromises();
     const accept = api.calls.find((c) => c.url.pathname.endsWith('/accept'));
     const items = (accept?.body as { items: { id: string; annotation: Annotation }[] }).items;
