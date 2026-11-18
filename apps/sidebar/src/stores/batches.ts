@@ -58,6 +58,8 @@ export function draftOf(review: ReviewItem): AnnotationDraft {
 export const useBatchesStore = defineStore('batches', () => {
   /** By document URI. */
   const byDocument = shallowRef(new Map<string, SuggestionBatch[]>());
+  /** Whether pending items are highlighted in the page; off while the sidebar folds them away. */
+  const shown = shallowRef(true);
   let session = 0;
   let loadGeneration = 0;
 
@@ -88,10 +90,11 @@ export const useBatchesStore = defineStore('batches', () => {
   }
 
   function highlight(guest: Guest, uri: string): void {
-    const shown = pending.value.filter((r) => r.documentUri === uri);
-    if (shown.length) {
+    if (!shown.value) return;
+    const items = pending.value.filter((r) => r.documentUri === uri);
+    if (items.length) {
       guest.anchor(
-        shown.map((r) => ({ id: r.key, target: r.target, style: 'suggested' as const })),
+        items.map((r) => ({ id: r.key, target: r.target, style: 'suggested' as const })),
         uri,
       );
     }
@@ -124,6 +127,13 @@ export const useBatchesStore = defineStore('batches', () => {
   function unhighlight(guest: Guest, uri: string): void {
     const keys = items.value.filter((r) => r.documentUri === uri).map((r) => r.key);
     if (keys.length) guest.unanchor(keys);
+  }
+
+  function show(guest: Guest, visible: boolean): void {
+    if (visible === shown.value) return;
+    for (const uri of byDocument.value.keys()) unhighlight(guest, uri);
+    shown.value = visible;
+    for (const uri of byDocument.value.keys()) highlight(guest, uri);
   }
 
   /** Forget the batches of documents no longer open. */
@@ -230,5 +240,17 @@ export const useBatchesStore = defineStore('batches', () => {
     byDocument.value = new Map();
   }
 
-  return { byDocument, items, pending, load, keepOnly, accept, reject, discardBatch, clear };
+  return {
+    byDocument,
+    items,
+    pending,
+    shown,
+    load,
+    keepOnly,
+    show,
+    accept,
+    reject,
+    discardBatch,
+    clear,
+  };
 });

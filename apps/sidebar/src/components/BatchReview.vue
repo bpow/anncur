@@ -35,16 +35,32 @@ const sections = computed(() =>
     list.map((batch) => ({ batch, documentUri })),
   ),
 );
+const pendingCount = computed(() => batches.pending.length);
 </script>
 
 <template>
   <div v-if="sections.length || problem" class="batches">
     <ProblemAlert :problem="problem" />
-    <BatchSection
-      v-for="s in sections"
-      :key="s.batch.id"
-      :batch="s.batch"
-      :document-uri="s.documentUri"
-    />
+    <details
+      v-if="sections.length"
+      :open="batches.shown"
+      @toggle="batches.show(guest, ($event.target as HTMLDetailsElement).open)"
+    >
+      <summary>Suggestions ({{ pendingCount }} pending)</summary>
+      <BatchSection
+        v-for="s in sections"
+        :key="s.batch.id"
+        :batch="s.batch"
+        :document-uri="s.documentUri"
+      />
+    </details>
   </div>
 </template>
+
+<style scoped>
+summary {
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 0.4rem;
+}
+</style>
