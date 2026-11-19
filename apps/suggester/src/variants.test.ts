@@ -61,8 +61,41 @@ describe('variantField', () => {
 });
 
 describe('lookUpVariants', () => {
-  it('fills the IDs of a single registered allele, with the draft’s gene', async () => {
+  it('fills the IDs of a single registered allele the stated protein change confirms', async () => {
     const { resolve, asked } = resolver({
+      'c.1208G>A (p.Arg403Gln)': answer(
+        'c.1208G>A (p.Arg403Gln)',
+        [myh7],
+        [{ code: 'transcript-assumed', message: 'MANE Select NM_000257.4 was used.' }],
+      ),
+    });
+    const { draft: next, outcomes } = await lookUpVariants(
+      draft([variant('_:v1', { variant: 'c.1208G>A (p.Arg403Gln)' })]),
+      { profiles: builtinProfiles, resolve },
+    );
+    expect(asked).toEqual([['c.1208G>A (p.Arg403Gln)', 'MYH7']]);
+    expect(next.items[0]!.value).toEqual({
+      individuals: ['_:i1'],
+      variant: 'c.1208G>A (p.Arg403Gln)',
+      caid: 'CA010365',
+      clinVarId: '14087',
+      gnomad: '14-23429278-C-T',
+      idSource: 'looked up',
+    });
+    expect(outcomes).toEqual([
+      {
+        item: '_:v1',
+        variant: 'c.1208G>A (p.Arg403Gln)',
+        outcome: 'filled',
+        ids: { caid: 'CA010365', clinVarId: '14087', gnomad: '14-23429278-C-T' },
+        notes: ['MANE Select NM_000257.4 was used.'],
+      },
+    ]);
+    expect(next.notInBatch).toBeUndefined();
+  });
+
+  it('leaves a change on an assumed transcript with no protein change to confirm it', async () => {
+    const { resolve } = resolver({
       'c.1208G>A': answer(
         'c.1208G>A',
         [myh7],
@@ -73,25 +106,20 @@ describe('lookUpVariants', () => {
       draft([variant('_:v1', { variant: 'c.1208G>A' })]),
       { profiles: builtinProfiles, resolve },
     );
-    expect(asked).toEqual([['c.1208G>A', 'MYH7']]);
-    expect(next.items[0]!.value).toEqual({
-      individuals: ['_:i1'],
-      variant: 'c.1208G>A',
-      caid: 'CA010365',
-      clinVarId: '14087',
-      gnomad: '14-23429278-C-T',
-      idSource: 'looked up',
+    expect(outcomes[0]).toMatchObject({ outcome: 'left' });
+    expect(next.items[0]!.value).toEqual({ individuals: ['_:i1'], variant: 'c.1208G>A' });
+    expect(next.notInBatch?.[0]).toContain('gives no protein change to confirm it');
+  });
+
+  it('fills a change on a given transcript without a protein change', async () => {
+    const { resolve } = resolver({
+      'NM_000257.4:c.1208G>A': answer('NM_000257.4:c.1208G>A', [myh7]),
     });
-    expect(outcomes).toEqual([
-      {
-        item: '_:v1',
-        variant: 'c.1208G>A',
-        outcome: 'filled',
-        ids: { caid: 'CA010365', clinVarId: '14087', gnomad: '14-23429278-C-T' },
-        notes: ['MANE Select NM_000257.4 was used.'],
-      },
-    ]);
-    expect(next.notInBatch).toBeUndefined();
+    const { outcomes } = await lookUpVariants(
+      draft([variant('_:v1', { variant: 'NM_000257.4:c.1208G>A' })]),
+      { profiles: builtinProfiles, resolve },
+    );
+    expect(outcomes[0]).toMatchObject({ outcome: 'filled', ids: { caid: 'CA010365' } });
   });
 
   it('prefers the fact’s own gene', async () => {

@@ -32,8 +32,15 @@ export class LookupUnavailable extends Error {
   }
 }
 
-/** Query warnings that say what the lookup assumed, and still leave one answer. */
+/**
+ * Query warnings that say the lookup assumed the MANE Select transcript or its version. They
+ * leave one answer only when the article's protein change confirms it: the lookup flags a
+ * protein change that does not follow, so a candidate without that warning agrees with it.
+ */
 const ASSUMPTIONS = new Set(['transcript-assumed', 'version-assumed']);
+
+/** Whether the variant's text gives a protein change next to the nucleotide change. */
+const statesProtein = (variant: string): boolean => /(^|[\s(;,/])p\.\(?[A-Z*]/.test(variant);
 /** Candidate warnings that do not make the candidate doubtful. */
 const HARMLESS = new Set(['no-clinvar']);
 
@@ -111,10 +118,19 @@ export async function lookUpVariants(
     }
     const notes = result.warnings.map((w) => w.message);
     const [only, ...others] = result.candidates;
+    const assumed = result.warnings.filter((w) => ASSUMPTIONS.has(w.code));
+    const confirmed =
+      assumed.length === 0 || (statesProtein(variant) && only?.hgvs.protein !== undefined);
+    if (!confirmed) {
+      notes.push(
+        'The lookup had to assume the transcript, and the article gives no protein change to confirm it.',
+      );
+    }
     const settled =
       only !== undefined &&
       others.length === 0 &&
       only.caid !== undefined &&
+      confirmed &&
       result.warnings.every((w) => ASSUMPTIONS.has(w.code)) &&
       only.warnings.every((w) => HARMLESS.has(w.code));
     if (!settled) {

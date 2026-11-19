@@ -38,7 +38,7 @@ The `curanno-suggest` skill (`.claude/skills/curanno-suggest`) has Claude Code w
 | `terms ONTOLOGY QUERY` | Ontology terms matching the query. |
 | `check DRAFT` | The draft checked against the article and the profiles: quotes verbatim, terms resolved, values valid, links sound. |
 | `summarize DRAFT` | The whole-individual records the draft's facts add up to. |
-| `variants DRAFT [--out FILE]` | Looks up the Allele Registry, ClinVar and gnomAD IDs of the draft's case variants through CurAnno (ADR 0039), and writes the draft back. It fills IDs only for a single registered allele with nothing wrong, with `idSource: "looked up"`; for every other variant it adds a line under `notInBatch` with the candidates and what the lookup found. Needs the token. |
+| `variants DRAFT [--out FILE]` | Looks up the Allele Registry, ClinVar and gnomAD IDs of the draft's case variants through CurAnno (ADR 0039), and writes the draft back. It fills IDs only for a single registered allele with nothing wrong, and, where no transcript or version was given, only when the article's protein change confirms the MANE Select one, with `idSource: "looked up"`; for every other variant it adds a line under `notInBatch` with the candidates and what the lookup found. Needs the token. |
 | `post DRAFT --group ID` | Check, then post. |
 
 `CURANNO_API` may stand in for `--api`.
