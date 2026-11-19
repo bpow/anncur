@@ -23,6 +23,7 @@ export {
   type SchemaLink,
   type KeywordRegistry,
   type OntologyLookup,
+  type VariantLookupFields,
 } from './keywords.js';
 export {
   ProfileRegistry,

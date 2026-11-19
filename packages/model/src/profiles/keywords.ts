@@ -24,6 +24,20 @@ export interface AnnotationLink {
   label?: string;
 }
 
+/**
+ * On a string property holding a variant as an article gives it: offer lookup in
+ * the Allele Registry (ADR 0039). Each entry names the sibling field that gives
+ * the gene of interest or receives an ID, and `idSource` the field that records
+ * where the IDs came from (`looked up`, or `unresolvable`).
+ */
+export interface VariantLookupFields {
+  gene?: string;
+  caid?: string;
+  clinVarId?: string;
+  gnomad?: string;
+  idSource?: string;
+}
+
 /** A top-level property of a profile's schema that links to other annotations. */
 export interface SchemaLink {
   field: string;
@@ -75,6 +89,16 @@ export function addProfileKeywords<T extends KeywordRegistry>(ajv: T): T {
       required: ['profile'],
       additionalProperties: false,
       properties: { profile: { type: 'string' }, label: { type: 'string' } },
+    },
+  });
+  ajv.addKeyword({
+    keyword: 'variantLookup',
+    metaSchema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: Object.fromEntries(
+        ['gene', 'caid', 'clinVarId', 'gnomad', 'idSource'].map((k) => [k, { type: 'string' }]),
+      ),
     },
   });
   // At a schema's root: bodies of the profile are computed, not written (ADR 0036).

@@ -111,10 +111,19 @@ const fields = {
 
 const variantProperties = {
   geneName: text('GeneName', 'HGNC gene symbol, for example MYH7.', 50),
-  variant: text(
-    'Variant',
-    'The variant as reported, preferably HGVS, for example NM_000257.4:c.1208G>A.',
-  ),
+  variant: {
+    ...text(
+      'Variant',
+      'The variant as reported, preferably HGVS, for example NM_000257.4:c.1208G>A.',
+    ),
+    variantLookup: {
+      gene: 'geneName',
+      caid: 'caid',
+      clinVarId: 'clinVarId',
+      gnomad: 'gnomad',
+      idSource: 'idSource',
+    },
+  },
   clinVarId: {
     title: 'ClinVarID',
     description: 'The numeric ClinVar Variation ID.',
