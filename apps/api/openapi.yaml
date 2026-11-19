@@ -43,6 +43,8 @@ tags:
     description: Ontologies loaded for term lookup, such as HPO (docs/ontologies.md)
   - name: tokens
     description: Access tokens the API issues, for engines and scripts (ADR 0038)
+  - name: variants
+    description: Variant ID lookup in the ClinGen Allele Registry (ADR 0039, docs/variant-ids-plan.md)
   - name: suggestions
     description: Suggested annotations waiting for review, in batches that belong to a group (ADR 0037)
 security:
@@ -657,6 +659,58 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+  /x/variants/resolve:
+    get:
+      operationId: resolveVariant
+      tags: [variants]
+      summary: Look up the CAID, ClinVar and gnomAD IDs of a variant
+      description: |
+        Reads a variant as an article gives it (HGVS, a ClinVar-style name, a cDNA or protein
+        change on its own) and asks the ClinGen Allele Registry for it, and VariantValidator when
+        the registry does not know the reference sequence. Answers with every candidate allele and
+        what the lookup had to assume or found wrong, and never chooses for the caller. A result
+        with no candidates and a warning is a successful lookup. Results are cached for a day.
+        Each warning's `code` is part of this contract; its `message` is for people.
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: The variant, for example `NM_000257.4:c.1208G>A` or `p.R403Q`.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 500
+        - name: gene
+          in: query
+          description: >-
+            The HGNC symbol of the gene of interest. A cDNA or protein change on its own is looked
+            up on its MANE Select transcript, and candidates in other genes are flagged.
+          schema:
+            type: string
+            pattern: '^[A-Za-z0-9-]{1,50}$'
+      responses:
+        '200':
+          description: The candidates, with warnings and the requests made
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VariantResolution'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Variant lookup is turned off on this server (`VARIANT_LOOKUP=off`)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '502':
+          description: The Allele Registry could not be reached or gave an answer that cannot be read
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /x/documents:
     post:
       operationId: registerDocument
@@ -1863,6 +1917,113 @@ components:
         synonym:
           description: The synonym that matched, when it was not the label.
           type: string
+    VariantWarning:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          enum:
+            - not-understood
+            - gene-needed
+            - gene-unknown
+            - transcript-assumed
+            - version-assumed
+            - version-needed
+            - mapped
+            - not-mapped
+            - reference-mismatch
+            - protein-only
+            - several-candidates
+            - not-registered
+            - no-clinvar
+            - several-clinvar
+            - gene-differs
+            - protein-differs
+        message:
+          type: string
+    VariantCandidate:
+      type: object
+      required: [hgvs, clinVar, warnings]
+      properties:
+        caid:
+          description: The Allele Registry ID. Absent when the allele is valid but nobody has registered it.
+          type: string
+          pattern: '^CA[0-9]+$'
+        title:
+          description: The registry's name for the allele, for example `NM_000257.4(MYH7):c.1208G>A (p.Arg403Gln)`.
+          type: string
+        registryUrl:
+          description: The allele's page in the Allele Registry.
+          type: string
+          format: uri
+        geneSymbol:
+          type: string
+        hgvs:
+          type: object
+          properties:
+            genomic:
+              description: On GRCh38.
+              type: string
+            transcript:
+              description: On the MANE Select transcript.
+              type: string
+            protein:
+              description: The predicted change on the MANE Select protein.
+              type: string
+        clinVar:
+          description: The ClinVar variations with this allele, usually one.
+          type: array
+          items:
+            type: object
+            required: [variationId, url]
+            properties:
+              variationId:
+                type: string
+                pattern: '^[0-9]+$'
+              url:
+                type: string
+                format: uri
+        gnomad:
+          description: The gnomAD v4 variant ID, for example `14-23429278-C-T`.
+          type: string
+        dbSnp:
+          type: string
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariantWarning'
+    VariantResolution:
+      type: object
+      required: [query, candidates, warnings, steps]
+      properties:
+        query:
+          type: string
+        gene:
+          type: string
+        candidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariantCandidate'
+        warnings:
+          description: What the lookup assumed or found about the query as a whole.
+          type: array
+          items:
+            $ref: '#/components/schemas/VariantWarning'
+        steps:
+          description: Each request made to an outside service, in order.
+          type: array
+          items:
+            type: object
+            required: [service, request, outcome]
+            properties:
+              service:
+                type: string
+                enum: [registry, variantvalidator]
+              request:
+                type: string
+              outcome:
+                type: string
     DocumentUriRelation:
       description: How a URI relates to the page that reported it (docs/document-identity.md).
       type: string

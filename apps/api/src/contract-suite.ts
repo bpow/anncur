@@ -782,6 +782,46 @@ export function describeContract(name: string, open: () => Promise<TestContext>)
       },
     ]);
 
+    run('resolveVariant', [
+      {
+        name: 'finds candidates',
+        as: alice,
+        status: 200,
+        request: () => ({
+          method: 'GET',
+          url: `/x/variants/resolve?q=${encodeURIComponent('c.1208G>A')}&gene=MYH7`,
+        }),
+        then: (res) =>
+          expect(res.json<{ candidates: { caid: string }[] }>().candidates[0]?.caid).toBe(
+            'CA010365',
+          ),
+      },
+      {
+        name: 'answers text it cannot read with a warning',
+        as: alice,
+        status: 200,
+        request: () => ({ method: 'GET', url: '/x/variants/resolve?q=IVS4%2B1G%3EA' }),
+      },
+      {
+        name: '400 without a query',
+        as: alice,
+        status: 400,
+        request: () => ({ method: 'GET', url: '/x/variants/resolve' }),
+      },
+      {
+        name: '401 for anonymous callers',
+        as: null,
+        status: 401,
+        request: () => ({ method: 'GET', url: '/x/variants/resolve?q=c.1A%3EG' }),
+      },
+      {
+        name: '502 when the registry cannot be reached',
+        as: alice,
+        status: 502,
+        request: () => ({ method: 'GET', url: '/x/variants/resolve?q=NM_999999.1%3Ac.1A%3EG' }),
+      },
+    ]);
+
     run('getCurrentUser', [
       {
         name: 'me',

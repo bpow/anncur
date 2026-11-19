@@ -11,6 +11,7 @@ import { searchHandlers } from './search.js';
 import { suggestionHandlers } from './suggestions.js';
 import { tokenHandlers } from './tokens.js';
 import { userHandlers } from './users.js';
+import { variantHandlers } from './variants.js';
 import { vocabularyHandlers } from './vocabulary.js';
 
 /** Every operationId in apps/api/openapi.yaml, bound by fastify-openapi-glue. */
@@ -28,6 +29,7 @@ export function createHandlers(ctx: AppContext): Handlers {
     ...groupHandlers(ctx),
     ...suggestionHandlers(ctx),
     ...tokenHandlers(ctx),
+    ...variantHandlers(ctx),
     ...vocabularyHandlers(),
   };
 }

@@ -29,6 +29,7 @@ import { ProfileService } from './profiles/service.js';
 import { createHandlers } from './routes/index.js';
 import type { AppContext } from './routes/context.js';
 import { installStatic } from './static.js';
+import { VariantResolver } from './variants/resolver.js';
 
 export const OPENAPI_PATH = fileURLToPath(new URL('../openapi.yaml', import.meta.url));
 
@@ -45,6 +46,8 @@ export interface ServerOptions {
   replayPageSize?: number;
   /** How long a validated token is reused before the user row is refreshed. */
   authCacheMs?: number;
+  /** The `fetch` variant lookup uses; the global one by default. Tests replay recordings. */
+  variantFetch?: typeof fetch;
 }
 
 interface OpenApiPaths {
@@ -110,6 +113,12 @@ export async function buildServer(options: ServerOptions): Promise<FastifyInstan
     keepaliveMs: options.keepaliveMs ?? 30_000,
     replayPageSize: options.replayPageSize ?? 1000,
     accountMail: options.embedded?.accountMail,
+    variants: config.variantLookup.enabled
+      ? new VariantResolver({
+          ...config.variantLookup,
+          ...(options.variantFetch ? { fetch: options.variantFetch } : {}),
+        })
+      : undefined,
   };
 
   await app.register(openapiGlue, {
