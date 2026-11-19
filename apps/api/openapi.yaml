@@ -1931,6 +1931,7 @@ components:
             - version-assumed
             - version-needed
             - mapped
+            - numbering-differs
             - not-mapped
             - reference-mismatch
             - protein-only

@@ -85,6 +85,26 @@ describe('VariantResolver', () => {
     ]);
   });
 
+  it('offers the current version too when an old one numbers the position differently', async () => {
+    const r = await resolver().resolve('NM_000256.2:c.772G>A (p.Glu258Lys)', 'MYBPC3');
+    expect(codes(r)).toEqual(['mapped', 'numbering-differs']);
+    expect(r.candidates.map((c) => [c.caid, c.hgvs.transcript])).toEqual([
+      ['CA380333965', 'NM_000256.3:c.780G>A'],
+      ['CA015823', 'NM_000256.3:c.772G>A'],
+    ]);
+    // The stated protein change points to the second.
+    expect(r.candidates[0]!.warnings.map((w) => w.code)).toEqual(['no-clinvar', 'protein-differs']);
+    expect(r.candidates[1]!.warnings).toEqual([]);
+  });
+
+  it('gives no protein change for an intronic variant', async () => {
+    const r = await resolver().resolve('NM_000256.3:c.3628-41_3628-17del');
+    expect(r.candidates[0]!.hgvs).toEqual({
+      genomic: expect.stringMatching(/^NC_000011\.10:g\./) as string,
+      transcript: 'NM_000256.3:c.3628-41_3628-17del',
+    });
+  });
+
   it('reports a reference base that does not match', async () => {
     const r = await resolver().resolve('NM_000257.4:c.1208C>A', 'MYH7');
     expect(codes(r)).toEqual(['reference-mismatch']);
