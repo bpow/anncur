@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { components } from '@curanno/api-client';
 import { linkedIris, type JsonValue, type ValidationError } from '@curanno/model';
 import { computed, inject } from 'vue';
 import {
@@ -13,6 +14,9 @@ import { useProfilesStore } from '../stores/profiles';
 import LinkInput from './LinkInput.vue';
 import TagInput from './TagInput.vue';
 import TermListInput from './TermListInput.vue';
+import VariantLookup from './VariantLookup.vue';
+
+type VariantCandidate = components['schemas']['VariantCandidate'];
 
 const props = defineProps<{
   fields: SchemaField[];
@@ -62,6 +66,45 @@ function set(name: string, next: JsonValue | undefined): void {
   if (next === undefined || next === '') delete copy[name];
   else copy[name] = next;
   emit('update:modelValue', copy);
+}
+
+/** Sets several fields at once; undefined removes one. */
+function setMany(changes: Record<string, JsonValue | undefined>): void {
+  const copy: Record<string, JsonValue> = { ...value.value };
+  for (const [name, next] of Object.entries(changes)) {
+    if (next === undefined || next === '') delete copy[name];
+    else copy[name] = next;
+  }
+  emit('update:modelValue', copy);
+}
+
+function text(name: string | undefined): string | undefined {
+  const current = name ? value.value[name] : undefined;
+  return typeof current === 'string' ? current : undefined;
+}
+
+// A picked candidate replaces all the IDs, so none is left from another allele. A ClinVar ID
+// is filled only when ClinVar has exactly one variation with the allele.
+function useCandidate(field: SchemaField, candidate: VariantCandidate): void {
+  const f = field.variantLookup ?? {};
+  const changes: Record<string, JsonValue | undefined> = {};
+  if (f.caid) changes[f.caid] = candidate.caid;
+  if (f.clinVarId) {
+    changes[f.clinVarId] =
+      candidate.clinVar.length === 1 ? candidate.clinVar[0]!.variationId : undefined;
+  }
+  if (f.gnomad) changes[f.gnomad] = candidate.gnomad;
+  if (f.idSource) changes[f.idSource] = 'looked up';
+  setMany(changes);
+}
+
+function markUnresolvable(field: SchemaField): void {
+  const f = field.variantLookup ?? {};
+  const changes: Record<string, JsonValue | undefined> = {};
+  if (f.caid) changes[f.caid] = undefined;
+  if (f.clinVarId) changes[f.clinVarId] = undefined;
+  if (f.idSource) changes[f.idSource] = 'unresolvable';
+  setMany(changes);
 }
 
 function strings(name: string): string[] {
@@ -246,6 +289,17 @@ function removeItem(name: string, index: number): void {
       <p v-for="(message, i) in errorsFor(field)" :key="i" class="error" role="alert">
         {{ message }}
       </p>
+      <VariantLookup
+        v-if="field.variantLookup"
+        :variant="text(field.name)"
+        :gene="text(field.variantLookup.gene)"
+        :unresolvable="
+          !!field.variantLookup.idSource && value[field.variantLookup.idSource] === 'unresolvable'
+        "
+        :id-prefix="`field-${nameOf(field)}-`"
+        @use="useCandidate(field, $event)"
+        @unresolvable="markUnresolvable(field)"
+      />
     </template>
   </div>
   <p v-for="(message, i) in generalErrors" :key="i" class="error" role="alert">{{ message }}</p>

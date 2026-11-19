@@ -13,6 +13,7 @@ import {
   type AnnotationLink,
   type JsonSchema,
   type OntologyLookup,
+  type VariantLookupFields,
 } from '@curanno/model';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
@@ -68,6 +69,8 @@ export interface SchemaField {
   /** For an annotation link: which annotations it may name, and whether it names several. */
   link?: AnnotationLink;
   multiple?: boolean;
+  /** For a variant: the sibling fields its Allele Registry lookup reads and fills (ADR 0039). */
+  variantLookup?: VariantLookupFields;
 }
 
 interface PropertySchema {
@@ -82,6 +85,7 @@ interface PropertySchema {
   required?: string[];
   ontology?: OntologyLookup;
   annotation?: AnnotationLink;
+  variantLookup?: VariantLookupFields;
 }
 
 function kindOf(schema: PropertySchema): FieldKind {
@@ -115,6 +119,9 @@ export function fieldsOf(schema: JsonSchema): SchemaField[] {
       ...(property.enum ? { options: property.enum.map(String) } : {}),
       ...(pattern !== undefined ? { pattern } : {}),
       ...(kind === 'term-list' && property.ontology ? { ontology: property.ontology } : {}),
+      ...(kind === 'text' && property.variantLookup
+        ? { variantLookup: property.variantLookup }
+        : {}),
       ...(kind === 'annotation' && property.annotation
         ? { link: property.annotation, multiple: property.type === 'array' }
         : {}),
