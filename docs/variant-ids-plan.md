@@ -1,6 +1,6 @@
 # Variant IDs: lookup plan
 
-**Status:** In progress. Steps 1–5 are prototyped on `claude/external-variant-id-lookup-wpqvc0` (section 8).
+**Status:** Prototyped. Every step of section 8 is done on `claude/external-variant-id-lookup-wpqvc0`; section 7 lists what is left for later.
 
 How CurAnno helps curators find the ClinGen Allele Registry ID (CAID), the ClinVar Variation ID and the gnomAD ID for a variant an article reports. The decisions are recorded in [ADR 0039](adr/0039-variant-lookup-through-the-api.md).
 
