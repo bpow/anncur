@@ -75,7 +75,7 @@ The commands below that read the article take the same **source options**, `<SOU
    - List under `notInBatch` what you found but could not record: individuals reported only in the supplement, findings with no fitting field, or passages you could not quote cleanly.
 5. **Look up variant IDs.**
    - If `CURANNO_TOKEN` is set, run `node apps/suggester/src/cli.ts resolve .curanno-drafts/<ARTICLE>/draft.json`. It looks each `case-variant` without IDs up in the ClinGen Allele Registry through CurAnno, and writes the draft back.
-   - It fills `caid`, `clinVarId` and `gnomad`, with `idSource: "looked up"`, only when the answer is a single registered allele with nothing wrong. Every other variant stays as it is, and a line under `notInBatch` says why and lists the candidates. Do not copy IDs from those lines into the draft: choosing among them is the curator's.
+   - It fills `caid`, `clinVarId` and `gnomad`, with `idSource: "looked up"`, only when the answer is a single registered allele with nothing wrong. When the article gives no transcript, the stated protein change must confirm the one assumed, so keep the protein change in the `variant` when the article gives it. Every other variant stays as it is, and a line under `notInBatch` says why and lists the candidates. Do not copy IDs from those lines into the draft: choosing among them is the curator's.
    - Never change a `variant` to make the lookup succeed. It records what the article says.
    - If it reports that lookup is not available, or `CURANNO_TOKEN` is not set, go on without it and say so in the report.
 6. **Check.**

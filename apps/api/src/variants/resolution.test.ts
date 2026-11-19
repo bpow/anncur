@@ -57,8 +57,9 @@ describe('toResolution', () => {
     });
   });
 
-  it('auto-fills despite an assumed transcript', () => {
-    expect(autoFill(result([myh7], assumed))).toEqual([true]);
+  it('auto-fills an assumed transcript only when the stated protein change confirms it', () => {
+    expect(autoFill(result([{ ...myh7, proteinConfirmed: true }], assumed))).toEqual([true]);
+    expect(autoFill(result([myh7], assumed))).toEqual([false]);
   });
 
   it('auto-fills despite no ClinVar record, but not despite other doubts', () => {

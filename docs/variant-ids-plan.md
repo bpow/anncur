@@ -73,7 +73,6 @@ A module in the API, `apps/api/src/variants/`, with the HTTP calls behind an inj
         { "label": "GRCh38", "values": [{ "text": "NC_000014.9:g.23429278C>T" }] },
         { "label": "Protein", "values": [{ "text": "NP_000248.2:p.Arg403Gln" }] }
       ],
-      "autoFill": true,
       "warnings": []
     }
   ],
@@ -86,7 +85,7 @@ A module in the API, `apps/api/src/variants/`, with the HTTP calls behind an inj
 }
 ```
 
-`fill` has `clinVarId` only when ClinVar has a single variation. `autoFill: true` marks the one candidate a program may fill without a curator: the only candidate, registered, with no warning but `no-clinvar`, and nothing said about the query but that the lookup assumed the MANE Select transcript or its version.
+`fill` has `clinVarId` only when ClinVar has a single variation. `autoFill: true` marks the one candidate a program may fill without a curator: the only candidate, registered, with no warning but `no-clinvar`, and, if the lookup assumed the MANE Select transcript or its version, a protein change in the query that agrees. It is absent above because the query gives no protein change to confirm the assumed transcript.
 
 Warning codes are part of the contract, and messages are for people: `not-understood`, `gene-needed`, `gene-unknown`, `transcript-assumed`, `version-assumed`, `version-needed`, `mapped`, `numbering-differs`, `not-mapped`, `reference-mismatch`, `protein-only`, `several-candidates`, `not-registered`, `no-clinvar`, `several-clinvar`, `gene-differs`, `protein-differs`. `steps` lists each request to an outside service, so a curator can see why the lookup chose what it chose.
 
@@ -94,7 +93,7 @@ Warning codes are part of the contract, and messages are for people: `not-unders
 
 - `case-variant/1`, and the variants of `case-individual/1`, gain an optional `idSource` field: `stated` (the article gives the IDs), `looked up` (from this lookup, checked by a curator) or `unresolvable` (there are no IDs to find). The field is optional, so every stored body stays valid. ADR 0039 explains why this is an addition to `/1` rather than a `/2`. An unresolvable variant should have no `caid` or `clinVarId`. The editor clears them, but the schema does not say so: the suggester's projection for constrained decoders (`packages/extract/src/schema.ts`) refuses conditionals such as `if`.
 - **Sidebar.** The case-variant editor gets a **Look up IDs** button under `variant`, where the profile marks the field with the `lookup` keyword (which names the resolver and the sibling fields it reads and fills). It sends the variant and the fact's `geneName` (the sidebar has no document-level gene yet) and shows the candidates as cards, with warnings first. **Use** on a card fills `caid`, `clinVarId`, `gnomad` and `idSource: looked up`, and leaves `variant` as the article gave it. A **Mark unresolvable** button next to it clears `caid` and `clinVarId` and sets `idSource: unresolvable`. A candidate with no CAID and no ClinVar record has nothing to fill; its `not-registered` warning says a curator with a registry account can register it. `clinVarId` is filled only when ClinVar has exactly one variation for the allele.
-- **Suggester.** `resolve DRAFT` calls the endpoint for each draft item with a `lookup` field that has no IDs and is not marked unresolvable, with the fact's `geneName` or else the draft's gene. It fills `caid`, `clinVarId`, `gnomad` and `idSource: looked up` only from a candidate marked `autoFill`, and keeps a gnomAD value the article states. Otherwise it fills nothing and adds a `notInBatch` line, starting "Lookup", with the candidates and the warnings, which a rerun replaces. Batch items have no note field, so `notInBatch` is where the curator reads this. The skill's rule is now: record IDs the article states with `idSource: stated`, and leave lookup to `resolve`. The `suggestions:write` token scope allows the lookup.
+- **Suggester.** `resolve DRAFT` calls the endpoint for each draft item with a `lookup` field that has no IDs and is not marked unresolvable, with the fact's `geneName` or else the draft's gene. It fills `caid`, `clinVarId`, `gnomad` and `idSource: looked up` only from a candidate marked `autoFill`, and keeps a gnomAD value the article states. A bare `c.` change with no protein change goes to a curator, since the article may number against another transcript. Otherwise it fills nothing and adds a `notInBatch` line, starting "Lookup", with the candidates and the warnings, which a rerun replaces. Batch items have no note field, so `notInBatch` is where the curator reads this. The skill's rule is now: record IDs the article states with `idSource: stated`, and leave lookup to `resolve`. The `suggestions:write` token scope allows the lookup.
 - **Management site.** A group page lists the case-variant facts without IDs and not marked unresolvable, grouped by variant text, so that a curator works through the same variant in several articles at once.
 
 ## 7. Later
