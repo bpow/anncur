@@ -24,6 +24,7 @@ export type WarningCode =
   | 'version-assumed'
   | 'version-needed'
   | 'mapped'
+  | 'numbering-differs'
   | 'not-mapped'
   | 'reference-mismatch'
   | 'protein-only'
@@ -282,15 +283,34 @@ class Lookup {
 
     const hgvs = await this.nucleotideHgvs(variant);
     if (!hgvs) return [];
-    let allele = await this.allele(hgvs);
-    if (allele === 'unknown-reference') {
-      const genomic = await this.mapToGenome(hgvs);
-      if (!genomic) return [];
-      allele = await this.allele(genomic);
-      if (allele === 'unknown-reference') return [];
+    const allele = await this.allele(hgvs);
+    if (allele !== 'unknown-reference') {
+      return allele ? [this.check(candidateFrom(allele), variant.statedProtein)] : [];
     }
-    if (!allele) return [];
-    return [this.check(candidateFrom(allele), variant.statedProtein)];
+    const genomic = await this.mapToGenome(hgvs);
+    if (!genomic) return [];
+    const mapped = await this.allele(genomic);
+    if (mapped === 'unknown-reference') this.unknownReference(genomic);
+    if (!mapped || mapped === 'unknown-reference') return [];
+    const candidates = [this.check(candidateFrom(mapped), variant.statedProtein)];
+
+    // Articles often number against the current transcript but name an older version. When
+    // the versions number this position differently, offer the change on the current one too.
+    const onMane = candidates[0]!.hgvs.transcript;
+    const maneChange = onMane?.split(':')[1];
+    const sameTranscript = variant.reference?.accession === onMane?.split(':')[0]!.split('.')[0];
+    if (variant.coordinate === 'c' && onMane && sameTranscript && maneChange !== variant.change) {
+      const current = `${onMane.split(':')[0]}:${variant.change}`;
+      this.warn(
+        'numbering-differs',
+        `${hgvs} is ${onMane} on the MANE Select transcript, so the two versions number this position differently. If the article numbers against the current version, it means ${current}, the second candidate.`,
+      );
+      const alternative = await this.allele(current);
+      if (alternative && alternative !== 'unknown-reference') {
+        candidates.push(this.check(candidateFrom(alternative), variant.statedProtein));
+      }
+    }
+    return candidates;
   }
 
   /** The variant as HGVS on a reference sequence the registry may know. */
@@ -614,7 +634,9 @@ function candidateFrom(allele: RegistryAllele): VariantCandidate {
   const transcripts = allele.transcriptAlleles ?? [];
   const mane = transcripts.find((t) => t.MANE?.maneStatus === 'MANE Select');
   const transcript = mane?.MANE?.nucleotide?.RefSeq?.hgvs;
+  // For a change outside the coding sequence the registry gives `NP_…:n.…`, which is not a protein change.
   const protein = mane?.MANE?.protein?.RefSeq?.hgvs;
+  const proteinChange = protein?.includes(':p.') ? protein : undefined;
   const geneSymbol = mane?.geneSymbol ?? transcripts.find((t) => t.geneSymbol)?.geneSymbol;
   const records = allele.externalRecords ?? {};
   const clinVar = [
@@ -638,7 +660,7 @@ function candidateFrom(allele: RegistryAllele): VariantCandidate {
     hgvs: {
       ...(genomic ? { genomic } : {}),
       ...(transcript ? { transcript } : {}),
-      ...(protein ? { protein } : {}),
+      ...(proteinChange ? { protein: proteinChange } : {}),
     },
     clinVar,
     ...(gnomad ? { gnomad } : {}),

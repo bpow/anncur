@@ -28,7 +28,7 @@ The IDs are easy to find once the variant is written as valid HGVS against a ref
 | HGVS on a current transcript | `NM_000257.4:c.1208G>A` | Asks the registry directly |
 | The ClinVar-style name | `NM_000257.4(MYH7):c.1208G>A (p.Arg403Gln)` | Separates the gene and the protein change, then as above |
 | A transcript without a version | `NM_000257:c.1208G>A` | Uses the MANE Select version if the accession is the gene's MANE transcript, and says so |
-| An old transcript version | `NM_000257.2:c.1208G>A` | The registry does not know it. VariantValidator maps it to GRCh38 genomic HGVS, which the registry knows |
+| An old transcript version | `NM_000257.2:c.1208G>A` | The registry does not know it. VariantValidator maps it to GRCh38 genomic HGVS, which the registry knows. When the two versions number the position differently (`NM_000256.2:c.772G>A` is `NM_000256.3:c.780G>A`), the same change on the current version is offered too, because articles often number against the current version but name an older one |
 | A cDNA change with no transcript | `c.1208G>A` | Needs the gene. Uses its MANE Select transcript and says so |
 | A protein change only | `p.Arg403Gln`, `R403Q` | Needs the gene. Asks the registry for the protein change on the MANE protein, which lists every registered cDNA change that produces it. Several candidates are possible |
 | Genomic HGVS | `NC_000014.9:g.23429278C>T` | Asks the registry directly |
@@ -88,7 +88,7 @@ A module in the API, `apps/api/src/variants/`, with the HTTP calls behind an inj
 
 `fill` has `clinVarId` only when ClinVar has a single variation. `autoFill: true` marks the one candidate a program may fill without a curator: the only candidate, registered, with no warning but `no-clinvar`, and nothing said about the query but that the lookup assumed the MANE Select transcript or its version.
 
-Warning codes are part of the contract, and messages are for people: `not-understood`, `gene-needed`, `gene-unknown`, `transcript-assumed`, `version-assumed`, `version-needed`, `mapped`, `not-mapped`, `reference-mismatch`, `protein-only`, `several-candidates`, `not-registered`, `no-clinvar`, `several-clinvar`, `gene-differs`, `protein-differs`. `steps` lists each request to an outside service, so a curator can see why the lookup chose what it chose.
+Warning codes are part of the contract, and messages are for people: `not-understood`, `gene-needed`, `gene-unknown`, `transcript-assumed`, `version-assumed`, `version-needed`, `mapped`, `numbering-differs`, `not-mapped`, `reference-mismatch`, `protein-only`, `several-candidates`, `not-registered`, `no-clinvar`, `several-clinvar`, `gene-differs`, `protein-differs`. `steps` lists each request to an outside service, so a curator can see why the lookup chose what it chose.
 
 ## 6. Profile and interface
 

@@ -3,17 +3,27 @@
  * VariantValidator (`fixtures/*.json`, trimmed copies of live answers), for
  * tests. A request with no recording fails, as an unreachable service would.
  */
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 
 export interface Recording {
   status: number;
   body: unknown;
 }
 
-export function loadRecordings(name = 'myh7'): Record<string, Recording> {
-  const url = new URL(`../../src/variants/fixtures/${name}.json`, import.meta.url);
+/** Every recording in `fixtures/`, as one map from URL to answer. */
+export function loadRecordings(): Record<string, Recording> {
   // Run from src (vitest) or dist (built): both resolve to src/variants/fixtures.
-  return JSON.parse(readFileSync(url, 'utf8')) as Record<string, Recording>;
+  const dir = new URL('../../src/variants/fixtures/', import.meta.url);
+  const recordings: Record<string, Recording> = {};
+  for (const name of readdirSync(dir)
+    .filter((n) => n.endsWith('.json'))
+    .sort()) {
+    Object.assign(
+      recordings,
+      JSON.parse(readFileSync(new URL(name, dir), 'utf8')) as Record<string, Recording>,
+    );
+  }
+  return recordings;
 }
 
 export function fixtureFetch(

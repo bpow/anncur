@@ -103,6 +103,26 @@ describe('VariantResolver', () => {
     ]);
   });
 
+  it('offers the current version too when an old one numbers the position differently', async () => {
+    const r = await resolver().resolve('NM_000256.2:c.772G>A (p.Glu258Lys)', 'MYBPC3');
+    expect(codes(r)).toEqual(['mapped', 'numbering-differs']);
+    expect(r.candidates.map((c) => [c.caid, c.hgvs.transcript])).toEqual([
+      ['CA380333965', 'NM_000256.3:c.780G>A'],
+      ['CA015823', 'NM_000256.3:c.772G>A'],
+    ]);
+    // The stated protein change points to the second.
+    expect(r.candidates[0]!.warnings.map((w) => w.code)).toEqual(['no-clinvar', 'protein-differs']);
+    expect(r.candidates[1]!.warnings).toEqual([]);
+  });
+
+  it('gives no protein change for an intronic variant', async () => {
+    const r = await resolver().resolve('NM_000256.3:c.3628-41_3628-17del');
+    expect(r.candidates[0]!.hgvs).toEqual({
+      genomic: expect.stringMatching(/^NC_000011\.10:g\./) as string,
+      transcript: 'NM_000256.3:c.3628-41_3628-17del',
+    });
+  });
+
   it('reports a reference base that does not match', async () => {
     const r = await resolver().resolve('NM_000257.4:c.1208C>A', 'MYH7');
     expect(codes(r)).toEqual(['reference-mismatch']);
@@ -148,6 +168,18 @@ describe('VariantResolver', () => {
     const r = await resolver().resolve('NM_000257.4:c.1209G>T');
     expect(r.candidates[0]!.caid).toBe('CA485625782');
     expect(r.candidates[0]!.warnings.map((w) => w.code)).toEqual(['no-clinvar']);
+  });
+
+  it('does not offer the MANE numbering for a different transcript', async () => {
+    const recordings = loadRecordings();
+    const old = encodeURIComponent('NM_000256.2:c.772G>A');
+    const other = encodeURIComponent('NM_999999.1:c.772G>A');
+    for (const [url, recording] of Object.entries(recordings)) {
+      if (url.includes(old)) recordings[url.replace(old, other)] = recording;
+    }
+    const r = await resolver(recordings).resolve('NM_999999.1:c.772G>A', 'MYBPC3');
+    expect(codes(r)).toEqual(['mapped']);
+    expect(r.candidates.map((c) => c.hgvs.transcript)).toEqual(['NM_000256.3:c.780G>A']);
   });
 
   it('says so when the registry does not know a protein sequence', async () => {
