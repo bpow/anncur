@@ -874,7 +874,7 @@ export interface components {
         };
         VariantWarning: {
             /** @enum {string} */
-            code: "not-understood" | "gene-needed" | "gene-unknown" | "transcript-assumed" | "version-assumed" | "version-needed" | "mapped" | "not-mapped" | "reference-mismatch" | "protein-only" | "several-candidates" | "not-registered" | "no-clinvar" | "several-clinvar" | "gene-differs" | "protein-differs";
+            code: "not-understood" | "gene-needed" | "gene-unknown" | "transcript-assumed" | "version-assumed" | "version-needed" | "mapped" | "numbering-differs" | "not-mapped" | "reference-mismatch" | "protein-only" | "several-candidates" | "not-registered" | "no-clinvar" | "several-clinvar" | "gene-differs" | "protein-differs";
             message: string;
         } & {
             [key: string]: unknown;
