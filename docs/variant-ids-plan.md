@@ -1,6 +1,6 @@
 # Variant IDs: lookup plan
 
-**Status:** In progress. Steps 1 and 2 are prototyped on `claude/external-variant-id-lookup-wpqvc0` (section 8).
+**Status:** In progress. Steps 1–3 are prototyped on `claude/external-variant-id-lookup-wpqvc0` (section 8).
 
 How CurAnno helps curators find the ClinGen Allele Registry ID (CAID), the ClinVar Variation ID and the gnomAD ID for a variant an article reports. The decisions are recorded in [ADR 0039](adr/0039-variant-lookup-through-the-api.md).
 
@@ -93,7 +93,7 @@ Warning codes are part of the contract, and messages are for people: `not-unders
 ## 6. Profile and interface
 
 - `case-variant/1`, and the variants of `case-individual/1`, gain an optional `idSource` field: `stated` (the article gives the IDs), `looked up` (from this lookup, checked by a curator) or `unresolvable` (there are no IDs to find). The field is optional, so every stored body stays valid. ADR 0039 explains why this is an addition to `/1` rather than a `/2`. An unresolvable variant should have no `caid` or `clinVarId`. The editor clears them, but the schema does not say so: the suggester's projection for constrained decoders (`packages/extract/src/schema.ts`) refuses conditionals such as `if`.
-- **Sidebar.** The case-variant editor gets a **Look up** button beside `variant`. It sends the variant and the gene of interest (the fact's `geneName`, else the document's gene) and shows the candidates as cards, with warnings first. **Use** on a card fills `caid`, `clinVarId`, `gnomad` and `idSource: looked up`, and leaves `variant` as the article gave it. A **Mark unresolvable** button is next to it. An unregistered candidate links to the registry page instead.
+- **Sidebar.** The case-variant editor gets a **Look up IDs** button under `variant`, where the profile marks the field with the `lookup` keyword (which names the resolver and the sibling fields it reads and fills). It sends the variant and the fact's `geneName` (the sidebar has no document-level gene yet) and shows the candidates as cards, with warnings first. **Use** on a card fills `caid`, `clinVarId`, `gnomad` and `idSource: looked up`, and leaves `variant` as the article gave it. A **Mark unresolvable** button next to it clears `caid` and `clinVarId` and sets `idSource: unresolvable`. A candidate with no CAID and no ClinVar record has nothing to fill; its `not-registered` warning says a curator with a registry account can register it. `clinVarId` is filled only when ClinVar has exactly one variation for the allele.
 - **Suggester.** `curanno-suggest variants DRAFT` calls the endpoint for each draft case-variant without IDs and adds the IDs of a single, warning-free candidate with `idSource: looked up`. When there are several candidates or any warning, it adds none and puts the warnings in the item's note for the curator. The skill's rule "record IDs only if the article states them" changes to "record IDs the article states with `idSource: stated`; leave lookup to `variants`".
 - **Management site.** A group page lists the case-variant facts without IDs and not marked unresolvable, grouped by variant text, so that a curator works through the same variant in several articles at once.
 
