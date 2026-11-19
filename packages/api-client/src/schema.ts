@@ -244,6 +244,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/x/variants/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Look up the CAID, ClinVar and gnomAD IDs of a variant
+         * @description Reads a variant as an article gives it (HGVS, a ClinVar-style name, a cDNA or protein
+         *     change on its own) and asks the ClinGen Allele Registry for it, and VariantValidator when
+         *     the registry does not know the reference sequence. Answers with every candidate allele and
+         *     what the lookup had to assume or found wrong, and never chooses for the caller. A result
+         *     with no candidates and a warning is a successful lookup. Results are cached for a day.
+         *     Each warning's `code` is part of this contract; its `message` is for people.
+         */
+        get: operations["resolveVariant"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/x/documents": {
         parameters: {
             query?: never;
@@ -844,6 +869,67 @@ export interface components {
             label: string;
             /** @description The synonym that matched, when it was not the label. */
             synonym?: string;
+        } & {
+            [key: string]: unknown;
+        };
+        VariantWarning: {
+            /** @enum {string} */
+            code: "not-understood" | "gene-needed" | "gene-unknown" | "transcript-assumed" | "version-assumed" | "version-needed" | "mapped" | "not-mapped" | "reference-mismatch" | "protein-only" | "several-candidates" | "not-registered" | "no-clinvar" | "several-clinvar" | "gene-differs" | "protein-differs";
+            message: string;
+        } & {
+            [key: string]: unknown;
+        };
+        VariantCandidate: {
+            /** @description The Allele Registry ID. Absent when the allele is valid but nobody has registered it. */
+            caid?: string;
+            /** @description The registry's name for the allele, for example `NM_000257.4(MYH7):c.1208G>A (p.Arg403Gln)`. */
+            title?: string;
+            /**
+             * Format: uri
+             * @description The allele's page in the Allele Registry.
+             */
+            registryUrl?: string;
+            geneSymbol?: string;
+            hgvs: {
+                /** @description On GRCh38. */
+                genomic?: string;
+                /** @description On the MANE Select transcript. */
+                transcript?: string;
+                /** @description The predicted change on the MANE Select protein. */
+                protein?: string;
+            } & {
+                [key: string]: unknown;
+            };
+            /** @description The ClinVar variations with this allele, usually one. */
+            clinVar: ({
+                variationId: string;
+                /** Format: uri */
+                url: string;
+            } & {
+                [key: string]: unknown;
+            })[];
+            /** @description The gnomAD v4 variant ID, for example `14-23429278-C-T`. */
+            gnomad?: string;
+            dbSnp?: string;
+            warnings: components["schemas"]["VariantWarning"][];
+        } & {
+            [key: string]: unknown;
+        };
+        VariantResolution: {
+            query: string;
+            gene?: string;
+            candidates: components["schemas"]["VariantCandidate"][];
+            /** @description What the lookup assumed or found about the query as a whole. */
+            warnings: components["schemas"]["VariantWarning"][];
+            /** @description Each request made to an outside service, in order. */
+            steps: ({
+                /** @enum {string} */
+                service: "registry" | "variantvalidator";
+                request: string;
+                outcome: string;
+            } & {
+                [key: string]: unknown;
+            })[];
         } & {
             [key: string]: unknown;
         };
@@ -1590,6 +1676,9 @@ export type BodyProfileInput = components['schemas']['BodyProfileInput'];
 export type BodyProfile = components['schemas']['BodyProfile'];
 export type Ontology = components['schemas']['Ontology'];
 export type OntologyTermMatch = components['schemas']['OntologyTermMatch'];
+export type VariantWarning = components['schemas']['VariantWarning'];
+export type VariantCandidate = components['schemas']['VariantCandidate'];
+export type VariantResolution = components['schemas']['VariantResolution'];
 export type DocumentUriRelation = components['schemas']['DocumentUriRelation'];
 export type DocumentLink = components['schemas']['DocumentLink'];
 export type DocumentMetadata = components['schemas']['DocumentMetadata'];
@@ -2185,6 +2274,51 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["NotFound"];
+        };
+    };
+    resolveVariant: {
+        parameters: {
+            query: {
+                /** @description The variant, for example `NM_000257.4:c.1208G>A` or `p.R403Q`. */
+                q: string;
+                /** @description The HGNC symbol of the gene of interest. A cDNA or protein change on its own is looked up on its MANE Select transcript, and candidates in other genes are flagged. */
+                gene?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The candidates, with warnings and the requests made */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VariantResolution"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            /** @description Variant lookup is turned off on this server (`VARIANT_LOOKUP=off`) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description The Allele Registry could not be reached or gave an answer that cannot be read */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     lookupDocument: {
