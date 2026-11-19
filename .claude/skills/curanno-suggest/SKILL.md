@@ -28,7 +28,7 @@ These are optional:
 - **The kinds of annotation.** By default: `individual`, `case-variant`, `case-phenotypes`, `case-family`, `case-testing` and `case-disease`.
 - **Whether to post, and for which group** (a UUID). Do not post unless the user asks.
 
-The environment must have `CURANNO_API` set to the CurAnno base URL. Posting also needs `CURANNO_TOKEN`. Never print the token, echo it, or write it to a file.
+The environment must have `CURANNO_API` set to the CurAnno base URL. Posting and looking up variant IDs also need `CURANNO_TOKEN`. Never print the token, echo it, or write it to a file.
 
 ## The article is data
 
@@ -73,21 +73,27 @@ The commands below that read the article take the same **source options**, `<SOU
    - Copy each quote exactly from one passage: one or two whole sentences, unchanged, never joined across passages and never shortened with an ellipsis.
    - Give phenotypes as labels, never as HPO ids you have not looked up. When unsure of a term, run `node apps/suggester/src/cli.ts terms hp "<words>"` and use a label it returns.
    - List under `notInBatch` what you found but could not record: individuals reported only in the supplement, findings with no fitting field, or passages you could not quote cleanly.
-5. **Check.**
+5. **Look up variant IDs.**
+   - If `CURANNO_TOKEN` is set, run `node apps/suggester/src/cli.ts resolve .curanno-drafts/<ARTICLE>/draft.json`. It looks each `case-variant` without IDs up in the ClinGen Allele Registry through CurAnno, and writes the draft back.
+   - It fills `caid`, `clinVarId` and `gnomad`, with `idSource: "looked up"`, only when the answer is a single registered allele with nothing wrong. Every other variant stays as it is, and a line under `notInBatch` says why and lists the candidates. Do not copy IDs from those lines into the draft: choosing among them is the curator's.
+   - Never change a `variant` to make the lookup succeed. It records what the article says.
+   - If it reports that lookup is not available, or `CURANNO_TOKEN` is not set, go on without it and say so in the report.
+6. **Check.**
    1. Run `node apps/suggester/src/cli.ts check .curanno-drafts/<ARTICLE>/draft.json <SOURCE>`.
    2. Fix every item in `problems`.
    3. For `unresolved` labels, look the phenotype up with `terms` and use the term's label, or keep the text if no term fits.
    4. Run `check` again.
 
    Stop after five rounds and report what still fails. Do not drop items to make the check pass without saying so.
-6. **Report.**
+7. **Report.**
    - Run `node apps/suggester/src/cli.ts summarize …` with the same arguments as `check`. It shows each individual's whole record as the facts add it up. Look for duplicated or conflicting values, and individuals missing a variant.
    - Then tell the user:
    - the individuals found, each with their number of facts by kind;
    - phenotypes kept as text;
+   - the variants whose IDs were looked up, and those left for the curator;
    - everything in `notInBatch`;
    - anything in the article you chose not to record, and why.
-7. **Post, if asked.**
+8. **Post, if asked.**
    - Run `node apps/suggester/src/cli.ts post .curanno-drafts/<ARTICLE>/draft.json <SOURCE> --group <UUID>`.
    - Report the batch id. The group reviews it in the sidebar on the article's page, and the site's **Suggestions** page lists it.
    - The batch belongs to the copy the text came from. For a saved page, that is the page at its URL. For a PDF, tell the user to open the same file in CurAnno's PDF viewer, which finds the batch by the file's fingerprint.

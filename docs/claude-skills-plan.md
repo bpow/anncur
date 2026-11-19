@@ -205,7 +205,7 @@ On `feat/claude-skills`:
 ## 8. Open
 
 - **Profiles for the protocol's tags.** Zygosity, inheritance, germline or somatic, mutation type and testing status as enum fields would need `case-variant/2` and `case-testing/2`. Profiles are versioned, so this is a choice for the curators. The skill records these in words until then.
-- **Looking up variant IDs.** ClinGen asks curators to register variants without a ClinVar ID in the Allele Registry and record the CAID. A `variant` subcommand could look a variant up in the Allele Registry by HGVS and record the CAID with a note that it was looked up, not stated. This sends variant descriptions, which are public, to an outside service.
+- **Looking up variant IDs.** Done as the `resolve` subcommand (ADR 0039, docs/variant-ids-plan.md). It fills IDs only for unambiguous answers, with `idSource: looked up`, and lists the rest under `notInBatch`.
 - **Article-level findings.** "NoEvidence" and "InsufficientEvidence" belong to the article, not an individual. A page-level note would need a target without a quote, which batches do not allow yet.
 - **Several articles per run,** as one subagent per article, once single articles pass `check` without many rounds.
 
