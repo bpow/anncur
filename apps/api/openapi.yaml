@@ -675,7 +675,7 @@ paths:
         know the reference sequence. Its context is `gene`. Its candidates fill `caid`,
         `clinVarId` (only when ClinVar has a single variation) and `gnomad`. Its warning codes
         are `not-understood`, `gene-needed`, `gene-unknown`, `transcript-assumed`,
-        `version-assumed`, `version-needed`, `mapped`, `not-mapped`,
+        `version-assumed`, `version-needed`, `mapped`, `numbering-differs`, `not-mapped`,
         `reference-mismatch`, `protein-only`, `several-candidates`, `not-registered`, `no-clinvar`,
         `several-clinvar`, `gene-differs` and `protein-differs`. Results are cached for a day.
       parameters:
