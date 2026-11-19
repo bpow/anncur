@@ -94,6 +94,9 @@ describe.skipIf(!databaseUrl)('access tokens', () => {
     expect((await bearer(token, { method: 'GET', url: '/x/groups' })).statusCode).toBe(403);
     expect((await bearer(token, { method: 'GET', url: '/x/profiles' })).statusCode).toBe(200);
     expect(
+      (await bearer(token, { method: 'GET', url: '/x/variants/resolve?q=c.1A%3EG' })).statusCode,
+    ).toBe(200);
+    expect(
       (await bearer(token, { method: 'POST', url: '/annotations/', payload: annotationOn(PAGE) }))
         .statusCode,
     ).toBe(403);

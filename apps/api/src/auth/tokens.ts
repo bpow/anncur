@@ -34,6 +34,8 @@ export const SCOPES: Record<string, readonly string[]> = {
     // Public reads an engine needs: the profiles to fill, and ontology terms to resolve labels.
     'GET /x/profiles',
     'GET /x/ontologies/:name/terms',
+    // Variant IDs for case-variant suggestions (ADR 0039).
+    'GET /x/variants/resolve',
     'POST /x/suggestion-batches',
     'GET /x/suggestion-batches',
     'GET /x/suggestion-batches/:id',

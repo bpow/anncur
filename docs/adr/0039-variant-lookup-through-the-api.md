@@ -26,6 +26,7 @@ For recording a variant with no IDs to find, the case-variant profile could gain
 ## Decision
 
 - The API serves `GET /x/variants/resolve?q=&gene=` to authenticated callers. It asks the Allele Registry, and VariantValidator only when the registry does not know the reference sequence. It returns candidates with their warnings and the requests it made. It never chooses for the curator.
+- The `suggestions:write` token scope (ADR 0038) allows the lookup, so the suggester can fill IDs in a batch.
 - Results are cached in memory for a day. A deployment can turn the lookup off with `VARIANT_LOOKUP=off`.
 - CurAnno does not register alleles. An unregistered candidate links to the registry.
 - `case-variant/1` gains an optional `idSource` field (`stated`, `looked up`, `unresolvable`). The change is made to `/1` because it is additive: every stored body still validates, and a reader that ignores the field reads the IDs as before. The rule in docs/body-profiles.md is against incompatible changes, and this is not one. A reader that validates new bodies against an old copy of the schema would reject the field. No such reader is known.
