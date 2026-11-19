@@ -135,6 +135,14 @@ const variantProperties = {
     'Evidence about the variant itself, such as functional studies.',
     2000,
   ),
+  // Added to version 1 because it is optional: every stored body still validates (ADR 0039).
+  idSource: {
+    title: 'IDSource',
+    description:
+      'Where the ClinVarID and CAID come from: stated in the article, looked up in the Allele Registry, or unresolvable when there are none to find.',
+    type: 'string',
+    enum: ['stated', 'looked up', 'unresolvable'],
+  },
 };
 
 /**
