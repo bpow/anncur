@@ -15,14 +15,15 @@ const HARMLESS = new Set(['no-clinvar']);
 
 /**
  * Whether a program may fill this candidate without a curator: it is the only one, it is
- * registered, and nothing was found wrong. The lookup may have assumed the transcript or its
- * version.
+ * registered, nothing was found wrong, and if the lookup assumed the transcript or its
+ * version, the article's protein change agrees.
  */
 function autoFillable(result: VariantResolution, c: VariantCandidate): boolean {
   return (
     result.candidates.length === 1 &&
     c.caid !== undefined &&
     result.warnings.every((w) => ASSUMPTIONS.has(w.code)) &&
+    (result.warnings.length === 0 || c.proteinConfirmed === true) &&
     c.warnings.every((w) => HARMLESS.has(w.code))
   );
 }
