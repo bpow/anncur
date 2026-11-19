@@ -111,10 +111,20 @@ const fields = {
 
 const variantProperties = {
   geneName: text('GeneName', 'HGNC gene symbol, for example MYH7.', 50),
-  variant: text(
-    'Variant',
-    'The variant as reported, preferably HGVS, for example NM_000257.4:c.1208G>A.',
-  ),
+  variant: {
+    ...text(
+      'Variant',
+      'The variant as reported, preferably HGVS, for example NM_000257.4:c.1208G>A.',
+    ),
+    // A gnomAD ID alone does not satisfy the ClinGen template, so it is not one of the IDs.
+    lookup: {
+      resolver: 'variant',
+      context: { gene: 'geneName' },
+      fill: { caid: 'caid', clinVarId: 'clinVarId', gnomad: 'gnomad' },
+      ids: ['caid', 'clinVarId'],
+      source: 'idSource',
+    },
+  },
   clinVarId: {
     title: 'ClinVarID',
     description: 'The numeric ClinVar Variation ID.',
