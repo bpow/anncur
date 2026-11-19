@@ -67,7 +67,7 @@ The sidebar runs the same registry client-side, with the schemas it fetched from
 `case-individual/1` follows the Case-Individuals template of ClinGen's [Hypothes.is annotation overview](https://www.clinicalgenome.org/site/assets/files/5693/hypothesis_annotation_overview_v1_final.pdf). Each field's `title` is the template's CamelCase label (`CasePresentingHPOs`, `GenotypingMethod`, …), and the JSON keys are their lower-camel-case forms. It departs from the template in these ways:
 
 - A field with no data is omitted, not filled with `n/a`. Empty strings are rejected.
-- `MultipleGeneVariants` becomes `variants`, a list with at least one item. Each item has `GeneName`, `Variant` (required), `ClinVarID`, `CAID`, `gnomAD` and `VariantEvidence`. The template asks for a ClinVarID or a CAID; the schema accepts either, both or neither.
+- `MultipleGeneVariants` becomes `variants`, a list with at least one item. Each item has `GeneName`, `Variant` (required), `ClinVarID`, `CAID`, `gnomAD`, `IDSource` and `VariantEvidence`. `IDSource` is not in the template: it says whether the IDs were `stated` in the article or `looked up`, or that the variant is `unresolvable` (ADR 0039). The template asks for a ClinVarID or a CAID; the schema accepts either, both or neither.
 - `CasePresentingHPOs` and `CaseNOTHPOs` are lists of `{id?, label}` items with HPO lookup ([ontologies.md](ontologies.md)), limited to Phenotypic abnormality (`HP:0000118`). A picked term keeps its `HP:nnnnnnn` ID and its label. Text that matches no term keeps only the label, so the lists also hold what the template's `CaseHPOFreeText` and `CaseNOTHPOFreeText` fields held, and those fields are gone.
 - ClinVarIDs must be numeric and CAIDs must match `CA` followed by digits.
 
@@ -84,7 +84,7 @@ Facts about a case individual are annotated where the article states them ([ADR 
 
 | Profile | Fields | Fills in `case-individual/1` |
 | --- | --- | --- |
-| `case-variant/1` | `variant` (required), `geneName`, `clinVarId`, `caid`, `gnomad`, `variantEvidence` | one item of `variants` |
+| `case-variant/1` | `variant` (required), `geneName`, `clinVarId`, `caid`, `gnomad`, `idSource`, `variantEvidence` | one item of `variants` |
 | `case-phenotypes/1` | `casePresentingHpos`, `caseNotHpos`, `course` (onset and progression) | the two lists; `course` has no field there |
 | `case-family/1` | `familyInfo` (required) | `familyInfo` |
 | `case-testing/1` | `casePreviousTesting`, `genotypingMethod` | the same |
