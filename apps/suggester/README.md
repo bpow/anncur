@@ -38,6 +38,7 @@ The `curanno-suggest` skill (`.claude/skills/curanno-suggest`) has Claude Code w
 | `terms ONTOLOGY QUERY` | Ontology terms matching the query. |
 | `check DRAFT` | The draft checked against the article and the profiles: quotes verbatim, terms resolved, values valid, links sound. |
 | `summarize DRAFT` | The whole-individual records the draft's facts add up to. |
+| `variants DRAFT [--out FILE]` | Looks up the Allele Registry, ClinVar and gnomAD IDs of the draft's case variants through CurAnno (ADR 0039), and writes the draft back. It fills IDs only for a single registered allele with nothing wrong, with `idSource: "looked up"`; for every other variant it adds a line under `notInBatch` with the candidates and what the lookup found. Needs the token. |
 | `post DRAFT --group ID` | Check, then post. |
 
 `CURANNO_API` may stand in for `--api`.
@@ -45,4 +46,5 @@ The `curanno-suggest` skill (`.claude/skills/curanno-suggest`) has Claude Code w
 ## What is sent
 
 - **To the model:** the article's text, and each kind's schema.
+- **To CurAnno's variant lookup** (`variants` only): each variant's text and gene symbol, which the API passes on to the ClinGen Allele Registry and VariantValidator.
 - **To CurAnno:** the PMC and DOI URLs that identify the document, each suggestion's quote (a `TextQuoteSelector`, with no character offsets, since PMC's text does not match the curator's page offset for offset), and its value. The article's text is not sent.
