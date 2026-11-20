@@ -37,6 +37,7 @@ import { useGuest } from '../guest';
 import { linkFieldOf, linkLabels } from '../profiles/links';
 import { useAnnotationsStore } from '../stores/annotations';
 import { useProfilesStore } from '../stores/profiles';
+import { useUndoStore } from '../stores/undo';
 import { renderMarkdown } from '../util/markdown';
 import { formatTime } from '../util/time';
 import AnchoringBadge from './AnchoringBadge.vue';
@@ -54,6 +55,7 @@ const store = useAnnotationsStore();
 const profiles = useProfilesStore();
 const auth = useAuthStore();
 const guest = useGuest();
+const undo = useUndoStore();
 
 type Mode = 'view' | 'edit' | 'reply' | 'share';
 const mode = ref<Mode>('view');
@@ -223,10 +225,17 @@ async function saveReply(draft: AnnotationDraft): Promise<void> {
 async function remove(): Promise<void> {
   busy.value = true;
   try {
-    const current = await store.fetch(props.annotation.id);
+    const iri = props.annotation.id;
+    const uri = store.documentOf.get(iri);
+    const q = quote.value;
+    const label = q ? `“${q.length > 40 ? `${q.slice(0, 40)}…` : q}”` : 'an annotation';
+    const current = await store.fetch(iri);
     if (!current.etag) throw new Error('the server sent no ETag');
-    await store.destroy(props.annotation.id, current.etag);
-    guest.unanchor([props.annotation.id]);
+    await store.destroy(iri, current.etag);
+    guest.unanchor([iri]);
+    undo.offer(`Deleted ${props.reply ? 'a reply' : label}.`, async () => {
+      await store.restore(iri, uri);
+    });
   } catch (err) {
     problem.value = toProblem(err);
   } finally {
@@ -356,7 +365,7 @@ async function repair(): Promise<void> {
       <ConfirmDialog
         v-if="can(annotation, 'delete')"
         title="Delete this annotation?"
-        description="This cannot be undone."
+        description="You can undo this from the top of the sidebar until you leave the page."
         action="Delete"
         @confirm="remove"
       >

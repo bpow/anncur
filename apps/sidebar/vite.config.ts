@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { parseEnv } from 'node:util';
 import vue from '@vitejs/plugin-vue';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, type PreviewServer, type ViteDevServer } from 'vite';
 import { devPort } from '../../dev-ports.ts';
 
 /**
@@ -61,15 +61,39 @@ export default defineConfig(({ mode }) => {
     env['VITE_FRAME_ANCESTORS'] ||
     own['FRAME_ANCESTORS'] ||
     "'self' http://localhost:* http://127.0.0.1:*";
-  const headers = { 'Content-Security-Policy': `frame-ancestors ${frameAncestors}` };
+  // As the API serves it (apps/api/src/static.ts): the sign-in popup's return is never framed.
+  const framePolicy = (url = '') => {
+    let pathname = url.split(/[?#]/)[0] ?? '';
+    try {
+      // The server decodes the path before it picks the file.
+      pathname = decodeURIComponent(pathname);
+    } catch {
+      // Left as sent: it names no file.
+    }
+    const topLevel = pathname.toLowerCase() === '/sidebar/popup-callback.html';
+    return `frame-ancestors ${topLevel ? "'none'" : frameAncestors}`;
+  };
+  const sendFramePolicy = (server: PreviewServer | ViteDevServer): void => {
+    server.middlewares.use((request, response, next) => {
+      response.setHeader('Content-Security-Policy', framePolicy(request.url));
+      next();
+    });
+  };
   const proxy = Object.fromEntries(
     ['/annotations', '/x'].map((prefix) => [prefix, { target: apiTarget, changeOrigin: false }]),
   );
   return {
     base: '/sidebar/',
-    plugins: [vue()],
-    server: { port: devPort('SIDEBAR_PORT'), strictPort: true, headers, proxy },
-    preview: { port: 4173, strictPort: true, headers, proxy },
+    plugins: [
+      vue(),
+      {
+        name: 'frame-policy',
+        configureServer: sendFramePolicy,
+        configurePreviewServer: sendFramePolicy,
+      },
+    ],
+    server: { port: devPort('SIDEBAR_PORT'), strictPort: true, proxy },
+    preview: { port: 4173, strictPort: true, proxy },
     build: {
       rollupOptions: {
         input: {

@@ -27,8 +27,14 @@ function originOf(url: string): string {
   }
 }
 
+/**
+ * Sidebar files that are only ever top-level windows (the sign-in popup's
+ * return), so no page may frame them whatever FRAME_ANCESTORS allows.
+ */
+const TOP_LEVEL_PAGES = new Set(['popup-callback.html']);
+
 /** The CSP of the sidebar: scripts and styles from itself, the API on its origin, the provider for sign-in. */
-export function sidebarPolicy(config: Config): string {
+export function sidebarPolicy(config: Config, topLevel = false): string {
   const issuer = originOf(config.oidc.issuer);
   // The only places document text may go for suggestions (ADR 0032).
   const endpoints = [...new Set(config.extractEndpoints.map((e) => originOf(e.url)))];
@@ -47,7 +53,7 @@ export function sidebarPolicy(config: Config): string {
     `form-action 'self' ${issuer}`.trim(),
     "base-uri 'self'",
     "object-src 'none'",
-    `frame-ancestors ${ancestors.join(' ')}`,
+    `frame-ancestors ${topLevel ? "'none'" : ancestors.join(' ')}`,
   ].join('; ');
 }
 
@@ -94,8 +100,10 @@ export async function installStatic(app: FastifyInstance, options: StaticOptions
       };
     });
     await app.register(async (scope) => {
+      const framed = sidebarPolicy(config);
+      const topLevel = sidebarPolicy(config, true);
       scope.addHook('onRequest', (request, reply, done) => {
-        sendWith(sidebarPolicy(config))(request, reply);
+        sendWith(framed)(request, reply);
         done();
       });
       await scope.register(fastifyStatic, {
@@ -103,6 +111,12 @@ export async function installStatic(app: FastifyInstance, options: StaticOptions
         prefix: '/sidebar/',
         decorateReply: false,
         index: ['index.html'],
+        // Decided by the file served, not the URL: an encoded path names the same file, and so
+        // does another case where the file system ignores it.
+        setHeaders(res, filePath) {
+          const file = path.relative(sidebarDir, filePath).toLowerCase();
+          if (TOP_LEVEL_PAGES.has(file)) res.header('content-security-policy', topLevel);
+        },
       });
     });
   }

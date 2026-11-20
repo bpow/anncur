@@ -11,6 +11,7 @@ import { GUEST_KEY } from '../guest';
 import { createFakeGuest } from '../guest/fake';
 import { useAnnotationsStore } from '../stores/annotations';
 import { useProfilesStore } from '../stores/profiles';
+import { useUndoStore } from '../stores/undo';
 import { installFakeApi, json, type FakeApi } from '../test/fake-api';
 import { fakeUser, stubUserManager } from '../test/stub-user-manager';
 import AnnotationCard from './AnnotationCard.vue';
@@ -81,6 +82,12 @@ describe('AnnotationCard', () => {
       if (path === '/x/me') return json({ iri: ME });
       if (path === `/annotations/${iri(9).slice(BASE.length)}` && method === 'GET') {
         return json(fact, { headers: { etag: '"1"' } });
+      }
+      if (path === `/annotations/${iri(9).slice(BASE.length)}` && method === 'DELETE') {
+        return new Response(null, { status: 204 });
+      }
+      if (path === `/x/annotations/${iri(9).slice(BASE.length)}/restore` && method === 'POST') {
+        return json(fact, { headers: { etag: '"3"' } });
       }
       if (path === `/annotations/${iri(9).slice(BASE.length)}` && method === 'PUT') {
         return json({ ...fact, ...(body as object) }, { headers: { etag: '"2"' } });
@@ -154,6 +161,27 @@ describe('AnnotationCard', () => {
     expect(calls.indexOf('POST /annotations/')).toBeLessThan(
       calls.findIndex((c) => c.startsWith('PUT /annotations/0000000')),
     );
+    wrapper.unmount();
+  });
+
+  it('offers to undo a deletion, and the undo puts the annotation back', async () => {
+    const wrapper = mountCard({ attachTo: document.body });
+    await wrapper.find('button[aria-label="Delete"]').trigger('click');
+    await flushPromises();
+    const confirm = [...document.querySelectorAll('.confirm button')].find(
+      (b) => b.textContent?.trim() === 'Delete',
+    ) as HTMLElement;
+    confirm.click();
+    await flushPromises();
+    const store = useAnnotationsStore();
+    const undo = useUndoStore();
+    expect(store.items.has(fact.id)).toBe(false);
+    expect(undo.offers.map((o) => o.message)).toEqual(['Deleted “passage 9”.']);
+
+    await undo.run(undo.offers[0]!.key);
+    expect(store.items.get(fact.id)).toEqual(fact);
+    expect(store.documentOf.get(fact.id)).toBe(PAGE);
+    expect(undo.offers).toEqual([]);
     wrapper.unmount();
   });
 });

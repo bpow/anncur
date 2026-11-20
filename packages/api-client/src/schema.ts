@@ -81,7 +81,7 @@ export interface paths {
         post?: never;
         /**
          * Delete an annotation
-         * @description Deletes the annotation. `If-Match` is required. Requires the `delete` permission. Later requests for the IRI answer 410.
+         * @description Deletes the annotation. `If-Match` is required. Requires the `delete` permission. Later requests for the IRI answer 410 until it is restored (`restoreAnnotation`).
          */
         delete: operations["deleteAnnotation"];
         options?: never;
@@ -103,6 +103,28 @@ export interface paths {
         get: operations["searchAnnotations"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/x/annotations/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["annotationId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore a deleted annotation
+         * @description Undoes a deletion: the annotation is served again, with a new ETag, and event streams report it as `created`. Requires the `delete` permission. Restoring an annotation that is not deleted changes nothing.
+         */
+        post: operations["restoreAnnotation"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1913,6 +1935,33 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+        };
+    };
+    restoreAnnotation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["annotationId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The restored annotation */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/ld+json": components["schemas"]["Annotation"];
+                    "application/json": components["schemas"]["Annotation"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     getAcl: {

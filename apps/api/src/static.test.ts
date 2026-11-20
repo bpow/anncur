@@ -14,6 +14,10 @@ function fakeClients(): string {
   mkdirSync(path.join(root, 'pdf'), { recursive: true });
   writeFileSync(path.join(root, 'sidebar', 'index.html'), '<!doctype html><title>Sidebar</title>');
   writeFileSync(path.join(root, 'sidebar', 'assets', 'app.js'), 'console.log("sidebar")');
+  writeFileSync(
+    path.join(root, 'sidebar', 'popup-callback.html'),
+    '<!doctype html><title>Popup</title>',
+  );
   writeFileSync(path.join(root, 'sidebar', 'config.json'), '{"oidcIssuer":"from-the-build"}');
   writeFileSync(path.join(root, 'pdf', 'index.html'), '<!doctype html><title>Viewer</title>');
   writeFileSync(path.join(root, 'guest.js'), '(() => {})()');
@@ -88,6 +92,19 @@ describe.skipIf(!databaseUrl)('operational plumbing', () => {
     // Document text can go to the configured endpoint and nowhere else (ADR 0032).
     expect(policy).toContain("connect-src 'self' https://idp.test http://localhost:11434;");
     expect(policy).toContain('frame-src https://idp.test');
+    // The sign-in popup's return page is never framed.
+    const popup = await ctx.app.inject({
+      method: 'GET',
+      url: '/sidebar/popup-callback.html?code=x',
+    });
+    expect(popup.statusCode).toBe(200);
+    expect(popup.headers['content-security-policy']).toContain("frame-ancestors 'none'");
+    const encoded = await ctx.app.inject({
+      method: 'GET',
+      url: '/sidebar/%70opup-callback.html?code=x',
+    });
+    expect(encoded.statusCode).toBe(200);
+    expect(encoded.headers['content-security-policy']).toContain("frame-ancestors 'none'");
     const asset = await ctx.app.inject({ method: 'GET', url: '/sidebar/assets/app.js' });
     expect(asset.statusCode).toBe(200);
     expect(asset.headers['content-type']).toMatch(/javascript/);

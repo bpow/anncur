@@ -99,6 +99,7 @@ export async function stubApi(context: BrowserContext, pageUrl: string): Promise
     batches: new Map(),
   };
   stub.annotations.set(PUBLIC_ANNOTATION_ID, annotation(pageUrl));
+  const deleted = new Map<string, Record<string, unknown>>();
   let counter = 0;
   await context.route(
     (url) =>
@@ -120,7 +121,15 @@ export async function stubApi(context: BrowserContext, pageUrl: string): Promise
       if (stored && call.method === 'GET') return route.fulfill(json(stored, 200, { etag: '"1"' }));
       if (stored && call.method === 'DELETE') {
         stub.annotations.delete(`${API_ORIGIN}${url.pathname}`);
+        deleted.set(`${API_ORIGIN}${url.pathname}`, stored);
         return route.fulfill({ status: 204 });
+      }
+      const restore = /^\/x\/annotations\/([0-9a-f-]{36})\/restore$/.exec(url.pathname);
+      const restorable = restore && deleted.get(`${API_ORIGIN}/annotations/${restore[1]}`);
+      if (restorable && call.method === 'POST') {
+        deleted.delete(restorable['id'] as string);
+        stub.annotations.set(restorable['id'] as string, restorable);
+        return route.fulfill(json(restorable, 200, { etag: '"2"' }));
       }
       const create = (body: Record<string, unknown>) => {
         const id = `${API_ORIGIN}/annotations/44444444-4444-4444-8444-${String(++counter).padStart(12, '0')}`;

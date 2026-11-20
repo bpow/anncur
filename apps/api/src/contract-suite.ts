@@ -639,6 +639,33 @@ export function describeContract(name: string, open: () => Promise<TestContext>)
         }),
       },
     ]);
+    run('restoreAnnotation', [
+      {
+        name: '401 anonymous',
+        as: null,
+        status: 401,
+        request: () => ({ method: 'POST', url: `/x/annotations/${state['annotationId']}/restore` }),
+      },
+      {
+        name: 'restores',
+        as: alice,
+        status: 200,
+        request: () => ({ method: 'POST', url: `/x/annotations/${state['annotationId']}/restore` }),
+      },
+    ]);
+    // Deleted again, as the suites after this one expect.
+    run('deleteAnnotation', [
+      {
+        name: 'deletes the restored annotation',
+        as: alice,
+        status: 204,
+        request: () => ({
+          method: 'DELETE',
+          url: `/annotations/${state['annotationId']}`,
+          headers: { 'if-match': '*' },
+        }),
+      },
+    ]);
 
     run('listProfiles', [
       {

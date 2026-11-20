@@ -31,6 +31,7 @@ describe.skipIf(!databaseUrl)('W3C protocol', () => {
   describe('annotation resources', () => {
     let id: string;
     let etag: string;
+    let modified: string;
 
     it('creates an annotation with server-assigned properties and protocol headers', async () => {
       const res = await ctx.as(alice, {
@@ -142,6 +143,7 @@ describe.skipIf(!databaseUrl)('W3C protocol', () => {
         'repaired',
       );
       etag = ok.headers['etag'] as string;
+      modified = ok.json<{ modified: string }>().modified;
     });
 
     it('answers 410 after deletion', async () => {
@@ -161,6 +163,21 @@ describe.skipIf(!databaseUrl)('W3C protocol', () => {
         headers: { 'if-match': '*' },
       });
       expect(again.statusCode).toBe(410);
+    });
+
+    it('restores a deleted annotation for a holder of delete only', async () => {
+      const url = `/x/annotations/${id}/restore`;
+      expect((await ctx.as(bob, { method: 'POST', url })).statusCode).toBe(404);
+      const res = await ctx.as(alice, { method: 'POST', url });
+      expect(res.statusCode).toBe(200);
+      expect(res.headers['etag']).not.toBe(etag);
+      expect(res.json<{ body: { value: string } }>().body.value).toBe('Third');
+      expect(res.json<{ modified: string }>().modified).toBe(modified);
+      const back = await ctx.as(alice, { method: 'GET', url: `/annotations/${id}` });
+      expect(back.statusCode).toBe(200);
+      const again = await ctx.as(alice, { method: 'POST', url });
+      expect(again.statusCode).toBe(200);
+      expect(again.headers['etag']).toBe(res.headers['etag']);
     });
 
     it('answers 404 for unknown annotations and 401 for anonymous writes', async () => {

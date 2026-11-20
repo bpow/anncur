@@ -201,5 +201,19 @@ export function protocolHandlers(ctx: AppContext): Handlers {
       await store.softDelete(record, caller, expected);
       return reply.code(204).send();
     },
+
+    async restoreAnnotation(request, reply) {
+      const caller = requireUser(request);
+      const { id } = request.params as { id: string };
+      const record = await store.get(id, caller);
+      if (!record) throw notFound();
+      if (!record.permissions.includes('delete')) {
+        throw forbidden('the delete permission is required');
+      }
+      await store.restore(record, caller);
+      const restored = await store.get(record.id, caller);
+      if (!restored) throw new Error('restored annotation is not readable');
+      return sendAnnotation(request, reply, restored);
+    },
   };
 }

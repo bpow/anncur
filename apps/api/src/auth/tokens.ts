@@ -46,6 +46,7 @@ export const SCOPES: Record<string, readonly string[]> = {
     'POST /annotations/',
     'PUT /annotations/:id',
     'DELETE /annotations/:id',
+    'POST /x/annotations/:id/restore',
     'PUT /x/annotations/:id/acl',
     'POST /x/annotations/:id/acl',
     'DELETE /x/annotations/:id/acl/:principalId/:permission',

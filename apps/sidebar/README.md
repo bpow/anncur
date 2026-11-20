@@ -38,13 +38,14 @@ In a deployment, configuration is read at run time from `config.json` next to th
 - Tokens are kept in the sidebar origin's `sessionStorage` and attached as `Authorization: Bearer` by the API client. Nothing is stored in a cookie, nothing is written to `localStorage` but the sign-in state (PKCE verifier, no tokens), and nothing in the `Guest` interface carries a token, a body, a tag or a creator.
 - The identity provider, client and API origin are build-time configuration. The host page supplies nothing (ADR 0007); the `uri` query parameter is read by the development guest only, and the RPC guest accepts a connection only from `window.parent`.
 - Comments are rendered as GitHub Flavored Markdown by `src/util/markdown.ts` (markdown-it), the one place the sidebar inserts HTML (`v-html`). Raw HTML in a comment is escaped, `javascript:`, `data:` and similar link URLs are dropped, images are not loaded, and links open in a new tab so they cannot replace the framed sidebar.
-- `Content-Security-Policy: frame-ancestors …` limits which origins may embed the sidebar. The dev and preview servers send it from `VITE_FRAME_ANCESTORS`; the bookmarklet suite checks that an unlisted origin is refused.
+- `Content-Security-Policy: frame-ancestors …` limits which origins may embed the sidebar. The dev and preview servers send it from `VITE_FRAME_ANCESTORS`; the bookmarklet suite checks that an unlisted origin is refused, and sends `frame-ancestors 'none'` for `popup-callback.html`, which is never framed.
+- A deleted annotation can be restored from the top of the sidebar until the page is left (ADR 0039).
 
 ### Serving in production
 
 The built assets (`pnpm --filter @curanno/sidebar build`, output in `dist/`) are static. Whatever serves them must:
 
-1. Send `Content-Security-Policy: frame-ancestors <origin> <origin> …` with the origins allowed to embed the sidebar on every response, `index.html` included. `frame-ancestors` is not honoured in a `<meta>` tag, so this has to be a response header. `X-Frame-Options` is unnecessary once it is set.
+1. Send `Content-Security-Policy: frame-ancestors <origin> <origin> …` with the origins allowed to embed the sidebar on every response, `index.html` included. Send `frame-ancestors 'none'` for `popup-callback.html`. `frame-ancestors` is not honoured in a `<meta>` tag, so this has to be a response header. `X-Frame-Options` is unnecessary once it is set.
 2. Serve the API under the same origin (`/annotations/`, `/x/`), or build with `VITE_API_URL` and enable CORS on the API with `ETag` exposed, which the API does not do today.
 3. Keep `popup-callback.html` and `silent-renew.html` reachable at the sidebar's base URL; both are registered redirect URIs.
 4. If a `script-src` directive is added, allow `'unsafe-eval'` or precompile the profile schemas: Ajv compiles JSON Schemas to functions at runtime.
