@@ -33,7 +33,7 @@ From the Template Protocol Review:
   - Where ClinGen fills a field with "n/a", a CurAnno value leaves the field out.
   - The disease assertion is the authors' ("annotate based on the assertion given by the authors").
   - Inheritance and de novo status are "based solely on the assertions of the author".
-- **Which cases count.** A case report is "an individual asserted to have a variant in the gene of interest". The skill therefore needs the gene of interest as an input, and leaves out individuals without a variant in it.
+- **Which cases count.** A case report is "an individual asserted to have a variant in the gene of interest". The skill therefore needs the gene of interest as an input, and leaves out individuals without a variant in it. Asked for all genes, it lists the genes the article reports, and once the user has chosen among them it writes one draft per gene, each with that gene as the gene of interest.
 - **One record per individual.** "Each Case report listed in an article should be curated as a separate annotation." In CurAnno this is one `individual/1` per individual, with their facts linked to it (ADR 0035). A fact may name several individuals where a passage covers them all.
 - **Phenotypes.** Present and absent phenotypes are kept apart: "HPOs presenting specifically in the proband" versus "HPOs that were noted not to manifest". Phenotypes without a fitting HPO term are kept as text. The CaseHPOFreeText and CaseNOTHPOFreeText fields correspond to a term-list entry with no id.
 - **Variants.**
