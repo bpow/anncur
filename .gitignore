@@ -11,3 +11,4 @@ coverage/
 deploy/extension/extension-key.pem
 # Drafts the curanno-suggest skill writes while it works (.claude/skills/curanno-suggest).
 .curanno-drafts/
+.claude/settings.local.json
