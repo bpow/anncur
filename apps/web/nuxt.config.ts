@@ -125,6 +125,19 @@ export default defineNuxtConfig({
     '/': { ssr: true, headers: securityHeaders },
     '/**': { ssr: false, headers: securityHeaders },
   },
+  vite: {
+    // Pages load lazily, so Vite finds these only on first visit, re-bundles and reloads the page
+    // mid-session (which broke e2e tests in CI). Bundle them at startup instead.
+    optimizeDeps: {
+      include: [
+        '@curanno/api-client > openapi-fetch',
+        '@curanno/guest > approx-string-match',
+        '@vueuse/core',
+        'oidc-client-ts',
+        'reka-ui',
+      ],
+    },
+  },
   nitro: {
     // Fills in the issuer in the security headers at startup (see above).
     experimental: { envExpansion: true },
