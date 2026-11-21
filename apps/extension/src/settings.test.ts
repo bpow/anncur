@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_SETTINGS,
   DEFAULT_STORED,
-  LOCAL_SERVER,
+  DEFAULT_SERVER,
   activeSettings,
   apiOrigin,
   excludedOrigins,
@@ -17,6 +17,15 @@ import {
   viewerUrlFromConfig,
   type Server,
 } from './settings.js';
+
+const LOCAL_SERVER = {
+  name: 'Local',
+  siteUrl: 'http://localhost:3001',
+  sidebarUrl: '',
+  apiUrl: '',
+  pdfViewerUrl: 'http://localhost:5174/pdf/',
+  foundViewerUrl: '',
+};
 
 const deployedServer = {
   name: 'Production',
@@ -73,9 +82,11 @@ describe('validateStored', () => {
 });
 
 describe('mergeStored', () => {
-  it('starts with the local server', () => {
+  it('starts with the default server', () => {
     expect(mergeStored({})).toEqual(DEFAULT_STORED);
     expect(activeSettings(mergeStored({}))).toEqual(DEFAULT_SETTINGS);
+    expect(DEFAULT_SETTINGS.sidebarUrl).toBe('https://curanno.apps.cloudapps.unc.edu/sidebar/');
+    expect(viewerUrl(DEFAULT_SERVER)).toBe('https://curanno-pdf.apps.cloudapps.unc.edu/pdf/');
   });
 
   it('keeps stored servers and picks the active one', () => {

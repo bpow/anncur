@@ -35,9 +35,9 @@ pnpm --filter @curanno/extension build
 
 writes the unpacked extension to `apps/extension/dist`. In Chrome open `chrome://extensions`, turn on Developer mode, choose **Load unpacked** and pick that folder. `pnpm --filter @curanno/extension dev` rebuilds on change; press the reload button on the extension's card afterwards.
 
-The defaults point at the development stack: the site from `just dev` at `http://localhost:3001`, with its sidebar at `/sidebar/`, and the viewer from `pnpm --filter @curanno/pdf-viewer dev` at `http://localhost:5174/pdf/`. The development sidebar's `frame-ancestors` allows only `localhost` and `127.0.0.1` pages; set `VITE_FRAME_ANCESTORS` to annotate others.
+A new install starts with one server, **CurAnno**, at `https://curanno.apps.cloudapps.unc.edu`. For another deployment, add a server with the site URL `https://<host>`; the extension finds the viewer itself. If a deployment's viewer host changes, save the options again. Settings saved before servers existed become one server named **Default**.
 
-The first server, **Local**, points at the development stack, with its viewer set under Advanced because the development sidebar serves no `config.json`. For a deployment, add a server with the site URL `https://<host>`; the extension finds the viewer itself. If the deployment's viewer host changes, save the options again. Settings saved before servers existed become one server named **Default**. The sidebar is framed by whatever page is open, so `FRAME_ANCESTORS` has to allow those pages: `https:` for extension users on any site.
+For the development stack, add a server with the site URL `http://localhost:3001` (the site from `just dev`, with its sidebar at `/sidebar/`) and, under Advanced, the PDF viewer URL `http://localhost:5174/pdf/` (the viewer from `pnpm --filter @curanno/pdf-viewer dev`); the development sidebar serves no `config.json` to find the viewer in. Its `frame-ancestors` allows only `localhost` and `127.0.0.1` pages; set `VITE_FRAME_ANCESTORS` to annotate others. A deployed sidebar is framed by whatever page is open, so `FRAME_ANCESTORS` has to allow those pages: `https:` for extension users on any site.
 
 ## Tests
 

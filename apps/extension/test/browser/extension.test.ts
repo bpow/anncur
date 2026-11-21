@@ -396,7 +396,9 @@ describe('the options page', () => {
   it('refuses unusable values and saves good ones', async () => {
     await configure({});
     const p = await open(`chrome-extension://${extensionId}/options.html`);
-    await expect.poll(() => p.inputValue('#siteUrl-0')).toBe('http://localhost:3001');
+    await expect
+      .poll(() => p.inputValue('#siteUrl-0'))
+      .toBe('https://curanno.apps.cloudapps.unc.edu');
     await p.fill('#siteUrl-0', 'javascript:alert(1)');
     await p.click('button[type=submit]');
     await expect.poll(() => p.textContent('#siteUrl-0-error')).toMatch(/http/);
@@ -412,7 +414,7 @@ describe('the options page', () => {
     await expect.poll(() => p.textContent('#status')).toMatch(/Saved/);
     expect(await worker.evaluate(() => chrome.storage.sync.get(null))).toMatchObject({
       servers: [
-        { name: 'Local', siteUrl: 'http://localhost:3001', sidebarUrl: '' },
+        { name: 'CurAnno', siteUrl: 'http://localhost:3001', sidebarUrl: '' },
         { name: 'Production', siteUrl: 'https://curanno.example', sidebarUrl: '' },
       ],
       activeServer: 'Production',
@@ -433,7 +435,6 @@ describe('finding the viewer', () => {
     await configure({});
     const p = await open(`chrome-extension://${extensionId}/options.html`);
     await p.fill('#siteUrl-0', deployment.origin);
-    await p.fill('#pdfViewerUrl-0', '');
     await p.click('button[type=submit]');
     await expect.poll(() => p.textContent('#status')).toMatch(/Saved/);
     expect(await p.textContent('[data-viewer]')).toContain(`${viewer.origin}/pdf/`);

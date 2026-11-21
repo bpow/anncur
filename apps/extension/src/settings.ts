@@ -42,21 +42,24 @@ export interface Settings extends Server {
 export const MAX_SERVERS = 6;
 
 /**
- * The development stack's addresses (README.md). Its viewer is set by hand
- * because the development sidebar serves no `config.json` to find it in.
+ * The server a new install starts with. Its viewer is the one the site named
+ * when this was written; saving the options asks again.
  */
-export const LOCAL_SERVER: Server = {
-  name: 'Local',
-  siteUrl: 'http://localhost:3001',
+export const DEFAULT_SERVER: Server = {
+  name: 'CurAnno',
+  siteUrl: 'https://curanno.apps.cloudapps.unc.edu',
   sidebarUrl: '',
   apiUrl: '',
-  pdfViewerUrl: 'http://localhost:5174/pdf/',
-  foundViewerUrl: '',
+  pdfViewerUrl: '',
+  foundViewerUrl: 'https://curanno-pdf.apps.cloudapps.unc.edu/pdf/',
 };
 
+/** The viewer that settings from before servers used when they named none. */
+const LEGACY_VIEWER_URL = 'http://localhost:5174/pdf/';
+
 export const DEFAULT_STORED: StoredSettings = {
-  servers: [LOCAL_SERVER],
-  activeServer: LOCAL_SERVER.name,
+  servers: [DEFAULT_SERVER],
+  activeServer: DEFAULT_SERVER.name,
   publicCounts: false,
 };
 
@@ -73,8 +76,8 @@ export function sidebarUrlOf(server: Server): string {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-  ...LOCAL_SERVER,
-  sidebarUrl: sidebarUrlOf(LOCAL_SERVER),
+  ...DEFAULT_SERVER,
+  sidebarUrl: sidebarUrlOf(DEFAULT_SERVER),
   publicCounts: false,
 };
 
@@ -176,7 +179,7 @@ export function mergeStored(stored: Record<string, unknown>): StoredSettings {
     : [];
   if (servers.length === 0) {
     const legacy = readServer({
-      pdfViewerUrl: LOCAL_SERVER.pdfViewerUrl,
+      pdfViewerUrl: LEGACY_VIEWER_URL,
       ...stored,
       name: 'Default',
     });
@@ -199,7 +202,9 @@ export function mergeStored(stored: Record<string, unknown>): StoredSettings {
 
 export function activeSettings(stored: StoredSettings): Settings {
   const server =
-    stored.servers.find((s) => s.name === stored.activeServer) ?? stored.servers[0] ?? LOCAL_SERVER;
+    stored.servers.find((s) => s.name === stored.activeServer) ??
+    stored.servers[0] ??
+    DEFAULT_SERVER;
   return { ...server, sidebarUrl: sidebarUrlOf(server), publicCounts: stored.publicCounts };
 }
 
