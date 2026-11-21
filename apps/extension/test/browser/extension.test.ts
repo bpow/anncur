@@ -396,24 +396,24 @@ describe('the options page', () => {
   it('refuses unusable values and saves good ones', async () => {
     await configure({});
     const p = await open(`chrome-extension://${extensionId}/options.html`);
-    await expect.poll(() => p.inputValue('#sidebarUrl-0')).toBe('http://localhost:3001/sidebar/');
-    await p.fill('#sidebarUrl-0', 'javascript:alert(1)');
+    await expect.poll(() => p.inputValue('#siteUrl-0')).toBe('http://localhost:3001');
+    await p.fill('#siteUrl-0', 'javascript:alert(1)');
     await p.click('button[type=submit]');
-    await expect.poll(() => p.textContent('#sidebarUrl-0-error')).toMatch(/http/);
+    await expect.poll(() => p.textContent('#siteUrl-0-error')).toMatch(/http/);
     expect(await worker.evaluate(() => chrome.storage.sync.get('servers'))).toEqual({});
 
-    await p.fill('#sidebarUrl-0', 'http://localhost:3001/sidebar/');
+    await p.fill('#siteUrl-0', 'http://localhost:3001');
     await p.click('#add');
     await p.fill('#name-1', 'Production');
-    await p.fill('#sidebarUrl-1', 'https://curanno.example/sidebar/');
+    await p.fill('#siteUrl-1', 'https://curanno.example');
     await p.check('#active-1');
     await p.check('#publicCounts');
     await p.click('button[type=submit]');
     await expect.poll(() => p.textContent('#status')).toMatch(/Saved/);
     expect(await worker.evaluate(() => chrome.storage.sync.get(null))).toMatchObject({
       servers: [
-        { name: 'Local', sidebarUrl: 'http://localhost:3001/sidebar/' },
-        { name: 'Production', sidebarUrl: 'https://curanno.example/sidebar/' },
+        { name: 'Local', siteUrl: 'http://localhost:3001', sidebarUrl: '' },
+        { name: 'Production', siteUrl: 'https://curanno.example', sidebarUrl: '' },
       ],
       activeServer: 'Production',
       publicCounts: true,
@@ -422,13 +422,37 @@ describe('the options page', () => {
   });
 });
 
+describe('finding the viewer', () => {
+  it('asks the server on save and sends PDFs there', async () => {
+    const deployment = await site(() => ({
+      '/sidebar/config.json': {
+        body: JSON.stringify({ pdfViewerOrigin: viewer.origin }),
+        type: 'application/json',
+      },
+    }));
+    await configure({});
+    const p = await open(`chrome-extension://${extensionId}/options.html`);
+    await p.fill('#siteUrl-0', deployment.origin);
+    await p.fill('#pdfViewerUrl-0', '');
+    await p.click('button[type=submit]');
+    await expect.poll(() => p.textContent('#status')).toMatch(/Saved/);
+    expect(await p.textContent('[data-viewer]')).toContain(`${viewer.origin}/pdf/`);
+    expect(await worker.evaluate(() => chrome.storage.sync.get('servers'))).toMatchObject({
+      servers: [{ pdfViewerUrl: '', foundViewerUrl: `${viewer.origin}/pdf/` }],
+    });
+    await p.close();
+    await deployment.close();
+  });
+});
+
 describe('switching servers', () => {
   it('turns the guest off and names the new server', async () => {
+    const blank = { siteUrl: sidebar.origin, apiUrl: '', pdfViewerUrl: '', foundViewerUrl: '' };
     const other = `${sidebar.origin}/nested-sidebar.html`;
     await configure({
       servers: [
-        { name: 'One', sidebarUrl: `${sidebar.origin}/sidebar.html`, apiUrl: '', pdfViewerUrl: '' },
-        { name: 'Two', sidebarUrl: other, apiUrl: '', pdfViewerUrl: '' },
+        { ...blank, name: 'One', sidebarUrl: `${sidebar.origin}/sidebar.html` },
+        { ...blank, name: 'Two', sidebarUrl: other },
       ],
       activeServer: 'One',
     });

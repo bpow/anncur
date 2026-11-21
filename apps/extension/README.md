@@ -5,7 +5,7 @@ A Manifest V3 extension for Chromium browsers that runs the guest in every frame
 - **Toolbar button:** turns the guest on or off in the current tab. While it is on, every page and frame that loads in the tab gets a guest, cross-origin frames included, and the top frame shows the sidebar.
 - **PDFs:** a PDF opened in a tab where the guest is on, or a PDF tab where the button is pressed, goes to the PDF viewer with the PDF's address.
 - **Badge:** while the guest is on, the number of annotations the sidebar has anchored in the tab. While it is off, and only if turned on in the options, the number of public annotations on the page from an anonymous search. That sends every page address to the API.
-- **Options:** a list of servers, each with a name, sidebar URL, PDF viewer URL and the API origin for public counts, and the public-counts switch. Right-click the button and choose Options.
+- **Options:** a list of servers, each with a name and the site's URL, and the public-counts switch. The sidebar is `/sidebar/` at the site. On save the extension asks each server's `/sidebar/config.json` where its PDF viewer is (ADR 0021) and shows the answer. **Advanced** holds a sidebar URL and a PDF viewer URL to use instead, and the API origin for public counts. Right-click the button and choose Options.
 - **Switching servers:** with two or more servers saved, right-click the button and pick one. Switching turns the guest off in every tab, so no tab talks to two servers; press the button again to use the new one. The button's title names the server in use, and the badge is orange instead of blue while a local server (`localhost`, `127.0.0.1` or `*.localhost`) is on.
 
 - **Sign-in:** the sidebar signs in through the extension, which opens the provider's page with `chrome.identity.launchWebAuthFlow` instead of a popup (ADR 0029). This works on pages whose `Cross-Origin-Opener-Policy` leaves the sidebar's own popup blank. The provider must list `https://dmlkjhnoiinndnkboiknehimngilddpp.chromiumapp.org/` as a redirect and post-logout redirect URI; the chart's `extensionIds` does that for the embedded issuer and for Zitadel.
@@ -35,9 +35,9 @@ pnpm --filter @curanno/extension build
 
 writes the unpacked extension to `apps/extension/dist`. In Chrome open `chrome://extensions`, turn on Developer mode, choose **Load unpacked** and pick that folder. `pnpm --filter @curanno/extension dev` rebuilds on change; press the reload button on the extension's card afterwards.
 
-The defaults point at the development stack: the sidebar from `just dev` at `http://localhost:3001/sidebar/` and the viewer from `pnpm --filter @curanno/pdf-viewer dev` at `http://localhost:5174/pdf/`. The development sidebar's `frame-ancestors` allows only `localhost` and `127.0.0.1` pages; set `VITE_FRAME_ANCESTORS` to annotate others.
+The defaults point at the development stack: the site from `just dev` at `http://localhost:3001`, with its sidebar at `/sidebar/`, and the viewer from `pnpm --filter @curanno/pdf-viewer dev` at `http://localhost:5174/pdf/`. The development sidebar's `frame-ancestors` allows only `localhost` and `127.0.0.1` pages; set `VITE_FRAME_ANCESTORS` to annotate others.
 
-The first server, **Local**, points at the development stack. For a deployment, add a server with the sidebar URL `https://<host>/sidebar/` and the viewer URL `https://<pdf host>/pdf/`. Settings saved before servers existed become one server named **Default**. The sidebar is framed by whatever page is open, so `FRAME_ANCESTORS` has to allow those pages: `https:` for extension users on any site.
+The first server, **Local**, points at the development stack, with its viewer set under Advanced because the development sidebar serves no `config.json`. For a deployment, add a server with the site URL `https://<host>`; the extension finds the viewer itself. If the deployment's viewer host changes, save the options again. Settings saved before servers existed become one server named **Default**. The sidebar is framed by whatever page is open, so `FRAME_ANCESTORS` has to allow those pages: `https:` for extension users on any site.
 
 ## Tests
 

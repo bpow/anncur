@@ -69,6 +69,12 @@
       legend label.use {
         margin-top: 0;
       }
+      details {
+        margin-top: 1rem;
+      }
+      summary {
+        cursor: pointer;
+      }
       button.remove {
         margin-top: 0.75rem;
       }
@@ -110,26 +116,35 @@
         <p class="hint">Shown when you right-click the toolbar button to switch servers.</p>
         <p class="error" data-error="name" role="alert"></p>
 
-        <label data-for="sidebarUrl">Sidebar URL</label>
-        <input data-field="sidebarUrl" type="url" required />
-        <p class="hint">
-          Where the deployment serves the sidebar, such as https://curanno.example/sidebar/.
-        </p>
-        <p class="error" data-error="sidebarUrl" role="alert"></p>
+        <label data-for="siteUrl">Site URL</label>
+        <input data-field="siteUrl" type="url" required />
+        <p class="hint">The CurAnno site's address, such as https://curanno.example.</p>
+        <p class="error" data-error="siteUrl" role="alert"></p>
 
-        <label data-for="pdfViewerUrl">PDF viewer URL</label>
-        <input data-field="pdfViewerUrl" type="url" />
-        <p class="hint">
-          PDFs opened while the guest is on go here. Leave it empty to turn the redirect off.
-        </p>
-        <p class="error" data-error="pdfViewerUrl" role="alert"></p>
+        <p class="hint" data-viewer role="status"></p>
 
-        <label data-for="apiUrl">API origin</label>
-        <input data-field="apiUrl" type="url" />
-        <p class="hint">
-          Used only for public counts. Leave it empty when the API is on the sidebar's origin.
-        </p>
-        <p class="error" data-error="apiUrl" role="alert"></p>
+        <details>
+          <summary>Advanced</summary>
+          <label data-for="sidebarUrl">Sidebar URL</label>
+          <input data-field="sidebarUrl" type="url" />
+          <p class="hint">Leave it empty to use /sidebar/ at the site.</p>
+          <p class="error" data-error="sidebarUrl" role="alert"></p>
+
+          <label data-for="pdfViewerUrl">PDF viewer URL</label>
+          <input data-field="pdfViewerUrl" type="url" />
+          <p class="hint">
+            PDFs opened while the guest is on go here. Leave it empty to use the viewer the server
+            names.
+          </p>
+          <p class="error" data-error="pdfViewerUrl" role="alert"></p>
+
+          <label data-for="apiUrl">API origin</label>
+          <input data-field="apiUrl" type="url" />
+          <p class="hint">
+            Used only for public counts. Leave it empty when the API is on the sidebar's origin.
+          </p>
+          <p class="error" data-error="apiUrl" role="alert"></p>
+        </details>
 
         <button type="button" class="remove">Remove this server</button>
       </fieldset>

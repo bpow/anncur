@@ -1,10 +1,12 @@
 /** The options page: edits the servers and choices in `chrome.storage.sync`. */
 import {
-  LOCAL_SERVER,
   MAX_SERVERS,
+  findViewerUrl,
   loadStored,
   saveStored,
+  sidebarUrlOf,
   validateStored,
+  viewerUrl,
   type Server,
   type StoredSettings,
 } from './settings.js';
@@ -15,7 +17,7 @@ const add = document.getElementById('add') as HTMLButtonElement;
 const status = document.getElementById('status') as HTMLElement;
 const template = document.getElementById('server-template') as HTMLTemplateElement;
 const publicCounts = document.getElementById('publicCounts') as HTMLInputElement;
-const FIELDS = ['name', 'sidebarUrl', 'pdfViewerUrl', 'apiUrl'] as const;
+const FIELDS = ['name', 'siteUrl', 'sidebarUrl', 'pdfViewerUrl', 'apiUrl'] as const;
 
 function fieldsets(): HTMLFieldSetElement[] {
   return Array.from(list.querySelectorAll<HTMLFieldSetElement>('fieldset.server'));
@@ -32,6 +34,7 @@ function read(): StoredSettings {
     const server = Object.fromEntries(
       FIELDS.map((name) => [name, field(fieldset, name).value.trim()]),
     ) as unknown as Server;
+    server.foundViewerUrl = fieldset.dataset['foundViewerUrl'] ?? '';
     servers.push(server);
     if (fieldset.querySelector<HTMLInputElement>('input[name=activeServer]')?.checked) {
       activeServer = server.name;
@@ -40,10 +43,24 @@ function read(): StoredSettings {
   return { servers, activeServer, publicCounts: publicCounts.checked };
 }
 
+function viewerNote(server: Server): string {
+  const viewer = viewerUrl(server);
+  if (viewer) return `PDFs open in ${viewer}`;
+  return server.siteUrl
+    ? 'This server names no PDF viewer, so PDFs stay where they are. Set one under Advanced.'
+    : '';
+}
+
 function render(stored: StoredSettings): void {
   list.replaceChildren();
   stored.servers.forEach((server, i) => {
-    const fieldset = (template.content.cloneNode(true) as DocumentFragment).firstElementChild!;
+    const fieldset = (template.content.cloneNode(true) as DocumentFragment)
+      .firstElementChild as HTMLFieldSetElement;
+    fieldset.dataset['foundViewerUrl'] = server.foundViewerUrl;
+    fieldset.querySelector('[data-viewer]')!.textContent = viewerNote(server);
+    fieldset.querySelector('details')!.open = Boolean(
+      server.sidebarUrl || server.pdfViewerUrl || server.apiUrl,
+    );
     for (const name of FIELDS) {
       const id = `${name}-${i}`;
       const input = field(fieldset, name);
@@ -75,7 +92,14 @@ function render(stored: StoredSettings): void {
 
 add.addEventListener('click', () => {
   const current = read();
-  current.servers.push({ ...LOCAL_SERVER, name: '', sidebarUrl: '', pdfViewerUrl: '' });
+  current.servers.push({
+    name: '',
+    siteUrl: '',
+    sidebarUrl: '',
+    apiUrl: '',
+    pdfViewerUrl: '',
+    foundViewerUrl: '',
+  });
   render(current);
   field(fieldsets().at(-1)!, 'name').focus();
 });
@@ -91,7 +115,11 @@ form.addEventListener('submit', (event) => {
       const input = field(fieldset, name);
       document.getElementById(`${input.id}-error`)!.textContent = problem;
       input.setAttribute('aria-invalid', problem ? 'true' : 'false');
-      if (problem) first ??= input;
+      if (problem) {
+        first ??= input;
+        const details = input.closest('details');
+        if (details) details.open = true;
+      }
     }
   });
   if (first) {
@@ -99,9 +127,19 @@ form.addEventListener('submit', (event) => {
     status.textContent = '';
     return;
   }
-  void saveStored(stored).then(() => {
+  status.textContent = 'Asking each server for its PDF viewer…';
+  void (async () => {
+    await Promise.all(
+      stored.servers.map(async (server) => {
+        server.foundViewerUrl = server.pdfViewerUrl
+          ? ''
+          : await findViewerUrl(sidebarUrlOf(server));
+      }),
+    );
+    await saveStored(stored);
+    render(stored);
     status.textContent = 'Saved. If the server in use changed, the guest is now off in every tab.';
-  });
+  })();
 });
 
 void loadStored().then(render);
