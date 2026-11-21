@@ -53,12 +53,12 @@ test('an applicant waits, an administrator approves, and the applicant can then 
   await admin.goto('/applications');
   await signIn(admin, 'alice', passwordFor('alice'));
   await expect(admin.getByRole('heading', { name: 'Applications' })).toBeVisible();
-  const entry = admin.getByRole('listitem').filter({ hasText: 'Ada Applicant' });
+  const entry = admin.getByRole('listitem').filter({ hasText: email });
   await expect(entry).toContainText('To review the family study');
   await expectNoViolations(admin, 'the applications page');
   await entry.getByLabel('Message to the applicant').fill('Welcome');
   await entry.getByRole('button', { name: 'Approve' }).click();
-  await expect(admin.getByRole('listitem').filter({ hasText: 'Ada Applicant' })).toHaveCount(0);
+  await expect(entry).toHaveCount(0);
 
   // The API remembers a waiting user for a few seconds, so look again until it notices.
   await expect(async () => {
