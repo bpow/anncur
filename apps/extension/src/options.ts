@@ -1,47 +1,107 @@
-/** The options page: edits the settings in `chrome.storage.sync`. */
-import { loadSettings, saveSettings, validateSettings, type Settings } from './settings.js';
+/** The options page: edits the servers and choices in `chrome.storage.sync`. */
+import {
+  LOCAL_SERVER,
+  MAX_SERVERS,
+  loadStored,
+  saveStored,
+  validateStored,
+  type Server,
+  type StoredSettings,
+} from './settings.js';
 
 const form = document.getElementById('settings') as HTMLFormElement;
+const list = document.getElementById('servers') as HTMLElement;
+const add = document.getElementById('add') as HTMLButtonElement;
 const status = document.getElementById('status') as HTMLElement;
-const TEXT_FIELDS = ['sidebarUrl', 'apiUrl', 'pdfViewerUrl'] as const;
+const template = document.getElementById('server-template') as HTMLTemplateElement;
+const publicCounts = document.getElementById('publicCounts') as HTMLInputElement;
+const FIELDS = ['name', 'sidebarUrl', 'pdfViewerUrl', 'apiUrl'] as const;
 
-function input(name: string): HTMLInputElement {
-  return form.elements.namedItem(name) as HTMLInputElement;
+function fieldsets(): HTMLFieldSetElement[] {
+  return Array.from(list.querySelectorAll<HTMLFieldSetElement>('fieldset.server'));
 }
 
-function read(): Settings {
-  return {
-    sidebarUrl: input('sidebarUrl').value.trim(),
-    apiUrl: input('apiUrl').value.trim(),
-    pdfViewerUrl: input('pdfViewerUrl').value.trim(),
-    publicCounts: input('publicCounts').checked,
-  };
+function field(fieldset: Element, name: string): HTMLInputElement {
+  return fieldset.querySelector(`[data-field="${name}"]`) as HTMLInputElement;
 }
 
-async function load(): Promise<void> {
-  const settings = await loadSettings();
-  for (const name of TEXT_FIELDS) input(name).value = settings[name];
-  input('publicCounts').checked = settings.publicCounts;
+function read(): StoredSettings {
+  const servers: Server[] = [];
+  let activeServer = '';
+  for (const fieldset of fieldsets()) {
+    const server = Object.fromEntries(
+      FIELDS.map((name) => [name, field(fieldset, name).value.trim()]),
+    ) as unknown as Server;
+    servers.push(server);
+    if (fieldset.querySelector<HTMLInputElement>('input[name=activeServer]')?.checked) {
+      activeServer = server.name;
+    }
+  }
+  return { servers, activeServer, publicCounts: publicCounts.checked };
 }
+
+function render(stored: StoredSettings): void {
+  list.replaceChildren();
+  stored.servers.forEach((server, i) => {
+    const fieldset = (template.content.cloneNode(true) as DocumentFragment).firstElementChild!;
+    for (const name of FIELDS) {
+      const id = `${name}-${i}`;
+      const input = field(fieldset, name);
+      input.id = id;
+      input.value = server[name];
+      input.setAttribute('aria-describedby', `${id}-error`);
+      fieldset.querySelector(`[data-for="${name}"]`)!.setAttribute('for', id);
+      fieldset.querySelector(`[data-error="${name}"]`)!.id = `${id}-error`;
+    }
+    const radio = fieldset.querySelector<HTMLInputElement>('input[name=activeServer]')!;
+    radio.id = `active-${i}`;
+    radio.checked = server.name === stored.activeServer;
+    const remove = fieldset.querySelector<HTMLButtonElement>('button.remove')!;
+    remove.id = `remove-${i}`;
+    remove.hidden = stored.servers.length === 1;
+    remove.addEventListener('click', () => {
+      const current = read();
+      current.servers.splice(i, 1);
+      if (!current.servers.some((s) => s.name === current.activeServer)) {
+        current.activeServer = current.servers[0]?.name ?? '';
+      }
+      render(current);
+    });
+    list.append(fieldset);
+  });
+  add.hidden = stored.servers.length >= MAX_SERVERS;
+  publicCounts.checked = stored.publicCounts;
+}
+
+add.addEventListener('click', () => {
+  const current = read();
+  current.servers.push({ ...LOCAL_SERVER, name: '', sidebarUrl: '', pdfViewerUrl: '' });
+  render(current);
+  field(fieldsets().at(-1)!, 'name').focus();
+});
 
 form.addEventListener('submit', (event) => {
   event.preventDefault();
-  const settings = read();
-  const problems = validateSettings(settings);
-  for (const name of TEXT_FIELDS) {
-    const problem = problems[name] ?? '';
-    (document.getElementById(`${name}-error`) as HTMLElement).textContent = problem;
-    input(name).setAttribute('aria-invalid', problem ? 'true' : 'false');
-  }
-  const first = TEXT_FIELDS.find((name) => problems[name]);
+  const stored = read();
+  const problems = validateStored(stored);
+  let first: HTMLInputElement | undefined;
+  fieldsets().forEach((fieldset, i) => {
+    for (const name of FIELDS) {
+      const problem = problems[i]?.[name] ?? '';
+      const input = field(fieldset, name);
+      document.getElementById(`${input.id}-error`)!.textContent = problem;
+      input.setAttribute('aria-invalid', problem ? 'true' : 'false');
+      if (problem) first ??= input;
+    }
+  });
   if (first) {
-    input(first).focus();
+    first.focus();
     status.textContent = '';
     return;
   }
-  void saveSettings(settings).then(() => {
-    status.textContent = 'Saved. Tabs where the guest is on pick this up when they next load.';
+  void saveStored(stored).then(() => {
+    status.textContent = 'Saved. If the server in use changed, the guest is now off in every tab.';
   });
 });
 
-void load();
+void loadStored().then(render);
