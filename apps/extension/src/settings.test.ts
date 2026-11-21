@@ -1,15 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_SETTINGS,
+  DEFAULT_STORED,
+  LOCAL_SERVER,
+  activeSettings,
   apiOrigin,
   excludedOrigins,
+  isLocalServer,
   isSidebarUrl,
-  mergeSettings,
+  mergeStored,
   sidebarLocation,
   validateSettings,
+  validateStored,
 } from './settings.js';
 
 const deployed = {
+  name: 'Production',
   sidebarUrl: 'https://curanno.example/sidebar/',
   apiUrl: '',
   pdfViewerUrl: 'https://pdf.curanno.example/pdf/',
@@ -25,21 +31,73 @@ describe('validateSettings', () => {
 
   it('names each unusable field', () => {
     const problems = validateSettings({
+      name: ' ',
       sidebarUrl: 'javascript:alert(1)',
       apiUrl: 'https://api.example/base',
       pdfViewerUrl: 'file:///viewer.html',
-      publicCounts: true,
     });
-    expect(Object.keys(problems).sort()).toEqual(['apiUrl', 'pdfViewerUrl', 'sidebarUrl']);
+    expect(Object.keys(problems).sort()).toEqual(['apiUrl', 'name', 'pdfViewerUrl', 'sidebarUrl']);
     expect(validateSettings({ ...deployed, sidebarUrl: 'not a url' }).sidebarUrl).toMatch(/http/);
   });
 });
 
-describe('mergeSettings', () => {
-  it('keeps stored values of the right type over the defaults', () => {
-    expect(
-      mergeSettings({ sidebarUrl: deployed.sidebarUrl, publicCounts: 'yes', extra: 1 }),
-    ).toEqual({ ...DEFAULT_SETTINGS, sidebarUrl: deployed.sidebarUrl });
+describe('validateStored', () => {
+  it('wants each name only once', () => {
+    const problems = validateStored({
+      servers: [LOCAL_SERVER, deployed, { ...deployed, name: 'Local' }],
+      activeServer: 'Local',
+      publicCounts: false,
+    });
+    expect(problems.map((p) => Object.keys(p))).toEqual([[], [], ['name']]);
+  });
+});
+
+describe('mergeStored', () => {
+  it('starts with the local server', () => {
+    expect(mergeStored({})).toEqual(DEFAULT_STORED);
+    expect(activeSettings(mergeStored({}))).toEqual(DEFAULT_SETTINGS);
+  });
+
+  it('keeps stored servers and picks the active one', () => {
+    const stored = mergeStored({
+      servers: [LOCAL_SERVER, deployed, 'junk', { name: 'no sidebar' }],
+      activeServer: 'Production',
+      publicCounts: true,
+    });
+    expect(stored.servers).toEqual([
+      LOCAL_SERVER,
+      {
+        name: deployed.name,
+        sidebarUrl: deployed.sidebarUrl,
+        apiUrl: '',
+        pdfViewerUrl: deployed.pdfViewerUrl,
+      },
+    ]);
+    expect(activeSettings(stored)).toEqual({ ...deployed, publicCounts: true });
+  });
+
+  it('falls back to the first server when the active one is gone', () => {
+    expect(mergeStored({ servers: [deployed], activeServer: 'Local' }).activeServer).toBe(
+      'Production',
+    );
+  });
+
+  it('turns settings from before servers into one server', () => {
+    const stored = mergeStored({ sidebarUrl: deployed.sidebarUrl, publicCounts: 'yes', extra: 1 });
+    expect(stored.servers).toEqual([
+      { ...LOCAL_SERVER, name: 'Default', sidebarUrl: deployed.sidebarUrl },
+    ]);
+    expect(stored.publicCounts).toBe(false);
+  });
+});
+
+describe('isLocalServer', () => {
+  it('tells this machine from a deployment', () => {
+    expect(isLocalServer(LOCAL_SERVER)).toBe(true);
+    expect(isLocalServer({ ...deployed, sidebarUrl: 'http://curanno.localhost/sidebar/' })).toBe(
+      true,
+    );
+    expect(isLocalServer(deployed)).toBe(false);
   });
 });
 

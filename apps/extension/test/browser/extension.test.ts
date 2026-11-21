@@ -2,7 +2,7 @@
  * The extension in Chromium against the guest's fake sidebar: pages with
  * strict CSPs, a cross-origin frame, navigation in a tab where the guest
  * is on, the PDF redirect, both badge counts, the sidebar's sign-in bridge
- * and the options page. The
+ * the options page and switching servers. The
  * toolbar button is pressed by dispatching its click event in the worker.
  */
 import { readFile } from 'node:fs/promises';
@@ -16,7 +16,7 @@ import type { FakeSidebar } from '../../../../packages/guest/src/rpc/fake-sideba
 import { buildGuest } from '../../../../packages/guest/scripts/bundle.ts';
 import { serve, type StaticServer } from '../../../../packages/guest/scripts/serve.ts';
 import { buildExtension } from '../../scripts/build.ts';
-import type { Settings } from '../../src/settings.ts';
+import type { Settings, StoredSettings } from '../../src/settings.ts';
 
 declare global {
   interface Window {
@@ -89,7 +89,8 @@ let context: BrowserContext;
 let worker: Worker;
 let extensionId: string;
 
-async function configure(settings: Partial<Settings>): Promise<void> {
+// Flat settings are the form from before servers, which the extension still reads.
+async function configure(settings: Partial<Settings> | Partial<StoredSettings>): Promise<void> {
   await worker.evaluate(async (s) => {
     await chrome.storage.sync.clear();
     await chrome.storage.sync.set(s);
@@ -395,19 +396,58 @@ describe('the options page', () => {
   it('refuses unusable values and saves good ones', async () => {
     await configure({});
     const p = await open(`chrome-extension://${extensionId}/options.html`);
-    await expect.poll(() => p.inputValue('#sidebarUrl')).toBe('http://localhost:3001/sidebar/');
-    await p.fill('#sidebarUrl', 'javascript:alert(1)');
+    await expect.poll(() => p.inputValue('#sidebarUrl-0')).toBe('http://localhost:3001/sidebar/');
+    await p.fill('#sidebarUrl-0', 'javascript:alert(1)');
     await p.click('button[type=submit]');
-    await expect.poll(() => p.textContent('#sidebarUrl-error')).toMatch(/http/);
-    expect(await worker.evaluate(() => chrome.storage.sync.get('sidebarUrl'))).toEqual({});
+    await expect.poll(() => p.textContent('#sidebarUrl-0-error')).toMatch(/http/);
+    expect(await worker.evaluate(() => chrome.storage.sync.get('servers'))).toEqual({});
 
-    await p.fill('#sidebarUrl', 'https://curanno.example/sidebar/');
+    await p.fill('#sidebarUrl-0', 'http://localhost:3001/sidebar/');
+    await p.click('#add');
+    await p.fill('#name-1', 'Production');
+    await p.fill('#sidebarUrl-1', 'https://curanno.example/sidebar/');
+    await p.check('#active-1');
     await p.check('#publicCounts');
     await p.click('button[type=submit]');
     await expect.poll(() => p.textContent('#status')).toMatch(/Saved/);
     expect(await worker.evaluate(() => chrome.storage.sync.get(null))).toMatchObject({
-      sidebarUrl: 'https://curanno.example/sidebar/',
+      servers: [
+        { name: 'Local', sidebarUrl: 'http://localhost:3001/sidebar/' },
+        { name: 'Production', sidebarUrl: 'https://curanno.example/sidebar/' },
+      ],
+      activeServer: 'Production',
       publicCounts: true,
+    });
+    await p.close();
+  });
+});
+
+describe('switching servers', () => {
+  it('turns the guest off and names the new server', async () => {
+    const other = `${sidebar.origin}/nested-sidebar.html`;
+    await configure({
+      servers: [
+        { name: 'One', sidebarUrl: `${sidebar.origin}/sidebar.html`, apiUrl: '', pdfViewerUrl: '' },
+        { name: 'Two', sidebarUrl: other, apiUrl: '', pdfViewerUrl: '' },
+      ],
+      activeServer: 'One',
+    });
+    const url = `${pages.origin}/second.html`;
+    const p = await open(url);
+    await press(url);
+    await sidebarFrame(p);
+    const id = await tabId(url);
+    await worker.evaluate(() => {
+      const clicked = chrome.contextMenus.onClicked as unknown as {
+        dispatch(info: Partial<chrome.contextMenus.OnClickData>): void;
+      };
+      clicked.dispatch({ menuItemId: 'server:Two' });
+    });
+    await expect
+      .poll(() => worker.evaluate((i) => chrome.action.getTitle({ tabId: i }), id))
+      .toBe('CurAnno: off (Two)');
+    expect(await worker.evaluate(() => chrome.storage.sync.get('activeServer'))).toEqual({
+      activeServer: 'Two',
     });
     await p.close();
   });

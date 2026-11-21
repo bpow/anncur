@@ -2,8 +2,10 @@
  * The service worker (ADR 0023). It turns the guest on and off per tab,
  * injects the content script into every frame that loads in a tab where
  * the guest is on, sends PDFs opened in such a tab to the viewer, and keeps
- * the badge, and runs sign-in for the sidebar's bridge (ADR 0029). Its state lives in `chrome.storage.session`, because the
- * browser stops the worker whenever it is idle.
+ * the badge, runs sign-in for the sidebar's bridge (ADR 0029), and switches
+ * between servers from the button's menu. Its state lives in
+ * `chrome.storage.session`, because the browser stops the worker whenever it
+ * is idle.
  */
 import { isAnchorCountMessage, isWebAuthRequest, type WebAuthResult } from './messages.js';
 import {
@@ -14,7 +16,16 @@ import {
   publicCountUrl,
   viewerUrlFor,
 } from './pages.js';
-import { apiOrigin, isSidebarUrl, loadSettings } from './settings.js';
+import {
+  activeSettings,
+  apiOrigin,
+  isLocalServer,
+  isSidebarUrl,
+  loadSettings,
+  loadStored,
+  mergeStored,
+  saveStored,
+} from './settings.js';
 
 const session = chrome.storage.session;
 const onKey = (tabId: number): string => `on:${tabId}`;
@@ -65,13 +76,26 @@ async function publicCount(tabId: number): Promise<number | undefined> {
   }
 }
 
+// Local servers get their own colour so a development tab is not mistaken for production.
+function badgeColor(on: boolean, local: boolean): string {
+  if (!on) return '#5f6368';
+  return local ? '#b7410e' : '#2b6cb0';
+}
+
 async function refresh(tabId: number): Promise<void> {
   try {
     const on = await isOn(tabId);
+    const server = await loadSettings();
     const count = on ? await anchorCount(tabId) : await publicCount(tabId);
     await chrome.action.setIcon({ tabId, path: icons(on) });
-    await chrome.action.setTitle({ tabId, title: `CurAnno: ${on ? 'on' : 'off'}` });
-    await chrome.action.setBadgeBackgroundColor({ tabId, color: on ? '#2b6cb0' : '#5f6368' });
+    await chrome.action.setTitle({
+      tabId,
+      title: `CurAnno: ${on ? 'on' : 'off'} (${server.name})`,
+    });
+    await chrome.action.setBadgeBackgroundColor({
+      tabId,
+      color: badgeColor(on, isLocalServer(server)),
+    });
     await chrome.action.setBadgeText({ tabId, text: badgeText(count) });
   } catch {
     // The tab closed meanwhile.
@@ -211,5 +235,67 @@ chrome.runtime.onMessage.addListener((message: unknown, sender, sendResponse) =>
 chrome.tabs.onRemoved.addListener((tabId) => {
   void (async () => {
     await session.remove([onKey(tabId), pdfKey(tabId), ...(await countKeys(tabId))]);
+  })();
+});
+
+const SERVER_MENU_PREFIX = 'server:';
+
+// Rebuilds are chained so that two storage changes in a row cannot interleave.
+let menus = Promise.resolve();
+function rebuildMenus(): void {
+  menus = menus.then(async () => {
+    await chrome.contextMenus.removeAll();
+    const stored = await loadStored();
+    if (stored.servers.length < 2) return;
+    for (const server of stored.servers) {
+      chrome.contextMenus.create({
+        id: `${SERVER_MENU_PREFIX}${server.name}`,
+        title: server.name,
+        type: 'radio',
+        checked: server.name === stored.activeServer,
+        contexts: ['action'],
+      });
+    }
+  });
+}
+
+chrome.runtime.onInstalled.addListener(rebuildMenus);
+chrome.runtime.onStartup.addListener(rebuildMenus);
+
+chrome.contextMenus.onClicked.addListener((info) => {
+  const id = String(info.menuItemId);
+  if (!id.startsWith(SERVER_MENU_PREFIX)) return;
+  void (async () => {
+    const stored = await loadStored();
+    await saveStored({ ...stored, activeServer: id.slice(SERVER_MENU_PREFIX.length) });
+  })();
+});
+
+/** Turns the guest off wherever it is on, so that no tab talks to two servers. */
+async function turnAllOff(): Promise<void> {
+  const all = await session.get(null);
+  for (const key of Object.keys(all)) {
+    if (key.startsWith('on:')) await turnOff(Number(key.slice(3)));
+  }
+}
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'sync') return;
+  rebuildMenus();
+  void (async () => {
+    const raw = await chrome.storage.sync.get(null);
+    const before = { ...raw };
+    for (const [key, change] of Object.entries(changes)) {
+      if (change.oldValue === undefined) delete before[key];
+      else before[key] = change.oldValue;
+    }
+    const was = activeSettings(mergeStored(before));
+    const now = activeSettings(mergeStored(raw));
+    if (was.sidebarUrl !== now.sidebarUrl || was.pdfViewerUrl !== now.pdfViewerUrl) {
+      await turnAllOff();
+    }
+    for (const tab of await chrome.tabs.query({})) {
+      if (tab.id !== undefined) await refresh(tab.id);
+    }
   })();
 });

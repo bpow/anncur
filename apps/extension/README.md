@@ -5,7 +5,8 @@ A Manifest V3 extension for Chromium browsers that runs the guest in every frame
 - **Toolbar button:** turns the guest on or off in the current tab. While it is on, every page and frame that loads in the tab gets a guest, cross-origin frames included, and the top frame shows the sidebar.
 - **PDFs:** a PDF opened in a tab where the guest is on, or a PDF tab where the button is pressed, goes to the PDF viewer with the PDF's address.
 - **Badge:** while the guest is on, the number of annotations the sidebar has anchored in the tab. While it is off, and only if turned on in the options, the number of public annotations on the page from an anonymous search. That sends every page address to the API.
-- **Options:** the sidebar URL, the PDF viewer URL, public counts and the API origin they use. Right-click the button and choose Options.
+- **Options:** a list of servers, each with a name, sidebar URL, PDF viewer URL and the API origin for public counts, and the public-counts switch. Right-click the button and choose Options.
+- **Switching servers:** with two or more servers saved, right-click the button and pick one. Switching turns the guest off in every tab, so no tab talks to two servers; press the button again to use the new one. The button's title names the server in use, and the badge is orange instead of blue while a local server (`localhost`, `127.0.0.1` or `*.localhost`) is on.
 
 - **Sign-in:** the sidebar signs in through the extension, which opens the provider's page with `chrome.identity.launchWebAuthFlow` instead of a popup (ADR 0029). This works on pages whose `Cross-Origin-Opener-Policy` leaves the sidebar's own popup blank. The provider must list `https://dmlkjhnoiinndnkboiknehimngilddpp.chromiumapp.org/` as a redirect and post-logout redirect URI; the chart's `extensionIds` does that for the embedded issuer and for Zitadel.
 
@@ -18,7 +19,7 @@ The extension holds no token and no annotation content. The sidebar keeps the PK
 | `src/background.ts`     | Service worker: per-tab state, injection, PDF redirect, badge                 |
 | `src/content.ts`        | Content script: one guest per frame                                           |
 | `src/bridge.ts`         | Content script in the sidebar's frame: relays sign-in to the service worker   |
-| `src/settings.ts`       | Settings, their defaults and validation                                       |
+| `src/settings.ts`       | Servers and settings, their defaults, validation and migration               |
 | `src/pages.ts`          | PDF detection, viewer and search addresses, badge text                        |
 | `src/options.*`         | Options page                                                                  |
 | `src/manifest.json`     | Manifest; the build sets its version from `package.json`. Its public `key` fixes the extension id |
@@ -36,8 +37,8 @@ writes the unpacked extension to `apps/extension/dist`. In Chrome open `chrome:/
 
 The defaults point at the development stack: the sidebar from `just dev` at `http://localhost:3001/sidebar/` and the viewer from `pnpm --filter @curanno/pdf-viewer dev` at `http://localhost:5174/pdf/`. The development sidebar's `frame-ancestors` allows only `localhost` and `127.0.0.1` pages; set `VITE_FRAME_ANCESTORS` to annotate others.
 
-For a deployment, set the sidebar URL to `https://<host>/sidebar/` and the viewer URL to `https://<pdf host>/pdf/`. The sidebar is framed by whatever page is open, so `FRAME_ANCESTORS` has to allow those pages: `https:` for extension users on any site.
+The first server, **Local**, points at the development stack. For a deployment, add a server with the sidebar URL `https://<host>/sidebar/` and the viewer URL `https://<pdf host>/pdf/`. Settings saved before servers existed become one server named **Default**. The sidebar is framed by whatever page is open, so `FRAME_ANCESTORS` has to allow those pages: `https:` for extension users on any site.
 
 ## Tests
 
-`pnpm test` runs the unit tests. `pnpm --filter @curanno/extension test:browser` builds the extension, loads it into Chromium (the full browser in headless mode, since the headless shell runs no extensions) and covers a page that allows no scripts, styles or frames, a cross-origin frame, navigation, the PDF redirect, both badge counts and the options page. It needs `pnpm --filter @curanno/guest exec playwright install chromium` once.
+`pnpm test` runs the unit tests. `pnpm --filter @curanno/extension test:browser` builds the extension, loads it into Chromium (the full browser in headless mode, since the headless shell runs no extensions) and covers a page that allows no scripts, styles or frames, a cross-origin frame, navigation, the PDF redirect, both badge counts, the options page and switching servers. It needs `pnpm --filter @curanno/guest exec playwright install chromium` once.

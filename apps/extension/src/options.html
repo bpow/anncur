@@ -28,7 +28,8 @@
         font-weight: 600;
         margin-top: 1rem;
       }
-      input[type='url'] {
+      input[type='url'],
+      input[type='text'] {
         box-sizing: border-box;
         width: 100%;
         padding: 0.35rem 0.5rem;
@@ -60,6 +61,17 @@
         font: inherit;
         padding: 0.35rem 1rem;
       }
+      fieldset {
+        margin: 0 0 1rem;
+        border: 1px solid var(--muted);
+        border-radius: 6px;
+      }
+      legend label.use {
+        margin-top: 0;
+      }
+      button.remove {
+        margin-top: 0.75rem;
+      }
       #status {
         margin-left: 0.75rem;
         color: var(--muted);
@@ -68,30 +80,8 @@
   </head>
   <body>
     <form id="settings" novalidate>
-      <label for="sidebarUrl">Sidebar URL</label>
-      <input
-        id="sidebarUrl"
-        name="sidebarUrl"
-        type="url"
-        required
-        aria-describedby="sidebarUrl-hint sidebarUrl-error"
-      />
-      <p class="hint" id="sidebarUrl-hint">
-        Where the deployment serves the sidebar, such as https://curanno.example/sidebar/.
-      </p>
-      <p class="error" id="sidebarUrl-error" role="alert"></p>
-
-      <label for="pdfViewerUrl">PDF viewer URL</label>
-      <input
-        id="pdfViewerUrl"
-        name="pdfViewerUrl"
-        type="url"
-        aria-describedby="pdfViewerUrl-hint pdfViewerUrl-error"
-      />
-      <p class="hint" id="pdfViewerUrl-hint">
-        PDFs opened while the guest is on go here. Leave it empty to turn the redirect off.
-      </p>
-      <p class="error" id="pdfViewerUrl-error" role="alert"></p>
+      <div id="servers"></div>
+      <button type="button" id="add">Add server</button>
 
       <div class="check">
         <input
@@ -103,19 +93,47 @@
         <label for="publicCounts">Show public annotation counts</label>
       </div>
       <p class="hint" id="publicCounts-hint">
-        While the guest is off, the badge shows how many public annotations each page has. This
-        sends the address of every page you visit to the API.
+        While the guest is off, the badge shows how many public annotations each page has on the
+        server in use. This sends the address of every page you visit to its API.
       </p>
-
-      <label for="apiUrl">API origin</label>
-      <input id="apiUrl" name="apiUrl" type="url" aria-describedby="apiUrl-hint apiUrl-error" />
-      <p class="hint" id="apiUrl-hint">
-        Used only for public counts. Leave it empty when the API is on the sidebar's origin.
-      </p>
-      <p class="error" id="apiUrl-error" role="alert"></p>
 
       <button type="submit">Save</button><span id="status" role="status"></span>
     </form>
+
+    <template id="server-template">
+      <fieldset class="server">
+        <legend>
+          <label class="use"><input type="radio" name="activeServer" /> Use this server</label>
+        </legend>
+        <label data-for="name">Name</label>
+        <input data-field="name" type="text" required />
+        <p class="hint">Shown when you right-click the toolbar button to switch servers.</p>
+        <p class="error" data-error="name" role="alert"></p>
+
+        <label data-for="sidebarUrl">Sidebar URL</label>
+        <input data-field="sidebarUrl" type="url" required />
+        <p class="hint">
+          Where the deployment serves the sidebar, such as https://curanno.example/sidebar/.
+        </p>
+        <p class="error" data-error="sidebarUrl" role="alert"></p>
+
+        <label data-for="pdfViewerUrl">PDF viewer URL</label>
+        <input data-field="pdfViewerUrl" type="url" />
+        <p class="hint">
+          PDFs opened while the guest is on go here. Leave it empty to turn the redirect off.
+        </p>
+        <p class="error" data-error="pdfViewerUrl" role="alert"></p>
+
+        <label data-for="apiUrl">API origin</label>
+        <input data-field="apiUrl" type="url" />
+        <p class="hint">
+          Used only for public counts. Leave it empty when the API is on the sidebar's origin.
+        </p>
+        <p class="error" data-error="apiUrl" role="alert"></p>
+
+        <button type="button" class="remove">Remove this server</button>
+      </fieldset>
+    </template>
     <script src="options.js"></script>
   </body>
 </html>
