@@ -11,20 +11,32 @@ import {
   mergeStored,
   sidebarLocation,
   validateSettings,
+  sidebarUrlOf,
   validateStored,
+  viewerUrl,
+  viewerUrlFromConfig,
+  type Server,
 } from './settings.js';
 
-const deployed = {
+const deployedServer = {
   name: 'Production',
-  sidebarUrl: 'https://curanno.example/sidebar/',
+  siteUrl: 'https://curanno.example',
+  sidebarUrl: '',
   apiUrl: '',
   pdfViewerUrl: 'https://pdf.curanno.example/pdf/',
+  foundViewerUrl: '',
+};
+/** The server as the rest of the extension sees it while it is in use. */
+const deployed = {
+  ...deployedServer,
+  sidebarUrl: 'https://curanno.example/sidebar/',
   publicCounts: false,
 };
 
 describe('validateSettings', () => {
   it('accepts the defaults and a deployment', () => {
     expect(validateSettings(DEFAULT_SETTINGS)).toEqual({});
+    expect(validateSettings(deployedServer)).toEqual({});
     expect(validateSettings(deployed)).toEqual({});
     expect(validateSettings({ ...deployed, apiUrl: 'https://api.example/' })).toEqual({});
   });
@@ -32,11 +44,19 @@ describe('validateSettings', () => {
   it('names each unusable field', () => {
     const problems = validateSettings({
       name: ' ',
+      siteUrl: 'curanno.example',
       sidebarUrl: 'javascript:alert(1)',
       apiUrl: 'https://api.example/base',
       pdfViewerUrl: 'file:///viewer.html',
+      foundViewerUrl: '',
     });
-    expect(Object.keys(problems).sort()).toEqual(['apiUrl', 'name', 'pdfViewerUrl', 'sidebarUrl']);
+    expect(Object.keys(problems).sort()).toEqual([
+      'apiUrl',
+      'name',
+      'pdfViewerUrl',
+      'sidebarUrl',
+      'siteUrl',
+    ]);
     expect(validateSettings({ ...deployed, sidebarUrl: 'not a url' }).sidebarUrl).toMatch(/http/);
   });
 });
@@ -60,19 +80,11 @@ describe('mergeStored', () => {
 
   it('keeps stored servers and picks the active one', () => {
     const stored = mergeStored({
-      servers: [LOCAL_SERVER, deployed, 'junk', { name: 'no sidebar' }],
+      servers: [LOCAL_SERVER, deployedServer, 'junk', { name: 'no site' }],
       activeServer: 'Production',
       publicCounts: true,
     });
-    expect(stored.servers).toEqual([
-      LOCAL_SERVER,
-      {
-        name: deployed.name,
-        sidebarUrl: deployed.sidebarUrl,
-        apiUrl: '',
-        pdfViewerUrl: deployed.pdfViewerUrl,
-      },
-    ]);
+    expect(stored.servers).toEqual([LOCAL_SERVER, deployedServer]);
     expect(activeSettings(stored)).toEqual({ ...deployed, publicCounts: true });
   });
 
@@ -85,18 +97,23 @@ describe('mergeStored', () => {
   it('turns settings from before servers into one server', () => {
     const stored = mergeStored({ sidebarUrl: deployed.sidebarUrl, publicCounts: 'yes', extra: 1 });
     expect(stored.servers).toEqual([
-      { ...LOCAL_SERVER, name: 'Default', sidebarUrl: deployed.sidebarUrl },
+      { ...LOCAL_SERVER, name: 'Default', siteUrl: 'https://curanno.example' },
     ]);
     expect(stored.publicCounts).toBe(false);
+  });
+
+  it('keeps a sidebar that is not at /sidebar/ on its site', () => {
+    const sidebarUrl = 'https://curanno.example/other/sidebar.html';
+    const [server] = mergeStored({ servers: [{ name: 'Odd', sidebarUrl }] }).servers;
+    expect(server).toMatchObject({ siteUrl: 'https://curanno.example', sidebarUrl });
+    expect(sidebarUrlOf(server as Server)).toBe(sidebarUrl);
   });
 });
 
 describe('isLocalServer', () => {
   it('tells this machine from a deployment', () => {
     expect(isLocalServer(LOCAL_SERVER)).toBe(true);
-    expect(isLocalServer({ ...deployed, sidebarUrl: 'http://curanno.localhost/sidebar/' })).toBe(
-      true,
-    );
+    expect(isLocalServer({ ...deployed, siteUrl: 'http://curanno.localhost' })).toBe(true);
     expect(isLocalServer(deployed)).toBe(false);
   });
 });
@@ -117,6 +134,30 @@ describe('derived locations', () => {
       'https://pdf.curanno.example',
     ]);
     expect(excludedOrigins({ ...deployed, pdfViewerUrl: '' })).toEqual(['https://curanno.example']);
+  });
+});
+
+describe('the viewer', () => {
+  const found = { ...deployed, pdfViewerUrl: '', foundViewerUrl: 'https://found.example/pdf/' };
+
+  it('is the one set by hand, else the one the server named', () => {
+    expect(viewerUrl(deployed)).toBe('https://pdf.curanno.example/pdf/');
+    expect(viewerUrl(found)).toBe('https://found.example/pdf/');
+    expect(viewerUrl({ ...found, pdfViewerUrl: deployed.pdfViewerUrl })).toBe(
+      deployed.pdfViewerUrl,
+    );
+    expect(excludedOrigins(found)).toEqual(['https://curanno.example', 'https://found.example']);
+  });
+
+  it('is read from the sidebar configuration', () => {
+    const from = (config: unknown): string => viewerUrlFromConfig(deployed.sidebarUrl, config);
+    expect(from({ pdfViewerOrigin: 'https://pdf.curanno.example' })).toBe(
+      'https://pdf.curanno.example/pdf/',
+    );
+    expect(from({ pdfViewerOrigin: '' })).toBe('https://curanno.example/pdf/');
+    expect(from({ pdfViewerOrigin: 'nonsense' })).toBe('');
+    expect(from({})).toBe('');
+    expect(from('<!doctype html>')).toBe('');
   });
 });
 

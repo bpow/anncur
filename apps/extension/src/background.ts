@@ -25,6 +25,7 @@ import {
   loadStored,
   mergeStored,
   saveStored,
+  viewerUrl,
 } from './settings.js';
 
 const session = chrome.storage.session;
@@ -114,8 +115,9 @@ async function turnOn(tab: chrome.tabs.Tab): Promise<void> {
   const settings = await loadSettings();
   const pdf = (await session.get(pdfKey(tabId)))[pdfKey(tabId)] as string | undefined;
   await session.set({ [onKey(tabId)]: true });
-  if (settings.pdfViewerUrl && pdf && pdf === tab.url) {
-    await chrome.tabs.update(tabId, { url: viewerUrlFor(settings.pdfViewerUrl, pdf) });
+  const viewer = viewerUrl(settings);
+  if (viewer && pdf && pdf === tab.url) {
+    await chrome.tabs.update(tabId, { url: viewerUrlFor(viewer, pdf) });
     return;
   }
   try {
@@ -182,9 +184,9 @@ chrome.webRequest.onHeadersReceived.addListener(
     }
     void (async () => {
       await session.set({ [pdfKey(tabId)]: details.url });
-      const settings = await loadSettings();
-      if (settings.pdfViewerUrl && (await isOn(tabId))) {
-        await chrome.tabs.update(tabId, { url: viewerUrlFor(settings.pdfViewerUrl, details.url) });
+      const viewer = viewerUrl(await loadSettings());
+      if (viewer && (await isOn(tabId))) {
+        await chrome.tabs.update(tabId, { url: viewerUrlFor(viewer, details.url) });
       }
     })();
   },
@@ -291,7 +293,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     }
     const was = activeSettings(mergeStored(before));
     const now = activeSettings(mergeStored(raw));
-    if (was.sidebarUrl !== now.sidebarUrl || was.pdfViewerUrl !== now.pdfViewerUrl) {
+    if (was.sidebarUrl !== now.sidebarUrl || viewerUrl(was) !== viewerUrl(now)) {
       await turnAllOff();
     }
     for (const tab of await chrome.tabs.query({})) {
