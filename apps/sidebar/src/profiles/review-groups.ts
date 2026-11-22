@@ -3,8 +3,8 @@
  * that others link to by local id heads a group with the items linking to
  * it, so an individual is reviewed with its facts.
  */
-import { linkFieldsOf, linkedIris, type BodyProfile } from '@curanno/model';
-import type { SuggestionItem } from '@curanno/api-client';
+import { linkFieldsOf, linkedIris, type BodyProfile } from '@anncur/model';
+import type { SuggestionItem } from '@anncur/api-client';
 
 export interface ReviewGroup<T> {
   /** The item the others link to; absent for the items that link to nothing in the batch. */

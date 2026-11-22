@@ -1,11 +1,11 @@
-import type { SuggestionItem } from '@curanno/api-client';
+import type { SuggestionItem } from '@anncur/api-client';
 import {
   builtinProfiles,
   caseFamilyProfile,
   evidenceExcerptProfile,
   individualProfile,
   type JsonValue,
-} from '@curanno/model';
+} from '@anncur/model';
 import { describe, expect, it } from 'vitest';
 import { groupForReview } from './review-groups';
 

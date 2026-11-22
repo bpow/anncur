@@ -1,6 +1,6 @@
 # Keyboard and screen-reader check
 
-Part of the Phase 2 guest trial. Automated checks were run with `pnpm --filter @curanno/guest trial:a11y` in headless Chromium (raw output in [`results/a11y.json`](results/a11y.json)); the rest comes from reading the candidates' code. No screen reader was driven during this trial; the manual pass that remains is listed at the end.
+Part of the Phase 2 guest trial. Automated checks were run with `pnpm --filter @anncur/guest trial:a11y` in headless Chromium (raw output in [`results/a11y.json`](results/a11y.json)); the rest comes from reading the candidates' code. No screen reader was driven during this trial; the manual pass that remains is listed at the end.
 
 > The Recogito overlay and selection handling measured here were removed from the trial tools after this evaluation. These findings, and the overlay rows in the committed results, are a record; b1f7add is the last commit that can reproduce them.
 

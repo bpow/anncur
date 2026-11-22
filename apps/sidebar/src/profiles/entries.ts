@@ -1,5 +1,5 @@
 /** A structured value laid out for reading, with labels from its profile's schema. */
-import { linkedIris, type JsonValue } from '@curanno/model';
+import { linkedIris, type JsonValue } from '@anncur/model';
 import type { SchemaField } from './schema';
 
 function show(v: JsonValue): string {

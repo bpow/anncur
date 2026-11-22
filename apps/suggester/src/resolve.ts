@@ -1,11 +1,11 @@
 /**
- * Fills the IDs of a draft's items through CurAnno's lookups (ADR 0039), such
+ * Fills the IDs of a draft's items through Anncur's lookups (ADR 0039), such
  * as a case variant's Allele Registry, ClinVar and gnomAD IDs. It fills only a
  * candidate the resolver marks `autoFill`, which leaves no choice to make.
  * Everything else is reported, and listed under `notInBatch` for the curator,
  * with the candidates.
  */
-import type { components } from '@curanno/api-client';
+import type { components } from '@anncur/api-client';
 import {
   idFieldsOf,
   lookupContext,
@@ -15,7 +15,7 @@ import {
   type BodyProfile,
   type FieldLookup,
   type JsonValue,
-} from '@curanno/model';
+} from '@anncur/model';
 import type { Draft } from './draft.ts';
 import { profileForKind } from './profiles.ts';
 

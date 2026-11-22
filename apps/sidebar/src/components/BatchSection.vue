@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { stableStringify } from '@curanno/model';
-import { toProblem, type AclEntry, type Problem, type SuggestionBatch } from '@curanno/api-client';
-import { linkFieldsOf, quoteOf, structuredBodies } from '@curanno/model';
+import { stableStringify } from '@anncur/model';
+import { toProblem, type AclEntry, type Problem, type SuggestionBatch } from '@anncur/api-client';
+import { linkFieldsOf, quoteOf, structuredBodies } from '@anncur/model';
 import { computed, provide, ref } from 'vue';
 import { useGuest } from '../guest';
 import { EXTRA_LINKS, linkCandidates, type ExtraLink } from '../profiles/links';

@@ -28,7 +28,7 @@ function sidebarOpen(page: Page): Promise<boolean | null> {
   return page.evaluate(
     () =>
       document
-        .querySelector<HTMLElement>('[data-curanno-guest="sidebar"]')
+        .querySelector<HTMLElement>('[data-anncur-guest="sidebar"]')
         ?.hasAttribute('data-open') ?? null,
   );
 }
@@ -79,7 +79,7 @@ test('the sidebar takes the document from the guest and anchors its annotations'
   // Hovering the card focuses the highlight in the page.
   await card.hover();
   await expect
-    .poll(() => page.evaluate(() => CSS.highlights.get('curanno-annotation-focus')?.size ?? 0))
+    .poll(() => page.evaluate(() => CSS.highlights.get('anncur-annotation-focus')?.size ?? 0))
     .toBe(1);
 
   // A second click on the bookmarklet toggles the sidebar instead of loading again.
@@ -109,9 +109,7 @@ test('the sidebar takes the document from the guest and anchors its annotations'
 
   // The highlights can be hidden and shown again from the sidebar.
   await sidebar.getByRole('button', { name: 'Hide highlights' }).click();
-  await expect
-    .poll(() => page.evaluate(() => CSS.highlights.has('curanno-annotation')))
-    .toBe(false);
+  await expect.poll(() => page.evaluate(() => CSS.highlights.has('anncur-annotation'))).toBe(false);
   await sidebar.getByRole('button', { name: 'Hide highlights' }).click();
   await expect.poll(() => highlightedTexts(page)).toEqual([PUBLIC_QUOTE]);
 });

@@ -25,7 +25,7 @@ How the sidebar asks a language model for annotation suggestions on the open doc
  ────────────                 ───────                         ──────────────────────────────
                     ◄──────── text.request
  extractText per scope
- text.report {scopes} ──────►  @curanno/extract:
+ text.report {scopes} ──────►  @anncur/extract:
                                  chunk text
                                  build prompt + output schema
                                  POST /v1/chat/completions ────►
@@ -44,7 +44,7 @@ The guest/sidebar principles still hold ([RPC §1](guest-sidebar-rpc.md)). The n
 
 ## 3. `packages/extract`
 
-This is a new package that depends only on `@curanno/model`. It has no DOM, no Vue and no API client, so the sidebar, a Node evaluation CLI and any later host can use it as is.
+This is a new package that depends only on `@anncur/model`. It has no DOM, no Vue and no API client, so the sidebar, a Node evaluation CLI and any later host can use it as is.
 
 ### 3.1 Interface
 
@@ -104,7 +104,7 @@ function extract(input, endpoint, options: {
 
 ### 3.3 Evaluation CLI
 
-`pnpm --filter @curanno/extract eval -- --endpoint URL --model NAME --corpus DIR` runs the pipeline over a corpus. Each case is an HTML or PDF-text fixture with the expected annotations. For each profile it reports how many expected quotes were found (recall), how many suggestions were correct (precision) and how many fields matched. It also reports rejections by reason and the time per chunk. HTML fixtures go through the text model with a DOM library adapter, as the fixture tests already do.
+`pnpm --filter @anncur/extract eval -- --endpoint URL --model NAME --corpus DIR` runs the pipeline over a corpus. Each case is an HTML or PDF-text fixture with the expected annotations. For each profile it reports how many expected quotes were found (recall), how many suggestions were correct (precision) and how many fields matched. It also reports rejections by reason and the time per chunk. HTML fixtures go through the text model with a DOM library adapter, as the fixture tests already do.
 
 The corpus starts with a handful of open-access case reports annotated by hand with the case-individual profile. The CLI is not part of CI because it needs a model. CI runs the pipeline against a fake endpoint (3.4).
 
@@ -144,9 +144,9 @@ Page text is untrusted input to the model, so prompt injection is expected. What
 - **Reject.** Rejection is stored in the batch. The API removes rejected local links from pending items and rejects items left without a required link. Discarding a batch leaves accepted annotations in place.
 - **Provenance.** This uses the W3C model's own terms, with no extension:
   - **Annotation `creator`** is the curator, which the server already assigns from the token.
-  - **Body `creator`** records the model that suggested the body, for example `{"type": "Software", "name": "curanno-extract", "nickname": "<model> / prompt <PROMPT_VERSION>"}`. The W3C model allows a creator on each body, and more than one when agents worked together. If the curator edits the value before saving, they are added as a second `Person` creator. Body `created` is the time of the suggestion.
+  - **Body `creator`** records the model that suggested the body, for example `{"type": "Software", "name": "anncur-extract", "nickname": "<model> / prompt <PROMPT_VERSION>"}`. The W3C model allows a creator on each body, and more than one when agents worked together. If the curator edits the value before saving, they are added as a second `Person` creator. Body `created` is the time of the suggestion.
   - **A hand-written body** beside it has only the curator as creator.
-  - **`generator` is not used for the model.** The W3C model defines it as the agent that generated the annotation's serialization, which is the curanno client.
+  - **`generator` is not used for the model.** The W3C model defines it as the agent that generated the annotation's serialization, which is the anncur client.
 
   Body `creator` is the client's claim, stored as sent, while the annotation's creator is the server's. If more detail is needed later (prompt version, run, whether the value was edited), PROV-O terms such as `prov:wasGeneratedBy` can go in the extension context alongside body `creator`, without replacing it.
 - **Tests.** Component tests for the dialog, the cards and the accept flow. A Playwright test (`e2e:guest`) runs against a stubbed endpoint on a corpus page, from request to saved annotation.

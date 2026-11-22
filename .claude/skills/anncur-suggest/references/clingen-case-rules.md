@@ -1,11 +1,11 @@
 # ClinGen's rules for case annotation
 
-These rules come from ClinGen's *Hypothes.is Annotation Overview* and its *Baseline Annotation Template Protocol Review* (January 2021). Their wording is quoted. CurAnno's profiles follow ClinGen's Case-Individuals template, so the same rules apply.
+These rules come from ClinGen's *Hypothes.is Annotation Overview* and its *Baseline Annotation Template Protocol Review* (January 2021). Their wording is quoted. Anncur's profiles follow ClinGen's Case-Individuals template, so the same rules apply.
 
 ## Which cases
 
 - A case is "an individual asserted to have a variant in the gene of interest". Annotate a person only when the authors say they carry a variant in that gene.
-- "Each Case report listed in an article should be curated as a separate annotation." For example, four individuals with a variant in the gene give four individuals. In CurAnno that means four `individual` items, each with its own facts.
+- "Each Case report listed in an article should be curated as a separate annotation." For example, four individuals with a variant in the gene give four individuals. In Anncur that means four `individual` items, each with its own facts.
 - If the article reports no one with a variant in the gene, there is nothing to suggest. Say so, and post nothing.
 
 ## What to record
@@ -40,7 +40,7 @@ These rules come from ClinGen's *Hypothes.is Annotation Overview* and its *Basel
 - **ClinVar and CAID.** Record a ClinVar ID or a CAID yourself only if the article states it, with `idSource: "stated"`. Never look one up yourself or write one from memory. The `resolve` step looks the rest up in the Allele Registry and fills only unambiguous answers; curators choose among the others, or register the variant.
 - **gnomAD.** "The highest minor allele frequency … and the link." Record it only if the article states a gnomAD frequency or ID.
 
-## Tags ClinGen uses that have no CurAnno field yet
+## Tags ClinGen uses that have no Anncur field yet
 
 The protocol tags these with fixed values:
 

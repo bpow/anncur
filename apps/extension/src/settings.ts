@@ -4,7 +4,7 @@
  * which is in use; nothing in them is a credential, since sign-in stays in
  * each sidebar's origin (ADR 0019, 0023).
  */
-import { validateSidebar } from '@curanno/guest';
+import { validateSidebar } from '@anncur/guest';
 
 /** One deployment the extension can talk to. */
 export interface Server {
@@ -46,7 +46,7 @@ export const MAX_SERVERS = 6;
  * when this was written; saving the options asks again.
  */
 export const DEFAULT_SERVER: Server = {
-  name: 'CurAnno',
+  name: 'Anncur',
   siteUrl: 'https://curanno.apps.cloudapps.unc.edu',
   sidebarUrl: '',
   apiUrl: '',
@@ -97,7 +97,7 @@ export function validateSettings(settings: Server): SettingsProblems {
   const problems: SettingsProblems = {};
   if (!settings.name.trim()) problems.name = 'Enter a name.';
   if (!httpUrl(settings.siteUrl)) {
-    problems.siteUrl = 'Enter an http or https URL, such as https://curanno.example.';
+    problems.siteUrl = 'Enter an http or https URL, such as https://anncur.example.';
   }
   if (settings.sidebarUrl) {
     const sidebar = httpUrl(settings.sidebarUrl);
@@ -112,7 +112,7 @@ export function validateSettings(settings: Server): SettingsProblems {
     const api = httpUrl(settings.apiUrl);
     if (!api) problems.apiUrl = 'Enter an http or https origin, or leave it empty.';
     else if (api.origin !== settings.apiUrl.replace(/\/$/, '')) {
-      problems.apiUrl = 'Enter an origin without a path, such as https://curanno.example.';
+      problems.apiUrl = 'Enter an origin without a path, such as https://anncur.example.';
     }
   }
   if (settings.pdfViewerUrl && !httpUrl(settings.pdfViewerUrl)) {

@@ -1,10 +1,10 @@
 /**
  * Building annotations from what the sidebar edits (a comment, tags and a
  * structured body), plus the per-annotation checks its cards make. Reading
- * annotations is in `@curanno/model`.
+ * annotations is in `@anncur/model`.
  */
-import { stableStringify } from '@curanno/model';
-import type { AclEntry, Annotation, AnnotationInput } from '@curanno/api-client';
+import { stableStringify } from '@anncur/model';
+import type { AclEntry, Annotation, AnnotationInput } from '@anncur/api-client';
 import {
   commentOf,
   isStructuredBody,
@@ -20,7 +20,7 @@ import {
   type Selector,
   type StructuredBody,
   type Target,
-} from '@curanno/model';
+} from '@anncur/model';
 
 export function can(annotation: Annotation, permission: 'read' | 'update' | 'delete' | 'share') {
   return annotation.permissions?.includes(permission) ?? false;

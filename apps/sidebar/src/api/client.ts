@@ -1,4 +1,4 @@
-import { createApiClient, type ApiClient } from '@curanno/api-client';
+import { createApiClient, type ApiClient } from '@anncur/api-client';
 import { useAuthStore } from '../auth/store';
 import { config } from '../config';
 

@@ -40,7 +40,7 @@ A function in `packages/model`, `summarizeIndividuals(annotations)`, takes the a
 - a source annotation IRI for each field, so that the sidebar can scroll from a summary field to the passage it came from.
 - the result of validating the summary against `case-individual/1`. An individual with no variant fact fails `minItems`, which is a useful way to say that it is incomplete.
 
-Serialised for export, a summary is an annotation whose targets are the individual annotation and the fact annotations (the W3C model allows an annotation to be a target). Its body is the `case-individual/1` value, and the body's `creator` is a `Software` agent named `curanno-summary`.
+Serialised for export, a summary is an annotation whose targets are the individual annotation and the fact annotations (the W3C model allows an annotation to be a target). Its body is the `case-individual/1` value, and the body's `creator` is a `Software` agent named `anncur-summary`.
 
 The sidebar gets an **Individuals** view listing the summaries. A fact whose individual is missing, because it was deleted or the reader cannot see it, is listed as unlinked.
 

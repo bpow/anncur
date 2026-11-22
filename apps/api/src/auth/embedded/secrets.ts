@@ -8,7 +8,7 @@ import { createDecipheriv, hkdfSync } from 'node:crypto';
 import { CompactEncrypt, compactDecrypt } from 'jose';
 
 function derive(secret: string, purpose: string): Buffer {
-  return Buffer.from(hkdfSync('sha256', secret, 'curanno', purpose, 32));
+  return Buffer.from(hkdfSync('sha256', secret, 'anncur', purpose, 32));
 }
 
 /** Keys for the provider's signed cookies; the first signs, all verify. */

@@ -3,7 +3,7 @@
  * the same image runs everywhere (plan, section 9). `.env.example` lists them.
  */
 /** The client id of the embedded issuer's one client: the sidebar and the site (ADR 0028). */
-export const EMBEDDED_CLIENT_ID = 'curanno';
+export const EMBEDDED_CLIENT_ID = 'anncur';
 
 /** An upstream sign-in provider the operator configured (ADR 0028). */
 export interface UpstreamProvider {

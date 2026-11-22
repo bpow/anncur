@@ -5,7 +5,7 @@
  * bundled from source, as in the guest's own bundle, so a stale `dist/` of
  * either never leaks in.
  *
- *   pnpm --filter @curanno/extension build [--out-dir dir] [--no-minify] [--watch]
+ *   pnpm --filter @anncur/extension build [--out-dir dir] [--no-minify] [--watch]
  */
 import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -37,8 +37,8 @@ function esbuildConfig(outDir: string, minify: boolean): esbuild.BuildOptions {
     sourcemap: true,
     legalComments: 'inline',
     alias: {
-      '@curanno/guest': path.resolve(PACKAGE_DIR, '../../packages/guest/src/index.ts'),
-      '@curanno/model': path.resolve(PACKAGE_DIR, '../../packages/model/src/index.ts'),
+      '@anncur/guest': path.resolve(PACKAGE_DIR, '../../packages/guest/src/index.ts'),
+      '@anncur/model': path.resolve(PACKAGE_DIR, '../../packages/model/src/index.ts'),
     },
     logLevel: 'warning',
   };

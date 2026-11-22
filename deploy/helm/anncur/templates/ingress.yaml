@@ -1,12 +1,12 @@
 {{- if .Values.ingress.enabled }}
-{{- $api := include "curanno.fullname" . }}
+{{- $api := include "anncur.fullname" . }}
 {{- $web := printf "%s-web" $api }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ $api }}
   labels:
-    {{- include "curanno.labels" . | nindent 4 }}
+    {{- include "anncur.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -23,7 +23,7 @@ spec:
     - host: {{ .Values.ingress.host | quote }}
       http:
         paths:
-          {{- range splitList " " (include "curanno.apiPaths" (dict "ctx" . "metrics" .Values.ingress.metrics)) }}
+          {{- range splitList " " (include "anncur.apiPaths" (dict "ctx" . "metrics" .Values.ingress.metrics)) }}
           - path: {{ . }}
             pathType: Prefix
             backend:

@@ -4,7 +4,7 @@
 // workload's selector after it is created, so an overlap is caught here rather
 // than after it ships.
 //
-//   helm template ci deploy/helm/curanno ... | yq -o=json -I=0 'select(.kind != null)' | node scripts/check-chart-selectors.mjs
+//   helm template ci deploy/helm/anncur ... | yq -o=json -I=0 'select(.kind != null)' | node scripts/check-chart-selectors.mjs
 import { readFileSync } from 'node:fs';
 
 const docs = readFileSync(0, 'utf8')

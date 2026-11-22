@@ -39,7 +39,7 @@ import {
   type SidebarErrorMessage,
   type SidebarMessage,
   type SidebarReadyMessage,
-} from '@curanno/model';
+} from '@anncur/model';
 import { shallowReadonly, shallowRef, type Ref } from 'vue';
 import { createSessionConsent, foreignSources, originKey, type ConsentStore } from './disclosure';
 import type { AnchorRequest, DocumentSelection, Guest, GuestDocument, Withheld } from './types';

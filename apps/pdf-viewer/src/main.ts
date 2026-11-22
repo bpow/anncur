@@ -5,7 +5,7 @@
  * than injected; the PDF is the untrusted input, and PDF.js renders it with
  * scripting and XFA forms off (PDF.js 6 has no eval path left to disable).
  */
-import { Guest, PdfIntegration, pdfUrn } from '@curanno/guest';
+import { Guest, PdfIntegration, pdfUrn } from '@anncur/guest';
 import * as pdfjs from 'pdfjs-dist';
 import { EventBus, PDFLinkService, PDFViewer } from 'pdfjs-dist/web/pdf_viewer.mjs';
 import 'pdfjs-dist/web/pdf_viewer.css';

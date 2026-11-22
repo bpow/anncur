@@ -21,7 +21,7 @@ import {
   type Selector,
   type TargetAnchoringResult,
   type TextRange,
-} from '@curanno/model';
+} from '@anncur/model';
 import type { AnchorOptions } from '../anchoring/anchor.js';
 import { createScope, type AnchoringScope } from '../anchoring/scope.js';
 import { anchorInScope } from './html.js';
@@ -29,7 +29,7 @@ import { pageTextScope, type PdfTextItem, type VirtualNode } from './pdf-text.js
 import { describeSelection } from './selection.js';
 import type { AnchoredTarget, DescribedSelection, DocumentIntegration } from './types.js';
 
-export { PDF_FRAGMENT_CONFORMS_TO, pageFragmentSelector, pageOfFragment } from '@curanno/model';
+export { PDF_FRAGMENT_CONFORMS_TO, pageFragmentSelector, pageOfFragment } from '@anncur/model';
 
 export interface PdfPageLike {
   getTextContent(options: {

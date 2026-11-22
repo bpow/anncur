@@ -15,7 +15,7 @@ import {
   type SidebarMessage,
   type SpecificResource,
   type TargetAnchoringResult,
-} from '@curanno/model';
+} from '@anncur/model';
 import type { AnchorOptions } from './anchoring/anchor.js';
 import {
   HighlightIndex,

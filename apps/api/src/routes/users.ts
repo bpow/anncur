@@ -1,6 +1,6 @@
 import type { FastifyRequest } from 'fastify';
 import type { Kysely } from 'kysely';
-import type { components } from '@curanno/api-client';
+import type { components } from '@anncur/api-client';
 import { requireAdmin, requireUser } from '../auth/plugin.js';
 import type { UserCaller } from '../auth/caller.js';
 import { AUTHENTICATED_PRINCIPAL_ID, PUBLIC_PRINCIPAL_ID, type Database } from '../db/index.js';
@@ -84,7 +84,7 @@ const ownView = {
 };
 
 /** The issuer recorded for service accounts (ADR 0038); it is not a URL, so no token names it. */
-export const SERVICE_ISSUER = 'urn:x-curanno:service-account';
+export const SERVICE_ISSUER = 'urn:x-anncur:service-account';
 
 const like = (q: string): string => `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
 

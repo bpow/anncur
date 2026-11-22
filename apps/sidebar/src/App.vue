@@ -63,7 +63,7 @@ useGuestSync(guest, store);
 <template>
   <TooltipProvider>
     <header class="toolbar">
-      <h1>CurAnno</h1>
+      <h1>Anncur</h1>
       <ToolbarRoot class="view-controls" aria-label="Display">
         <HintTooltip :text="guest.highlightsVisible.value ? 'Hide highlights' : 'Show highlights'">
           <ToolbarButton as-child>

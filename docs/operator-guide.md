@@ -6,8 +6,8 @@ Deploying, configuring, backing up and upgrading the platform. The system is two
 
 | Component | Image | Serves |
 | --- | --- | --- |
-| API | `curanno-api` (Dockerfile target `api`) | The W3C protocol and `/x/` extensions; the sidebar at `/sidebar/`, the guest bundle at `/guest.js`, the JSON-LD context at `/x/context.jsonld`; the PDF viewer at `/pdf/` on its own host; `/healthz`, `/readyz`, `/metrics` |
-| Management site | `curanno-web` (target `web`) | The landing page (with the bookmarklet) and the administration pages, under the same host as the API |
+| API | `anncur-api` (Dockerfile target `api`) | The W3C protocol and `/x/` extensions; the sidebar at `/sidebar/`, the guest bundle at `/guest.js`, the JSON-LD context at `/x/context.jsonld`; the PDF viewer at `/pdf/` on its own host; `/healthz`, `/readyz`, `/metrics` |
+| Management site | `anncur-web` (target `web`) | The landing page (with the bookmarklet) and the administration pages, under the same host as the API |
 | Postgres 17 | yours, or the chart's (`postgres.enabled`) | Everything stateful |
 | OpenID Connect provider | yours, or the API itself (section 3a) | Sign-in for the sidebar and the site (ADR 0005, 0019, 0028) |
 
@@ -18,25 +18,25 @@ Both images read their configuration from environment variables; nothing is bake
 From the repository root, for a release tag `1.0.0`:
 
 ```bash
-podman build --target api -t ghcr.io/example/curanno-api:1.0.0 -f Dockerfile .
+podman build --target api -t ghcr.io/example/anncur-api:1.0.0 -f Dockerfile .
 ```
 
 ```bash
-podman build --target web -t ghcr.io/example/curanno-web:1.0.0 -f Dockerfile .
+podman build --target web -t ghcr.io/example/anncur-web:1.0.0 -f Dockerfile .
 ```
 
 Push both to your registry and set `image.repository`, `web.image.repository` and the tags in the chart's values (the tag defaults to the chart's `appVersion`). CI builds both images on every change without publishing them.
 
-The `Publish images` workflow (`.github/workflows/publish-images.yml`) publishes them to `ghcr.io/<owner>/curanno-api` and `ghcr.io/<owner>/curanno-web`, which the chart uses by default: every push to `main` as `:main` and `:sha-<commit>`, and every tag `vX.Y.Z` as `:X.Y.Z`, `:X.Y` and `:latest`. Tag a release with the chart's `appVersion` (`v1.0.0` for `appVersion: '1.0.0'`) so the default tag exists. It can also be run by hand from the Actions tab.
+The `Publish images` workflow (`.github/workflows/publish-images.yml`) publishes them to `ghcr.io/<owner>/anncur-api` and `ghcr.io/<owner>/anncur-web`, which the chart uses by default: every push to `main` as `:main` and `:sha-<commit>`, and every tag `vX.Y.Z` as `:X.Y.Z`, `:X.Y` and `:latest`. Tag a release with the chart's `appVersion` (`v1.0.0` for `appVersion: '1.0.0'`) so the default tag exists. It can also be run by hand from the Actions tab.
 
 ## 3. Configure the identity provider
 
-Create a **public** OpenID Connect client (Authorization Code with PKCE, no client secret) for the sidebar and the site. With `PUBLIC_URL` being `https://curanno.example`:
+Create a **public** OpenID Connect client (Authorization Code with PKCE, no client secret) for the sidebar and the site. With `PUBLIC_URL` being `https://anncur.example`:
 
-- Redirect URIs: `https://curanno.example/sidebar/`, `https://curanno.example/sidebar/popup-callback.html`, `https://curanno.example/sidebar/silent-renew.html`, `https://curanno.example/auth/callback`.
-- Post-logout redirect URIs: `https://curanno.example/sidebar/`, `https://curanno.example/`.
+- Redirect URIs: `https://anncur.example/sidebar/`, `https://anncur.example/sidebar/popup-callback.html`, `https://anncur.example/sidebar/silent-renew.html`, `https://anncur.example/auth/callback`.
+- Post-logout redirect URIs: `https://anncur.example/sidebar/`, `https://anncur.example/`.
 - For the browser extension, `https://dmlkjhnoiinndnkboiknehimngilddpp.chromiumapp.org/` as both a redirect and a post-logout redirect URI (another id for a build of your own). The sidebar signs in and out through the extension whenever it runs, so sign-in fails for extension users until this is registered. This lets them sign in on pages whose `Cross-Origin-Opener-Policy` leaves the sign-in popup blank (ADR 0029). Set the chart's `extensionIds` and the embedded issuer and `zitadel.provision` register it for you.
-- Web origins (CORS for the token endpoint): `https://curanno.example`.
+- Web origins (CORS for the token endpoint): `https://anncur.example`.
 - Refresh tokens enabled for the client, so framed sidebars can renew without third-party cookies (ADR 0019). The sidebar and the site request the `offline_access` scope, which most providers require before they issue a refresh token; the client must be allowed to request it. In Keycloak, `offline_access` issues offline tokens, which outlive the browser session, and users need the realm's `offline_access` role.
 - Access tokens must be JWTs (in Zitadel, the application's auth token type set to JWT). A user's display name comes from the token's `name` claim, then `preferred_username`, and their email from `email`; when the token lacks either, the API asks the provider's userinfo endpoint with the same token, which covers providers such as Zitadel that keep profile claims out of access tokens. Without either source, users appear by their subject identifier until an administrator sets a display name.
 - No `groups` claim is needed: groups are managed entirely through `/x/groups` (ADR 0026). Make the first administrator with SQL (`update users set is_admin = true where ...`) after their first sign-in; they can then administer further ones with `PATCH /x/users/{id}`.
@@ -59,7 +59,7 @@ secrets:
   databaseUrl: postgres://...
   authSecret: <openssl rand -base64 48>
 config:
-  publicUrl: https://curanno.example      # must be https outside a trial
+  publicUrl: https://anncur.example      # must be https outside a trial
 ```
 
 `secrets.authSecret` (or `AUTH_SECRET` in an existing Secret) seals the issuer's signing keys in the database and keys its cookies. It must be at least 32 characters and **identical on every replica and across upgrades**. Keep it with your other secrets and out of database backups: a dump alone then cannot mint tokens. If it is lost or changed the API cannot read its signing keys and will not start; recover by deleting the rows of `signing_keys` and starting again, which signs everyone out.
@@ -82,7 +82,7 @@ Invitations work under every policy. Under `approval`, `auth.autoApproveDomains`
 
 **Sign in with another service.** Set `auth.providers.google.clientId` and `secrets.upstream.googleClientSecret` (likewise `github`, and `oidc` with an `issuer` and a `name` for the button). Register `<publicUrl>/idp/upstream/<google|github|oidc>/callback` as the redirect URI at the provider. A person signing in this way follows the sign-up policy. If the provider vouches for an address that already has an account, nothing is joined until the account's owner signs in to it with its password (an account with no password must be joined from its own account page). `auth.autolink` lists providers whose verified address may join an account without that step; leave it empty unless the provider verifies addresses and you trust it to. People connect and disconnect providers on their account page (**/me**), which asks for their password again; the last way to sign in cannot be removed.
 
-**Disabling and merging.** An administrator disables a user with `PATCH /x/users/{id}` (`{"status": "disabled"}`, on the users page's API); their sessions and refresh tokens end at once, and an access token already issued works for up to an hour. If someone ends up with two accounts, `kubectl exec deploy/<release> -- node dist/accounts/merge-cli.js --survivor <id|login|email> --loser <id|login|email> [--yes]` (from a source tree, `pnpm --filter @curanno/api account:merge` with the same arguments) folds one into the other; it describes what it would do without `--yes`, and the merge cannot be undone.
+**Disabling and merging.** An administrator disables a user with `PATCH /x/users/{id}` (`{"status": "disabled"}`, on the users page's API); their sessions and refresh tokens end at once, and an access token already issued works for up to an hour. If someone ends up with two accounts, `kubectl exec deploy/<release> -- node dist/accounts/merge-cli.js --survivor <id|login|email> --loser <id|login|email> [--yes]` (from a source tree, `pnpm --filter @anncur/api account:merge` with the same arguments) folds one into the other; it describes what it would do without `--yes`, and the merge cannot be undone.
 
 **Signing keys.** They are created on first start and shared by replicas. `rotate-key` adds a new one; restart every API replica so it signs with it. Old keys remain available for at least two days after the latest rotation, then are retired. Complete the rolling restart within that window, leaving at least an hour for the last tokens signed with the old key to expire. Further rotations restart the overlap period.
 
@@ -93,68 +93,68 @@ Invitations work under every policy. Under `approval`, `auth.autoApproveDomains`
 Embedded mode needs the values of section 3a; the rest of this section applies to both.
 
 ```bash
-helm upgrade --install curanno deploy/helm/curanno \
+helm upgrade --install anncur deploy/helm/anncur \
   --namespace annotations --create-namespace \
-  --set config.publicUrl=https://curanno.example \
+  --set config.publicUrl=https://anncur.example \
   --set config.oidcIssuer=https://idp.example \
-  --set config.oidcClientId=curanno-sidebar \
+  --set config.oidcClientId=anncur-sidebar \
   --set "config.frameAncestors='self' https://*.example.org" \
-  --set pdfViewer.host=pdf.curanno.example \
-  --set ingress.enabled=true --set ingress.host=curanno.example \
-  --set secrets.existingSecret=curanno-database
+  --set pdfViewer.host=pdf.anncur.example \
+  --set ingress.enabled=true --set ingress.host=anncur.example \
+  --set secrets.existingSecret=anncur-database
 ```
 
-Values worth knowing (`deploy/helm/curanno/values.yaml` documents each):
+Values worth knowing (`deploy/helm/anncur/values.yaml` documents each):
 
 - `secrets.databaseUrl` or `secrets.existingSecret`: the Postgres connection string. Migrations run from an init container before each API pod starts and take an advisory lock, so replicas starting together are safe.
 - `config.frameAncestors`: the origins allowed to embed the sidebar, as CSP source expressions. This is the clickjacking defence (ADR 0007): list the sites your users annotate, or `https:` for any https site if you accept the trade. Users of the browser extension annotate whatever site they are on, so serving them needs `https:`. The viewer's origin is added for you.
 - `pdfViewer.host`: a second host name for the PDF viewer, with its own certificate, so a PDF.js defect never runs on the sidebar's origin (ADR 0021). Point its DNS at the ingress; the chart adds the ingress rule.
 - `ingress.metrics`: whether `/metrics` is reachable from outside (default no). Scrape the API Service inside the cluster instead.
 - `postgres.enabled`: run Postgres in the release instead of using `secrets.databaseUrl` (below).
-- `web.enabled`: the management site; off, the API still serves the sidebar and viewer, and users install the bookmarklet from `pnpm --filter @curanno/guest bookmarklet` output instead of the landing page.
+- `web.enabled`: the management site; off, the API still serves the sidebar and viewer, and users install the bookmarklet from `pnpm --filter @anncur/guest bookmarklet` output instead of the landing page.
 
 ### Postgres in the chart
 
-For a small or trial install, `postgres.enabled=true` runs `postgres:17` as a one-pod StatefulSet with a `postgres.persistence.size` volume (1 GiB by default) and points the API at it; leave `secrets.databaseUrl` empty. Set `postgres.password` (letters, digits and `. _ ~ -`; it goes into the connection string), or keep it under `POSTGRES_PASSWORD` in `secrets.existingSecret`. The password is applied only when the volume is first initialized. There is no replication or failover, and `helm uninstall` leaves the volume (`data-curanno-postgres-0` for a release named `curanno`) behind, so delete it by hand if you mean to. Back it up as in section 5 with `PG_DUMP="kubectl exec -i curanno-postgres-0 -- pg_dump"`.
+For a small or trial install, `postgres.enabled=true` runs `postgres:17` as a one-pod StatefulSet with a `postgres.persistence.size` volume (1 GiB by default) and points the API at it; leave `secrets.databaseUrl` empty. Set `postgres.password` (letters, digits and `. _ ~ -`; it goes into the connection string), or keep it under `POSTGRES_PASSWORD` in `secrets.existingSecret`. The password is applied only when the volume is first initialized. There is no replication or failover, and `helm uninstall` leaves the volume (`data-anncur-postgres-0` for a release named `anncur`) behind, so delete it by hand if you mean to. Back it up as in section 5 with `PG_DUMP="kubectl exec -i anncur-postgres-0 -- pg_dump"`.
 
 The pod sets no user, so OpenShift's restricted SCC assigns one from the namespace's range and the volume's group from its `fsGroup`. On other clusters the image's default user is root, which `runAsNonRoot` refuses; set `postgres.podSecurityContext` to `{runAsNonRoot: true, runAsUser: 999, fsGroup: 999}`.
 
 ### Deploying with Zitadel
 
-Zitadel runs as its own release of the official chart, in the same namespace as the annotations release so the provisioning Job can read Zitadel's token Secret. With `zitadel.example` as Zitadel's host and `curanno.example` as the platform's:
+Zitadel runs as its own release of the official chart, in the same namespace as the annotations release so the provisioning Job can read Zitadel's token Secret. With `zitadel.example` as Zitadel's host and `anncur.example` as the platform's:
 
 1. **Postgres.** One server can hold both databases: `annotations` for the platform and `zitadel` for Zitadel, each with its own user. Zitadel's user must own its database or be allowed to create it.
 2. **Zitadel's secrets.** The masterkey encrypts Zitadel's keys in its database, so keep a copy outside the cluster; losing it loses the instance.
 
    ```bash
-   kubectl -n curanno create secret generic zitadel-masterkey --from-literal=masterkey="$(openssl rand -hex 16)"
-   kubectl -n curanno create secret generic zitadel-db --from-literal=dsn='postgres://zitadel:...@postgres:5432/zitadel?sslmode=require'
+   kubectl -n anncur create secret generic zitadel-masterkey --from-literal=masterkey="$(openssl rand -hex 16)"
+   kubectl -n anncur create secret generic zitadel-db --from-literal=dsn='postgres://zitadel:...@postgres:5432/zitadel?sslmode=require'
    ```
 
 3. **Zitadel.** Copy `deploy/zitadel/values.yaml` and set the host in its three places (`ExternalDomain` and both Ingresses). The values are written for OpenShift; elsewhere, drop the Route annotation and set the Ingress class and TLS. Wait for the setup Job to finish: it creates the first instance and stores an IAM owner's token in the Secret `iam-admin-pat`.
 
    ```bash
    helm repo add zitadel https://charts.zitadel.com
-   helm upgrade --install zitadel zitadel/zitadel --version 10.4.0 -n curanno \
+   helm upgrade --install zitadel zitadel/zitadel --version 10.4.0 -n anncur \
      --skip-schema-validation -f zitadel-values.yaml
    ```
 
-   `https://zitadel.example/.well-known/openid-configuration` should now answer. The console is at `/ui/console` as `admin@curanno.zitadel.example`, with the initial password `Password1!`, which must be changed on first use.
+   `https://zitadel.example/.well-known/openid-configuration` should now answer. The console is at `/ui/console` as `admin@anncur.zitadel.example`, with the initial password `Password1!`, which must be changed on first use.
 
-4. **The platform.** Install the chart with `zitadel.provision.enabled=true` and no `config.oidcClientId`. Before every install and upgrade, a hook Job registers the client for `config.publicUrl` and writes the client's id to the ConfigMap `curanno-oidc`, which the API and the site read.
+4. **The platform.** Install the chart with `zitadel.provision.enabled=true` and no `config.oidcClientId`. Before every install and upgrade, a hook Job registers the client for `config.publicUrl` and writes the client's id to the ConfigMap `anncur-oidc`, which the API and the site read.
 
    ```bash
-   helm upgrade --install curanno deploy/helm/curanno -n curanno \
-     --set config.publicUrl=https://curanno.example \
+   helm upgrade --install anncur deploy/helm/anncur -n anncur \
+     --set config.publicUrl=https://anncur.example \
      --set config.oidcIssuer=https://zitadel.example \
      --set zitadel.provision.enabled=true \
      --set "config.frameAncestors='self' https://*.example.org" \
-     --set pdfViewer.host=pdf.curanno.example \
-     --set ingress.enabled=true --set ingress.host=curanno.example \
-     --set secrets.existingSecret=curanno-database
+     --set pdfViewer.host=pdf.anncur.example \
+     --set ingress.enabled=true --set ingress.host=anncur.example \
+     --set secrets.existingSecret=anncur-database
    ```
 
-   If the install fails at the hook, `kubectl -n curanno logs job/curanno-zitadel-provision` shows why. The Job is deleted when it succeeds.
+   If the install fails at the hook, `kubectl -n anncur logs job/anncur-zitadel-provision` shows why. The Job is deleted when it succeeds.
 
 5. **Users and the first administrator.** Self-registration is off (`AllowRegister: false`), so create users in the console or connect an external identity provider to Zitadel. After the first administrator has signed in once, set the flag in the platform's database:
 
@@ -164,7 +164,7 @@ Zitadel runs as its own release of the official chart, in the same namespace as 
 
 6. **Checks.** Run section 8.
 
-The ConfigMap `curanno-oidc` is not managed by Helm, so it survives `helm uninstall`. The client id changes only when the Zitadel instance is recreated; when it does, run `helm upgrade` and restart both deployments.
+The ConfigMap `anncur-oidc` is not managed by Helm, so it survives `helm uninstall`. The client id changes only when the Zitadel instance is recreated; when it does, run `helm upgrade` and restart both deployments.
 
 ### Ingress requirements
 
@@ -179,9 +179,9 @@ On OpenShift, `route.enabled=true` (instead of `ingress.enabled`) creates one Ro
 
 ```yaml
 config:
-  publicUrl: https://curanno.apps.example.org
+  publicUrl: https://anncur.apps.example.org
 pdfViewer:
-  host: curanno-pdf.apps.example.org
+  host: anncur-pdf.apps.example.org
 route:
   enabled: true
 ```
@@ -192,14 +192,14 @@ The default `route.annotations` raise the router's timeout to an hour for server
 
 - `GET /healthz`: the process answers (liveness). `GET /readyz`: the database answers too (readiness), so a database outage drains pods instead of restarting them.
 - Logs: JSON lines from pino to stdout, one per request with `reqId`, which is also returned as `X-Request-Id` (and taken from the proxy's `X-Request-Id` when present). Set `LOG_LEVEL` (`info` by default). Authorization headers are redacted.
-- Metrics: Prometheus text at `/metrics`: process defaults, `http_request_duration_seconds` by method, route pattern and status, `curanno_event_streams_open`, `curanno_events_delivered_total` by kind. Alert on readiness failures, 5xx rates and a flat `curanno_event_streams_open` during business hours (an ingress cutting streams).
+- Metrics: Prometheus text at `/metrics`: process defaults, `http_request_duration_seconds` by method, route pattern and status, `anncur_event_streams_open`, `anncur_events_delivered_total` by kind. Alert on readiness failures, 5xx rates and a flat `anncur_event_streams_open` during business hours (an ingress cutting streams).
 
 ## 5. Back up and restore
 
 The database is the only state. Back it up with the script, which dumps in pg_dump's compressed custom format without ownership or privilege statements:
 
 ```bash
-DATABASE_URL=postgres://... scripts/db-backup.sh backups/curanno-$(date +%F).dump
+DATABASE_URL=postgres://... scripts/db-backup.sh backups/anncur-$(date +%F).dump
 ```
 
 Run it from a machine with `pg_dump` of at least the server's major version, or run the one inside the database container or a `postgres:17` pod (`PG_DUMP="kubectl exec -i postgres-0 -- pg_dump" scripts/db-backup.sh ...`); the dump goes through stdout so either works. Schedule it (a CronJob with a `postgres:17` image and the script works) and keep dumps off the cluster.
@@ -207,11 +207,11 @@ Run it from a machine with `pg_dump` of at least the server's major version, or 
 To restore, create an empty database, restore into it, run the migrations against it to confirm the schema is current, and point the API at it:
 
 ```bash
-TARGET_DATABASE_URL=postgres://... scripts/db-restore.sh backups/curanno-2026-10-30.dump
+TARGET_DATABASE_URL=postgres://... scripts/db-restore.sh backups/anncur-2026-10-30.dump
 ```
 
 ```bash
-DATABASE_URL=postgres://... pnpm --filter @curanno/api migrate
+DATABASE_URL=postgres://... pnpm --filter @anncur/api migrate
 ```
 
 The test `apps/api/src/db/backup-restore.test.ts` does exactly this in CI: it dumps a database, restores it into a fresh one, checks that the API answers from the restored copy as it did from the original, and runs the whole OpenAPI contract suite against a restored database. Run it yourself after changing the procedure.
@@ -223,7 +223,7 @@ What a restore loses: annotations made after the dump, and nothing else; identit
 1. Read the release notes for migrations and configuration changes. Migrations are plain SQL files applied in order and recorded in `schema_migrations`; they are forward-only.
 2. Back up (section 5).
 3. `helm upgrade` with the new chart version and image tags. The init container applies new migrations before the new API pods start; old pods keep serving until the new ones are ready. A migration that an old pod cannot work with is called out in the release notes with the order to follow (scale down first).
-4. Watch `/readyz`, the 5xx rate and `curanno_event_streams_open` (sidebars reconnect with `Last-Event-ID` and miss nothing).
+4. Watch `/readyz`, the 5xx rate and `anncur_event_streams_open` (sidebars reconnect with `Last-Event-ID` and miss nothing).
 5. To roll back, `helm rollback`; migrations are not rolled back, so only roll back across releases whose notes say the schema is compatible, otherwise restore the backup.
 
 The OpenAPI document and the text model are versioned contracts (CONTRIBUTING.md); a breaking change to either is a new major version and the release notes say so.
@@ -232,7 +232,7 @@ The OpenAPI document and the text model are versioned contracts (CONTRIBUTING.md
 
 ```bash
 kubectl delete deployment <release> --cascade=orphan -n <namespace>
-helm upgrade <release> deploy/helm/curanno -n <namespace> --reuse-values
+helm upgrade <release> deploy/helm/anncur -n <namespace> --reuse-values
 ```
 
 The new Deployment takes over the running pods, whose labels already match, and replaces them as in any upgrade. A `helm rollback` to a revision from before this change needs the same step first.
@@ -243,10 +243,10 @@ The new Deployment takes over the running pods, whose labels already match, and 
 - Groups are created, renamed and have their membership managed entirely through `/x/groups` (ADR 0026); OIDC tokens are used only for identity.
 - Document identity: the API logs a warning (`a page links documents that are recorded as distinct; not merged`) when a page claims links to several known documents. It never merges them on its own; an operator who has established that they are one document merges with `mergeDocuments` in `apps/api/src/documents/service.ts` (a one-off script against the database). See [document-identity.md](document-identity.md), section 6.
 - Body profiles: registered by administrators through `PUT /x/profiles/{iri}` with a JSON Schema. A schema with a catastrophic regular expression slows every write; review schemas before registering them.
-- Ontologies: profiles with term lookup, such as case-individual's phenotype fields, need the ontology imported with `node dist/ontologies/cli.js import hp hp.json --homepage http://www.human-phenotype-ontology.org` (from a source tree, `pnpm --filter @curanno/api ontology import` with the same arguments). The homepage completes the attribution HPO's license asks for. Rerun it for each new release; it replaces the previous one. Check each ontology's license before loading it. See [ontologies.md](ontologies.md).
+- Ontologies: profiles with term lookup, such as case-individual's phenotype fields, need the ontology imported with `node dist/ontologies/cli.js import hp hp.json --homepage http://www.human-phenotype-ontology.org` (from a source tree, `pnpm --filter @anncur/api ontology import` with the same arguments). The homepage completes the attribution HPO's license asks for. Rerun it for each new release; it replaces the previous one. Check each ontology's license before loading it. See [ontologies.md](ontologies.md).
 - The PDF viewer fetches PDFs from the browser, so a PDF's host must allow cross-origin reads; otherwise users open the file from their computer. No fetching proxy is deployed (ADR 0021).
 - The sidebar's CSP allows `'unsafe-eval'` because Ajv compiles profile schemas in the browser (`apps/sidebar/README.md`).
-- Suggested annotations (ADR 0032) are off until `EXTRACT_ENDPOINTS` (chart: `extract.endpoints`) lists at least one OpenAI-compatible endpoint, as `[{"label": "This computer (Ollama)", "url": "http://localhost:11434", "models": ["llama3.1:8b"]}]`. The curator's browser sends the document's text to the endpoint directly; the API never sees it. Each endpoint's origin is added to the sidebar's `connect-src`, so the sidebar can reach the listed endpoints and no others. `EXTRACT_LOCAL_ONLY=true` (chart: `extract.localOnly`) makes the API refuse to start when an endpoint is not on `localhost`, `127.0.0.1` or `[::1]`: use it where document text must stay on the curator's machine. No credential is sent, so a hosted endpoint must not need one; do not list an endpoint you would not send every curated document to. Local servers must allow the sidebar's origin (Ollama's `OLLAMA_ORIGINS`, LM Studio's CORS setting); the user guide, section 3a, has the steps for curators. To compare models before offering them, run `pnpm --filter @curanno/extract eval -- --endpoint URL --model NAME` from a source tree (`packages/extract/corpus/README.md`).
+- Suggested annotations (ADR 0032) are off until `EXTRACT_ENDPOINTS` (chart: `extract.endpoints`) lists at least one OpenAI-compatible endpoint, as `[{"label": "This computer (Ollama)", "url": "http://localhost:11434", "models": ["llama3.1:8b"]}]`. The curator's browser sends the document's text to the endpoint directly; the API never sees it. Each endpoint's origin is added to the sidebar's `connect-src`, so the sidebar can reach the listed endpoints and no others. `EXTRACT_LOCAL_ONLY=true` (chart: `extract.localOnly`) makes the API refuse to start when an endpoint is not on `localhost`, `127.0.0.1` or `[::1]`: use it where document text must stay on the curator's machine. No credential is sent, so a hosted endpoint must not need one; do not list an endpoint you would not send every curated document to. Local servers must allow the sidebar's origin (Ollama's `OLLAMA_ORIGINS`, LM Studio's CORS setting); the user guide, section 3a, has the steps for curators. To compare models before offering them, run `pnpm --filter @anncur/extract eval -- --endpoint URL --model NAME` from a source tree (`packages/extract/corpus/README.md`).
 - Variant ID lookup (ADR 0039, docs/variant-ids-plan.md) is on by default. The API calls `reg.genome.network` (the ClinGen Allele Registry) and, for old transcript versions, `rest.variantvalidator.org`, sending only the variant text and the gene symbol. Allow both hosts in the egress policy, or set `VARIANT_LOOKUP=off`, and the editor then tells curators to type IDs by hand. `VARIANT_REGISTRY_URL`, `VARIANT_VALIDATOR_URL` and `VARIANT_LOOKUP_TIMEOUT_MS` (default 20000) override the defaults. Node's `fetch` ignores `HTTPS_PROXY` unless `NODE_USE_ENV_PROXY=1` is set, so behind an egress proxy set that too. Results are cached in each API process for a day.
 - Suggestion engines outside the sidebar (ADR 0037, 0038) post batches to `POST /x/suggestion-batches` with an access token. To set one up:
   1. An administrator creates a service account on the site's users page.
@@ -257,7 +257,7 @@ The new Deployment takes over the running pods, whose labels already match, and 
 
 ## 8. Checks on a new cluster
 
-After the first deployment: `curl https://curanno.example/readyz`; open `https://curanno.example/` and sign in; drag the bookmarklet to the bookmarks bar; annotate a page on an allowed origin and a PDF in the viewer; open the same page in another browser as another user and share an annotation across; confirm the sidebar frame is refused on a page outside `frameAncestors` (the browser's console shows the CSP refusal); scrape `/metrics` from inside the cluster; run a backup and a restore into a scratch database.
+After the first deployment: `curl https://anncur.example/readyz`; open `https://anncur.example/` and sign in; drag the bookmarklet to the bookmarks bar; annotate a page on an allowed origin and a PDF in the viewer; open the same page in another browser as another user and share an annotation across; confirm the sidebar frame is refused on a page outside `frameAncestors` (the browser's console shows the CSP refusal); scrape `/metrics` from inside the cluster; run a backup and a restore into a scratch database.
 
 ## 9. Reproducing the load test
 

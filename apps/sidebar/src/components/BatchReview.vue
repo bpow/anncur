@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { toProblem, type Problem } from '@curanno/api-client';
+import { toProblem, type Problem } from '@anncur/api-client';
 import { computed, ref, watch } from 'vue';
 import { useAuthStore } from '../auth/store';
 import { useGuest } from '../guest';

@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import { describe, expect, it } from 'vitest';
-import { annotationSchemas } from '@curanno/model';
+import { annotationSchemas } from '@anncur/model';
 
 interface OpenApi {
   paths: Record<string, Record<string, { operationId?: string }>>;

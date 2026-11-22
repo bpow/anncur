@@ -3,13 +3,13 @@
 Runs the guest's anchoring against the [regression corpus](../corpus/README.md) in headless Chromium and reports anchored, orphaned and wrong-anchor counts. Built in Phase 2 of the [project plan](../../../docs/web-annotation-plan.md) to choose the guest's base ([ADR 0017](../../../docs/adr/0017-guest-base-and-highlight-rendering.md)); since Phase 4 it is the guest's regression suite and gate (success criterion 5).
 
 ```bash
-pnpm --filter @curanno/guest trial                 # all cases, the guest candidates
-pnpm --filter @curanno/guest trial synth-hidden    # one case
-pnpm --filter @curanno/guest trial --all           # include the Hypothesis candidate
-pnpm --filter @curanno/guest trial --candidate hypothesis
+pnpm --filter @anncur/guest trial                 # all cases, the guest candidates
+pnpm --filter @anncur/guest trial synth-hidden    # one case
+pnpm --filter @anncur/guest trial --all           # include the Hypothesis candidate
+pnpm --filter @anncur/guest trial --candidate hypothesis
 ```
 
-Results land in [`results/results.json`](results/results.json) and [`results/summary.md`](results/summary.md). The run exits with status 1 when the `guest` candidate anchors any `mustNotMatch` annotation (a `guessed` verdict), or when an expectation cannot be located. The first run needs `pnpm --filter @curanno/guest exec playwright install chromium`.
+Results land in [`results/results.json`](results/results.json) and [`results/summary.md`](results/summary.md). The run exits with status 1 when the `guest` candidate anchors any `mustNotMatch` annotation (a `guessed` verdict), or when an expectation cannot be located. The first run needs `pnpm --filter @anncur/guest exec playwright install chromium`.
 
 ## What runs
 
@@ -42,10 +42,10 @@ The Recogito candidates ADR 0017 compares were removed once that decision was se
 
 ## Other commands
 
-- `pnpm --filter @curanno/guest corpus:describe [--force] [case ...]` generates selectors from each annotation's `select` through the guest's `describe`, and checks that annotations marked `notAnnotatable` cannot be described.
-- `pnpm --filter @curanno/guest corpus:pdf` renders `cases/*/src/*.html` to PDFs.
-- `pnpm --filter @curanno/guest trial:highlights` compares highlight rendering techniques on the re-rendering and nested-scroll pages; see [highlight-rendering.md](highlight-rendering.md).
-- `pnpm --filter @curanno/guest trial:a11y` runs the accessibility-tree checks; see [keyboard-and-screen-reader.md](keyboard-and-screen-reader.md).
+- `pnpm --filter @anncur/guest corpus:describe [--force] [case ...]` generates selectors from each annotation's `select` through the guest's `describe`, and checks that annotations marked `notAnnotatable` cannot be described.
+- `pnpm --filter @anncur/guest corpus:pdf` renders `cases/*/src/*.html` to PDFs.
+- `pnpm --filter @anncur/guest trial:highlights` compares highlight rendering techniques on the re-rendering and nested-scroll pages; see [highlight-rendering.md](highlight-rendering.md).
+- `pnpm --filter @anncur/guest trial:a11y` runs the accessibility-tree checks; see [keyboard-and-screen-reader.md](keyboard-and-screen-reader.md).
 
 ## Files
 

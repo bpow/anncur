@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "curanno.fullname" . }}
+  name: {{ include "anncur.fullname" . }}
   labels:
-    {{- include "curanno.labels" . | nindent 4 }}
+    {{- include "anncur.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "curanno.apiSelectorLabels" . | nindent 6 }}
+      {{- include "anncur.apiSelectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -17,7 +17,7 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "curanno.apiSelectorLabels" . | nindent 8 }}
+        {{- include "anncur.apiSelectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -28,22 +28,22 @@ spec:
       {{- if .Values.migrations.enabled }}
       initContainers:
         - name: migrate
-          image: {{ include "curanno.image" . }}
+          image: {{ include "anncur.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ['node', 'dist/db/migrate.js']
-          {{- include "curanno.containerEnv" . | nindent 10 }}
+          {{- include "anncur.containerEnv" . | nindent 10 }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
       {{- end }}
       containers:
         - name: api
-          image: {{ include "curanno.image" . }}
+          image: {{ include "anncur.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
               containerPort: 3000
               protocol: TCP
-          {{- include "curanno.containerEnv" . | nindent 10 }}
+          {{- include "anncur.containerEnv" . | nindent 10 }}
           startupProbe:
             httpGet:
               path: {{ .Values.probes.startup.path }}

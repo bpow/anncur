@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "CurAnno",
+  "name": "Anncur",
   "version": "0.0.0",
-  "description": "Annotate web pages and PDFs with CurAnno, including pages that block the bookmarklet.",
+  "description": "Annotate web pages and PDFs with Anncur, including pages that block the bookmarklet.",
   "minimum_chrome_version": "120",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2YWrfQImJtiUBiNFS+FXN42mAFjk+fcBUTJ7DzHPdTbwbOiHCN0Aqwzw1rhyEZAgExnI8L/NkJ/pjqzSUsqVf+MBUGTv9O9M6RKZrZT3jjnZPDCihWHXiyQXiGOZJXN3kMfmuyIIxIlimeRnZXn5TsG3MLJAiBv/ZUcctrfua//4uc3/iGA/QKCbhJpgOkVSEAbelokCpvjWdMB4nCrBlY6ymGHaDhl3M/3FjjmiVXbPUuRrmkD5wehdGEeIW1D0WAHYM/azLZwltx3ltJce9tQiyg55pcBmpsJFQ7po2Un7ZqrMkH+d5kr3uOwFPp0pONPi/eRF/kedJ4fBr2KZwQIDAQAB",
   "permissions": [
@@ -16,7 +16,7 @@
   "host_permissions": ["<all_urls>"],
   "background": { "service_worker": "background.js" },
   "action": {
-    "default_title": "CurAnno: off",
+    "default_title": "Anncur: off",
     "default_icon": {
       "16": "icons/off-16.png",
       "32": "icons/off-32.png",

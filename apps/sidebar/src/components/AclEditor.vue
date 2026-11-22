@@ -5,8 +5,8 @@ import {
   toProblem,
   unwrap,
   type Problem,
-} from '@curanno/api-client';
-import { PERMISSIONS, type Permission } from '@curanno/model';
+} from '@anncur/api-client';
+import { PERMISSIONS, type Permission } from '@anncur/model';
 import {
   AutocompleteContent,
   AutocompleteInput,

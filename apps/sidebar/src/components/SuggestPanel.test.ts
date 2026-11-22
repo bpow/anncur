@@ -1,10 +1,10 @@
-import { answer, createFakeEndpoint } from '@curanno/extract/testing';
+import { answer, createFakeEndpoint } from '@anncur/extract/testing';
 import {
   caseFamilyProfile,
   evidenceExcerptProfile,
   individualProfile,
   type BodyProfile,
-} from '@curanno/model';
+} from '@anncur/model';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

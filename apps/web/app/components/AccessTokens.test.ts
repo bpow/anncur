@@ -1,4 +1,4 @@
-import type { AccessToken } from '@curanno/api-client';
+import type { AccessToken } from '@anncur/api-client';
 import { flushPromises, mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { API_KEY } from '../api/client';

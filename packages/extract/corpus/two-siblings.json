@@ -1,5 +1,5 @@
 {
-  "profile": "https://curanno.example/profiles/case-individual/1",
+  "profile": "https://anncur.example/profiles/case-individual/1",
   "expected": [
     {
       "quote": "Patient 1, a 14-year-old boy, presented with exertional dyspnea and syncope during sport.",

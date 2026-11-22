@@ -38,7 +38,7 @@ describe('secrets and passwords', () => {
   });
 
   it('still opens a value sealed in the earlier format, and only with its whole tag', async () => {
-    const key = Buffer.from(hkdfSync('sha256', SECRET, 'curanno', 'signing-keys', 32));
+    const key = Buffer.from(hkdfSync('sha256', SECRET, 'anncur', 'signing-keys', 32));
     const iv = randomBytes(12);
     const cipher = createCipheriv('aes-256-gcm', key, iv);
     const body = Buffer.concat([cipher.update('private key material', 'utf8'), cipher.final()]);

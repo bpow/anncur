@@ -2,7 +2,7 @@ name: Publish images
 
 # Builds the API and management-site images (Dockerfile targets `api` and
 # `web`) and pushes them to the GitHub Container Registry as
-# ghcr.io/<owner>/curanno-api and ghcr.io/<owner>/curanno-web.
+# ghcr.io/<owner>/anncur-api and ghcr.io/<owner>/anncur-web.
 #
 #   push to main      -> :main and :sha-<short sha>
 #   tag v1.2.3        -> :1.2.3, :1.2 and :latest (the chart's image tag
@@ -47,7 +47,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/curanno-${{ matrix.target }}
+          images: ghcr.io/${{ github.repository_owner }}/anncur-${{ matrix.target }}
           tags: |
             type=ref,event=branch
             type=sha,prefix=sha-

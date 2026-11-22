@@ -84,8 +84,8 @@ export default tseslint.config(
         {
           patterns: [
             {
-              group: ['**/apps/*', '../../*', '@curanno/api', '@curanno/sidebar', '@curanno/web'],
-              message: 'Use @curanno/model, @curanno/extract and @curanno/api-client only.',
+              group: ['**/apps/*', '../../*', '@anncur/api', '@anncur/sidebar', '@anncur/web'],
+              message: 'Use @anncur/model, @anncur/extract and @anncur/api-client only.',
             },
           ],
         },

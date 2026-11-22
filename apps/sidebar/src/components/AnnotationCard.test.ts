@@ -1,5 +1,5 @@
-import type { Annotation } from '@curanno/api-client';
-import { caseFamilyProfile, individualProfile } from '@curanno/model';
+import type { Annotation } from '@anncur/api-client';
+import { caseFamilyProfile, individualProfile } from '@anncur/model';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { TooltipProvider } from 'reka-ui';
@@ -19,7 +19,7 @@ const PAGE = 'https://example.org/article';
 const BASE = 'https://annotations.test/annotations/';
 const iri = (n: number) => `${BASE}0000000${n}-0000-4000-8000-000000000000`;
 const ME = 'https://annotations.test/x/users/7';
-const model = { type: 'Software' as const, name: 'curanno-extract' };
+const model = { type: 'Software' as const, name: 'anncur-extract' };
 
 function annotation(
   n: number,

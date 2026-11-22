@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "curanno.fullname" . }}-web
+  name: {{ include "anncur.fullname" . }}-web
   labels:
-    {{- include "curanno.labels" . | nindent 4 }}
+    {{- include "anncur.labels" . | nindent 4 }}
     app.kubernetes.io/component: web
 data:
   PORT: '3001'
@@ -12,9 +12,9 @@ data:
   # The site is an ordinary client of the API on the same origin (ADR 0020).
   NUXT_PUBLIC_API_BASE: ''
   # Also fills in the site's Content-Security-Policy when it starts, so it must be set.
-  {{- if include "curanno.embedded" . }}
+  {{- if include "anncur.embedded" . }}
   NUXT_PUBLIC_OIDC_ISSUER: {{ required "config.publicUrl is required" .Values.config.publicUrl | trimSuffix "/" | quote }}
-  NUXT_PUBLIC_OIDC_CLIENT_ID: curanno
+  NUXT_PUBLIC_OIDC_CLIENT_ID: anncur
   {{- else }}
   NUXT_PUBLIC_OIDC_ISSUER: {{ required "config.oidcIssuer is required" .Values.config.oidcIssuer | trimSuffix "/" | quote }}
   {{- if not .Values.zitadel.provision.enabled }}

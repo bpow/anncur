@@ -17,8 +17,8 @@ import {
   type AnnotationInput,
   type ProfileRegistry,
   type StructuredBody,
-} from '@curanno/model';
-import type { components } from '@curanno/api-client';
+} from '@anncur/model';
+import type { components } from '@anncur/api-client';
 import type { UserCaller } from '../auth/caller.js';
 import type { Database, SuggestionStatus } from '../db/index.js';
 import { parseAnnotationInput } from '../annotations/input.js';

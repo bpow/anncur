@@ -28,7 +28,7 @@ describe('loadConfig', () => {
       ...base,
       AUTH_MODE: 'embedded',
       AUTH_SECRET: secret,
-      PUBLIC_URL: 'https://curanno.example/',
+      PUBLIC_URL: 'https://anncur.example/',
       AUTH_EXTRA_ORIGINS: 'http://localhost:5173 http://localhost:3001/some/path',
       AUTH_EXTENSION_IDS: 'dmlkjhnoiinndnkboiknehimngilddpp',
       // Left over from an external provider's setup; the embedded client keeps its name.
@@ -47,9 +47,9 @@ describe('loadConfig', () => {
       autolink: [],
     });
     expect(config.oidc).toEqual({
-      issuer: 'https://curanno.example',
+      issuer: 'https://anncur.example',
       clientId: EMBEDDED_CLIENT_ID,
-      audience: 'https://curanno.example',
+      audience: 'https://anncur.example',
     });
   });
 

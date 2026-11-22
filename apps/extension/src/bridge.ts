@@ -12,13 +12,13 @@ import {
   parseBridgeMessage,
   type BridgeNavigatedMessage,
   type BridgeReadyMessage,
-} from '@curanno/model';
+} from '@anncur/model';
 import { isWebAuthResult, type WebAuthRequest } from './messages.js';
 import { isSidebarUrl, loadSettings } from './settings.js';
 
 declare global {
   interface Window {
-    __curannoBridge?: true;
+    __anncurBridge?: true;
   }
 }
 
@@ -46,8 +46,8 @@ async function relay(id: string, url: string): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  if (window.__curannoBridge) return;
-  window.__curannoBridge = true;
+  if (window.__anncurBridge) return;
+  window.__anncurBridge = true;
   if (window.parent === window) return;
   if (!isSidebarUrl(await loadSettings(), location.href)) return;
   const ready: BridgeReadyMessage = {

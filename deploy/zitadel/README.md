@@ -34,12 +34,12 @@ helm upgrade --install zitadel zitadel/zitadel --version 10.4.0 \
   --skip-schema-validation -f deploy/zitadel/values.yaml
 ```
 
-Keep the masterkey somewhere other than the cluster: it encrypts the instance's keys in the database. The setup job stores the provisioner's token in the secret `iam-admin-pat`. Installed in the same namespace with `zitadel.provision.enabled=true`, the annotations chart uses it: a hook Job runs `provision.ts` from the API image before every install and upgrade, creating or updating the client for `config.publicUrl` (plus `zitadel.provision.extraOrigins`, and the redirect URI of each browser extension in `extensionIds`), and writes the generated id to the ConfigMap `<fullname>-oidc` (`curanno-oidc` for a release named annotations), which the API and the site read in place of `config.oidcClientId`. Helm does not manage that ConfigMap, so it outlives `helm uninstall`. If the client id changes (only when the Zitadel instance is recreated), restart both deployments.
+Keep the masterkey somewhere other than the cluster: it encrypts the instance's keys in the database. The setup job stores the provisioner's token in the secret `iam-admin-pat`. Installed in the same namespace with `zitadel.provision.enabled=true`, the annotations chart uses it: a hook Job runs `provision.ts` from the API image before every install and upgrade, creating or updating the client for `config.publicUrl` (plus `zitadel.provision.extraOrigins`, and the redirect URI of each browser extension in `extensionIds`), and writes the generated id to the ConfigMap `<fullname>-oidc` (`anncur-oidc` for a release named annotations), which the API and the site read in place of `config.oidcClientId`. Helm does not manage that ConfigMap, so it outlives `helm uninstall`. If the client id changes (only when the Zitadel instance is recreated), restart both deployments.
 
 ```bash
-helm upgrade --install curanno deploy/helm/curanno \
+helm upgrade --install anncur deploy/helm/anncur \
   --set config.oidcIssuer=https://zitadel.apps.cloudapps.unc.edu \
-  --set config.publicUrl=https://curanno.example \
+  --set config.publicUrl=https://anncur.example \
   --set zitadel.provision.enabled=true
 ```
 
@@ -48,8 +48,8 @@ Without the hook, run the script from a checkout and set the printed `OIDC_CLIEN
 ```bash
 kubectl get secret iam-admin-pat -o jsonpath='{.data.pat}' | base64 -d > /tmp/zitadel-admin.pat
 node deploy/zitadel/provision.ts --issuer https://zitadel.apps.cloudapps.unc.edu \
-  --pat-file /tmp/zitadel-admin.pat --origin https://curanno.example
+  --pat-file /tmp/zitadel-admin.pat --origin https://anncur.example
 ```
- Sign in to the console at `/ui/console` as `admin@curanno.<host>` with Zitadel's default initial password `Password1!`, which must be changed on first use.
+ Sign in to the console at `/ui/console` as `admin@anncur.<host>` with Zitadel's default initial password `Password1!`, which must be changed on first use.
 
 Open questions for production: where Postgres runs (an operator such as CloudNativePG, or a managed instance), whether to run more than one replica (Zitadel is stateless apart from Postgres), and SMTP for password resets.

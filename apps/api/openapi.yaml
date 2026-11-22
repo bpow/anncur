@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
-  title: CurAnno API
+  title: Anncur API
   version: 0.1.0
   description: |
-    The API of CurAnno.
+    The API of Anncur.
 
     Paths without a prefix implement the [W3C Web Annotation Protocol](https://www.w3.org/TR/annotation-protocol/):
     one annotation container at `/annotations/` with paging and `Prefer` handling, and annotation

@@ -1,11 +1,11 @@
-import type { Annotation } from '@curanno/api-client';
+import type { Annotation } from '@anncur/api-client';
 import {
   caseFamilyProfile,
   caseIndividualProfile,
   caseVariantProfile,
   individualProfile,
   type JsonValue,
-} from '@curanno/model';
+} from '@anncur/model';
 import { mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it } from 'vitest';

@@ -14,7 +14,7 @@ import {
   type JsonValue,
   type StructuredBody,
   type TextSelectors,
-} from '@curanno/model';
+} from '@anncur/model';
 import type { Endpoint } from './endpoint.js';
 import { extract, type ExtractOptions, type LinkTarget, type ScopeText } from './extract.js';
 

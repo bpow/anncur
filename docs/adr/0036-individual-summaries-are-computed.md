@@ -24,7 +24,7 @@ The options considered:
   - Phenotype lists are combined into one list.
   - Each `case-variant/1` fact adds one item to `variants`.
 - Facts whose individual is not among the annotations are returned as unlinked.
-- The summary is not stored. When serialised, it is an annotation whose targets are the individual annotation and its facts, with a `case-individual/1` body whose `creator` is the `Software` agent `curanno-summary`.
+- The summary is not stored. When serialised, it is an annotation whose targets are the individual annotation and its facts, with a `case-individual/1` body whose `creator` is the `Software` agent `anncur-summary`.
 
 ## Consequences
 

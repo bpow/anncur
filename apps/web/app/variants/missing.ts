@@ -3,7 +3,7 @@
  * (ADR 0039, docs/variant-ids-plan.md), grouped by the variant as written,
  * so that a curator settles a variant once for every article that reports it.
  */
-import type { Annotation, components } from '@curanno/api-client';
+import type { Annotation, components } from '@anncur/api-client';
 import {
   annotationUuid,
   caseVariantProfile,
@@ -16,7 +16,7 @@ import {
   withUnresolvable,
   type JsonValue,
   type StructuredBody,
-} from '@curanno/model';
+} from '@anncur/model';
 
 export type Candidate = components['schemas']['ResolutionCandidate'];
 

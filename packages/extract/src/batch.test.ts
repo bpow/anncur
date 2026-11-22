@@ -6,7 +6,7 @@ import {
   individualProfile,
   ProfileRegistry,
   type StructuredBody,
-} from '@curanno/model';
+} from '@anncur/model';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import { describe, expect, it } from 'vitest';
 import { extractBatch, runOrder } from './batch.js';

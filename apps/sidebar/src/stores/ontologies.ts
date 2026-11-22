@@ -1,4 +1,4 @@
-import { type components, unwrap } from '@curanno/api-client';
+import { type components, unwrap } from '@anncur/api-client';
 import { defineStore } from 'pinia';
 import { shallowRef } from 'vue';
 import { useApi } from '../api/client';

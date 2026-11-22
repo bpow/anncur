@@ -52,13 +52,13 @@ describe('ProfileRegistry', () => {
     expect(
       registry.validate({
         type: 'StructuredBody',
-        profile: 'https://curanno.example/profiles/nope/1',
+        profile: 'https://anncur.example/profiles/nope/1',
         value: {},
       }),
     ).toMatchObject({
       ok: false,
       reason: 'unknown-profile',
-      profile: 'https://curanno.example/profiles/nope/1',
+      profile: 'https://anncur.example/profiles/nope/1',
     });
   });
 
@@ -90,7 +90,7 @@ describe('ProfileRegistry', () => {
 
   it('refuses duplicate IRIs and purposes', () => {
     const other: BodyProfile = {
-      iri: 'https://curanno.example/profiles/other/1',
+      iri: 'https://anncur.example/profiles/other/1',
       title: 'Other',
       schema: { type: 'object' },
     };
@@ -99,14 +99,14 @@ describe('ProfileRegistry', () => {
     expect(() =>
       r.register({
         ...evidenceExcerptProfile,
-        iri: 'https://curanno.example/profiles/x/1',
+        iri: 'https://anncur.example/profiles/x/1',
         purposes: ['classifying'],
       }),
     ).not.toThrow();
     expect(() =>
       r.register({
         ...other,
-        iri: 'https://curanno.example/profiles/y/1',
+        iri: 'https://anncur.example/profiles/y/1',
         purposes: ['classifying'],
       }),
     ).toThrow(/purpose classifying/);
@@ -167,7 +167,7 @@ describe('case-individual profile', () => {
 });
 
 describe('case fact profiles', () => {
-  const individual = 'https://curanno.example/annotations/0b9e4e1c-8f7e-4d0a-9d55-0c3f6c2b2a11';
+  const individual = 'https://anncur.example/annotations/0b9e4e1c-8f7e-4d0a-9d55-0c3f6c2b2a11';
   const paths = (profile: string, value: JsonValue) => {
     const result = registry.validate({ type: 'StructuredBody', profile, value });
     return result?.ok ? [] : (result?.errors ?? []).map((e) => e.instancePath);

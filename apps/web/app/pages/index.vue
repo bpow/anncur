@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { bookmarkletUrl } from '@curanno/guest';
+import { bookmarkletUrl } from '@anncur/guest';
 import { onMounted, ref } from 'vue';
 import { NuxtLink } from '#components';
 import { useRuntimeConfig } from '#imports';
@@ -25,7 +25,7 @@ onMounted(() => {
 
 <template>
   <section class="prose">
-    <h1>CurAnno</h1>
+    <h1>Anncur</h1>
     <p>
       Annotate web pages and PDFs, share what you write, and work in groups. Everything here goes
       through the public API with your own login.

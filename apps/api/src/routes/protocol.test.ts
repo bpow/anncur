@@ -6,7 +6,7 @@
  */
 import { sql } from 'kysely';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { PROFILE_BASE } from '@curanno/model';
+import { PROFILE_BASE } from '@anncur/model';
 import {
   alice,
   annotationOn,
@@ -337,7 +337,7 @@ describe.skipIf(!databaseUrl)('W3C protocol', () => {
 
     it('keeps the creators a body names, a model and a person among them (ADR 0034)', async () => {
       const creator = [
-        { type: 'Software', name: 'curanno-extract', nickname: 'llama3.1:8b / prompt 1' },
+        { type: 'Software', name: 'anncur-extract', nickname: 'llama3.1:8b / prompt 1' },
         { type: 'Person', id: 'https://annotations.test/x/users/someone' },
       ];
       const res = await ctx.as(alice, {

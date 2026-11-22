@@ -17,7 +17,7 @@ export interface BookmarkletOptions {
 }
 
 /** The name of the global the bundle installs; a second click finds it and toggles. */
-export const GUEST_GLOBAL = '__curannoGuest';
+export const GUEST_GLOBAL = '__anncurGuest';
 
 export function bookmarkletSource(options: BookmarkletOptions): string {
   const path = options.sidebarPath ?? DEFAULT_SIDEBAR_PATH;

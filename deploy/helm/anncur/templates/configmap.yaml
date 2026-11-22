@@ -1,13 +1,13 @@
-{{- include "curanno.validate" . -}}
+{{- include "anncur.validate" . -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "curanno.fullname" . }}
+  name: {{ include "anncur.fullname" . }}
   labels:
-    {{- include "curanno.labels" . | nindent 4 }}
+    {{- include "anncur.labels" . | nindent 4 }}
 data:
   PORT: '3000'
-  {{- if include "curanno.embedded" . }}
+  {{- if include "anncur.embedded" . }}
   # The API is its own issuer on PUBLIC_URL (ADR 0028); the client id is fixed.
   AUTH_MODE: embedded
   AUTH_SIGNUP: {{ .Values.auth.signup | quote }}

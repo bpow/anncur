@@ -8,11 +8,11 @@
  * written there as OIDC_ISSUER and OIDC_CLIENT_ID. The compose stack writes
  * deploy/zitadel/.bootstrap/oidc.env, which development falls back to. In a
  * cluster, --write-configmap stores the two in a ConfigMap of the pod's
- * namespace through its service account (the curanno chart's hook Job).
+ * namespace through its service account (the anncur chart's hook Job).
  *
  *   node deploy/zitadel/provision.ts --dev-users --write-env .env
  *   node deploy/zitadel/provision.ts --issuer https://idp.example \
- *     --pat-file admin.pat --origin https://curanno.example \
+ *     --pat-file admin.pat --origin https://anncur.example \
  *     --extension-id dmlkjhnoiinndnkboiknehimngilddpp
  */
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -57,8 +57,8 @@ const extensionRedirects = extensionIds.map((id) => `https://${id}.chromiumapp.o
 const issuer = args.issuer.replace(/\/$/, '');
 const token = readFileSync(args['pat-file'], 'utf8').trim();
 
-const PROJECT_ID = 'curanno';
-const APPLICATION_ID = 'curanno-web';
+const PROJECT_ID = 'anncur';
+const APPLICATION_ID = 'anncur-web';
 
 /**
  * One Connect-protocol call. A create of something that exists, or an update
@@ -122,13 +122,13 @@ const organizationId = user.details.resourceOwner;
 await call('zitadel.project.v2.ProjectService/CreateProject', {
   organizationId,
   projectId: PROJECT_ID,
-  name: 'CurAnno',
+  name: 'Anncur',
 });
 
 const created = await call('zitadel.application.v2.ApplicationService/CreateApplication', {
   projectId: PROJECT_ID,
   applicationId: APPLICATION_ID,
-  name: 'CurAnno (sidebar and management site)',
+  name: 'Anncur (sidebar and management site)',
   oidcConfiguration,
 });
 if (created['alreadyExists']) {

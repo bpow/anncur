@@ -2,7 +2,7 @@ import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Term } from '../profiles/schema';
-import { createApiClient } from '@curanno/api-client';
+import { createApiClient } from '@anncur/api-client';
 import { setApiClient } from '../api/client';
 import { installFakeApi, json, problem, type FakeApi } from '../test/fake-api';
 import TermListInput from './TermListInput.vue';

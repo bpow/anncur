@@ -2,7 +2,7 @@
 
 **Status:** Proposed, 2026-11-16.
 
-Claude Code can act as a suggestion engine (ADR 0037): it reads an article, writes a suggestion batch, and posts it to CurAnno for a group to review. This plan describes the skills that guide it and the tools they drive. It builds on the bulk suggester ([external-suggestions-plan.md](external-suggestions-plan.md), section 6), and on ClinGen's two documents for manual annotation with Hypothes.is, which shaped the case profiles ([body-profiles.md](body-profiles.md), section 6):
+Claude Code can act as a suggestion engine (ADR 0037): it reads an article, writes a suggestion batch, and posts it to Anncur for a group to review. This plan describes the skills that guide it and the tools they drive. It builds on the bulk suggester ([external-suggestions-plan.md](external-suggestions-plan.md), section 6), and on ClinGen's two documents for manual annotation with Hypothes.is, which shaped the case profiles ([body-profiles.md](body-profiles.md), section 6):
 
 - the *Hypothes.is Annotation Overview* ([PDF](https://www.clinicalgenome.org/site/assets/files/5693/hypothesis_annotation_overview_v1_final.pdf));
 - the *Baseline Annotation Template Protocol Review*, January 2021 ([PDF](https://www.clinicalgenome.org/site/assets/files/5693/baseline_annotation_template_protocol_review_jan_2021.pdf)).
@@ -30,11 +30,11 @@ Claude Code can act as a suggestion engine (ADR 0037): it reads an article, writ
 From the Template Protocol Review:
 
 - **Annotate only what the authors state.** "Annotate only what is indicated by the authors."
-  - Where ClinGen fills a field with "n/a", a CurAnno value leaves the field out.
+  - Where ClinGen fills a field with "n/a", an Anncur value leaves the field out.
   - The disease assertion is the authors' ("annotate based on the assertion given by the authors").
   - Inheritance and de novo status are "based solely on the assertions of the author".
 - **Which cases count.** A case report is "an individual asserted to have a variant in the gene of interest". The skill therefore needs the gene of interest as an input, and leaves out individuals without a variant in it. Asked for all genes, it lists the genes the article reports, and once the user has chosen among them it writes one draft per gene, each with that gene as the gene of interest.
-- **One record per individual.** "Each Case report listed in an article should be curated as a separate annotation." In CurAnno this is one `individual/1` per individual, with their facts linked to it (ADR 0035). A fact may name several individuals where a passage covers them all.
+- **One record per individual.** "Each Case report listed in an article should be curated as a separate annotation." In Anncur this is one `individual/1` per individual, with their facts linked to it (ADR 0035). A fact may name several individuals where a passage covers them all.
 - **Phenotypes.** Present and absent phenotypes are kept apart: "HPOs presenting specifically in the proband" versus "HPOs that were noted not to manifest". Phenotypes without a fitting HPO term are kept as text. The CaseHPOFreeText and CaseNOTHPOFreeText fields correspond to a term-list entry with no id.
 - **Variants.**
   - HGVS nomenclature is used.
@@ -42,7 +42,7 @@ From the Template Protocol Review:
   - Variants in other genes are annotated too ("annotate all variants in the report").
   - The gnomAD value is "the highest minor allele frequency … and the link".
 - **Previous publication.** A previously published proband gets the PMID in `previouslyPublished`. A cohort that was wholly published before is recorded once, on the passage that says so.
-- **Supplementary data.** ClinGen annotates cases found only in the supplement as page notes. CurAnno has no page notes, and a batch item needs a quote. Such cases are therefore listed in the summary for the curator, not posted, unless the main text mentions the individual. In that case the individual is anchored there and `supplementalData` names the file or table.
+- **Supplementary data.** ClinGen annotates cases found only in the supplement as page notes. Anncur has no page notes, and a batch item needs a quote. Such cases are therefore listed in the summary for the curator, not posted, unless the main text mentions the individual. In that case the individual is anchored there and `supplementalData` names the file or table.
 
 From the Hypothes.is Overview:
 
@@ -51,7 +51,7 @@ From the Hypothes.is Overview:
 
 ### Mapping to the profiles
 
-| ClinGen field or tag | CurAnno |
+| ClinGen field or tag | Anncur |
 | --- | --- |
 | `Case` (label, sex, age, ethnicity) | `individual/1`: `case` |
 | `PreviouslyPublished`, `SupplementalData` | `individual/1` |
@@ -98,7 +98,7 @@ The draft is what Claude writes. It is simpler than a batch: kinds by short name
 {
   "article": "PMC1234567",
   "gene": "MYH7",
-  "engine": { "model": "claude-opus-5-5", "skill": "curanno-suggest", "version": "1" },
+  "engine": { "model": "claude-opus-5-5", "skill": "anncur-suggest", "version": "1" },
   "items": [
     { "id": "_:i1", "kind": "individual", "passage": 4,
       "quote": "Patient 1, a 14-year-old boy, presented with syncope.",
@@ -119,12 +119,12 @@ The draft is what Claude writes. It is simpler than a batch: kinds by short name
 4. **Values.** Each value must validate against its profile, with local ids replaced by placeholders. The batch's links must also pass `checkItems` (ADR 0037): local ids exist, have the linked profile, and form no cycle.
 5. **Duplicates.** Two items with the same kind, quote and value are reported as a duplicate.
 
-The posted engine is `{name: "claude-code", version: "curanno-suggest 1", nickname: "<model> / curanno-suggest 1"}`. A rerun key is made from the kinds, as for the bulk suggester. A batch from Claude therefore never replaces one from a local model, and an accepted body names Claude as its creator (ADR 0034).
+The posted engine is `{name: "claude-code", version: "anncur-suggest 1", nickname: "<model> / anncur-suggest 1"}`. A rerun key is made from the kinds, as for the bulk suggester. A batch from Claude therefore never replaces one from a local model, and an accepted body names Claude as its creator (ADR 0034).
 
-## 4. The skill: `curanno-suggest`
+## 4. The skill: `anncur-suggest`
 
 ```
-.claude/skills/curanno-suggest/
+.claude/skills/anncur-suggest/
   SKILL.md
   references/
     clingen-case-rules.md    section 2's rules, with the protocol's own wording
@@ -174,8 +174,8 @@ The skill asks for whichever of the article and the gene is missing.
 
 ## 5. Safety and privacy
 
-- **Token.** `CURANNO_TOKEN` comes from a service account that is a suggester of the group (ADR 0038). It is read from the environment only, and the skill never prints it or writes it into files.
-- **Where the text goes.** Articles are open access. The text goes only to Claude, under the user's own Claude Code session; CurAnno receives quotes and values, as from any engine. A source other than PMC needs the user to confirm that it may be sent.
+- **Token.** `ANNCUR_TOKEN` comes from a service account that is a suggester of the group (ADR 0038). It is read from the environment only, and the skill never prints it or writes it into files.
+- **Where the text goes.** Articles are open access. The text goes only to Claude, under the user's own Claude Code session; Anncur receives quotes and values, as from any engine. A source other than PMC needs the user to confirm that it may be sent.
 - **Prompt injection.** It is bounded the same way as in ADR 0032, with two further limits:
   - the allowed tools are limited;
   - `check` refuses any quote that is not in the article, and any value outside its profile.
@@ -197,7 +197,7 @@ The skill asks for whichever of the article and the gene is missing.
 On `feat/claude-skills`:
 
 1. This plan.
-2. The suggester subcommands `text`, `kinds`, `terms`, `check` and `post`, with the draft format and tests. `check` reuses `locateQuote`, `resolveOntologyFields`, `withPlaceholders` and the API's `checkItems` rules. Those rules move to `@curanno/model` (or `extract`), so the server and `check` share them.
+2. The suggester subcommands `text`, `kinds`, `terms`, `check` and `post`, with the draft format and tests. `check` reuses `locateQuote`, `resolveOntologyFields`, `withPlaceholders` and the API's `checkItems` rules. Those rules move to `@anncur/model` (or `extract`), so the server and `check` share them.
 3. The skill: `SKILL.md` and its references, written from section 2. Then a trial run on the two synthetic corpus cases, and on one real PMC article.
 4. The evaluation mode of section 6.
 5. Documentation: the skill in the user guide and the suggester README, and a status note here.
@@ -213,14 +213,14 @@ On `feat/claude-skills`:
 
 Steps 2, 3 and 5 are done on `feat/claude-skills`. The evaluation mode of step 4 is not built. What differs from the sections above:
 
-- **Shared checks.** The batch-item checks (local ids, links, placeholders) moved from the API to `@curanno/model`, so `check`, the batch builder and the server share them.
+- **Shared checks.** The batch-item checks (local ids, links, placeholders) moved from the API to `@anncur/model`, so `check`, the batch builder and the server share them.
 - **Saved pages.** `text`, `check`, `summarize` and `post` also take `--html FILE --url URL`, an article page saved from the browser.
   - Text comes from the page body by the model's text rules, as the guest reads it.
-  - Identifiers come from the guest's own metadata reader (`@curanno/guest/document-metadata`).
+  - Identifiers come from the guest's own metadata reader (`@anncur/guest/document-metadata`).
   - Quotes therefore match the page a curator opens character for character.
 - **Publishers' pages and PDFs** (2026-11-17).
   - `--html` takes any site's saved article page, not only PMC's.
-  - `--pdf FILE [--url URL]` reads a PDF with PDF.js, page by page, through the guest's own text-layer model (`@curanno/guest/pdf-text`). Each page is a scope `page=N`, and `check` puts each quote in that page's fragment selector, as the sidebar does for suggestions on a PDF. A quote must lie on one page. The document is the fingerprint, plus the URL when given, so the batch shows on that file in the PDF viewer.
+  - `--pdf FILE [--url URL]` reads a PDF with PDF.js, page by page, through the guest's own text-layer model (`@anncur/guest/pdf-text`). Each page is a scope `page=N`, and `check` puts each quote in that page's fragment selector, as the sidebar does for suggestions on a PDF. A quote must lie on one page. The document is the fingerprint, plus the URL when given, so the batch shows on that file in the PDF viewer.
   - An article's id, which the draft names, is its PMC id, else its DOI, else its URL or `urn:x-pdf:` fingerprint.
 - **`summarize`** is a new command: it prints each individual's computed record, as the sidebar's Individuals view would show it once every item is accepted.
 
@@ -252,4 +252,4 @@ Steps 2, 3 and 5 are done on `feat/claude-skills`. The evaluation mode of step 4
   2. **The text and the table disagree** on three variants: individuals 2a and 4, and c.3461G>T given as p.Arg1154Gln for individual 7. These are flagged in `variantEvidence` and `notInBatch`. This is the kind of thing that needs a curator, and the summary makes it visible.
   3. **Not attempted.** The supplementary tables and figures were not read, and the table's partly filled rows (inheritance, most cardiac rows, previously published) were left for the curator.
 
-The draft is in `.curanno-drafts/PMC3370286/`, which is ignored by git. It was not posted.
+The draft is in `.anncur-drafts/PMC3370286/`, which is ignored by git. It was not posted.

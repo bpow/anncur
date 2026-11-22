@@ -1,5 +1,5 @@
-import type { Annotation } from '@curanno/api-client';
-import { caseVariantProfile, individualProfile } from '@curanno/model';
+import type { Annotation } from '@anncur/api-client';
+import { caseVariantProfile, individualProfile } from '@anncur/model';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { API_KEY } from '../../api/client';

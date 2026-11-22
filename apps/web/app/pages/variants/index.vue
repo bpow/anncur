@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { toProblem, unwrap, type Annotation, type Problem } from '@curanno/api-client';
-import { caseVariantProfile } from '@curanno/model';
+import { toProblem, unwrap, type Annotation, type Problem } from '@anncur/api-client';
+import { caseVariantProfile } from '@anncur/model';
 import { computed, onMounted, reactive, ref, shallowRef } from 'vue';
 import { NuxtLink } from '#components';
 import { definePageMeta } from '#imports';
@@ -19,7 +19,7 @@ import {
   type Candidate,
   type MissingVariant,
 } from '../../variants/missing';
-import type { components } from '@curanno/api-client';
+import type { components } from '@anncur/api-client';
 
 /**
  * Case variants still without IDs, grouped by the variant as written, so a

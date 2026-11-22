@@ -3,7 +3,7 @@ import {
   envelope,
   type SidebarMessage,
   type SidebarReadyMessage,
-} from '@curanno/model';
+} from '@anncur/model';
 import { describe, expect, it, vi } from 'vitest';
 import { GuestConnection } from './connection.js';
 import { FakeSidebar } from './fake-sidebar.js';

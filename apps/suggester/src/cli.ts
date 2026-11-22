@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Suggested annotations for articles (PMC, publishers' pages, PDFs), posted for a group to
- * review in CurAnno (ADR 0037, 0038). Commands:
+ * review in Anncur (ADR 0037, 0038). Commands:
  *
  *   run    --pmcid … --profile … --endpoint URL --model NAME --group ID
  *          a model behind an OpenAI-compatible endpoint suggests, and the batch is posted
@@ -16,19 +16,19 @@
  *   summarize DRAFT [same article options as check]
  *          the whole-individual records the draft's facts add up to (JSON)
  *   resolve DRAFT [--out FILE]
- *          fill the IDs of the draft's items, such as its variants, through CurAnno's lookups,
+ *          fill the IDs of the draft's items, such as its variants, through Anncur's lookups,
  *          writing the draft back (or to FILE) and listing what is left for a curator under notInBatch
  *   post   DRAFT --group ID [same article options as check]
  *          check, then post the batch
  *
- * Every command but `text` needs --api (or CURANNO_API), and `post` and
- * `run` the token in CURANNO_TOKEN (or --token-env). See README.md and docs/claude-skills-plan.md.
+ * Every command but `text` needs --api (or ANNCUR_API), and `post` and
+ * `run` the token in ANNCUR_TOKEN (or --token-env). See README.md and docs/claude-skills-plan.md.
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
-import { ApiError, createApiClient, unwrap, type ApiClient } from '@curanno/api-client';
-import { outputSchema } from '@curanno/extract';
-import { linkFieldsOf, summarizeIndividuals, type BodyProfile } from '@curanno/model';
+import { ApiError, createApiClient, unwrap, type ApiClient } from '@anncur/api-client';
+import { outputSchema } from '@anncur/extract';
+import { linkFieldsOf, summarizeIndividuals, type BodyProfile } from '@anncur/model';
 import { articleFromBioc, fetchBioc, type Article } from './bioc.ts';
 import { checkDraft, type Draft } from './draft.ts';
 import { articleFromHtml } from './html.ts';
@@ -49,9 +49,9 @@ const { values, positionals } = parseArgs({
   options: {
     api: {
       type: 'string',
-      ...(process.env['CURANNO_API'] ? { default: process.env['CURANNO_API'] } : {}),
+      ...(process.env['ANNCUR_API'] ? { default: process.env['ANNCUR_API'] } : {}),
     },
-    'token-env': { type: 'string', default: 'CURANNO_TOKEN' },
+    'token-env': { type: 'string', default: 'ANNCUR_TOKEN' },
     group: { type: 'string' },
     endpoint: { type: 'string' },
     model: { type: 'string' },
@@ -377,7 +377,7 @@ async function checked(api: ApiClient) {
 
 const command = commands[positionals[0] ?? ''];
 if (!command) {
-  console.error(`usage: curanno-suggester <${Object.keys(commands).join('|')}> [options]`);
+  console.error(`usage: anncur-suggester <${Object.keys(commands).join('|')}> [options]`);
   process.exit(2);
 }
 command().then(

@@ -10,7 +10,7 @@ export type * from './schema.js';
 export { ApiError, problemFrom, toProblem, unwrap } from './problems.js';
 
 export interface ApiClientOptions {
-  /** Origin and base path of the API, for example `https://curanno.example`. */
+  /** Origin and base path of the API, for example `https://anncur.example`. */
   baseUrl: string;
   /** Returns the bearer token for a request, or undefined for an anonymous request. */
   token?: () => string | undefined | Promise<string | undefined>;

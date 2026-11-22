@@ -1,5 +1,5 @@
 {
-  "name": "@curanno/extract",
+  "name": "@anncur/extract",
   "version": "0.0.0",
   "private": true,
   "description": "Annotation suggestions from a language model behind an OpenAI-compatible endpoint",
@@ -23,7 +23,7 @@
     "eval": "tsc -b ../model . && node scripts/eval.ts"
   },
   "dependencies": {
-    "@curanno/model": "workspace:*"
+    "@anncur/model": "workspace:*"
   },
   "devDependencies": {
     "ajv": "^8.20.0",

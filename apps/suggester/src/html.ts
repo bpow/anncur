@@ -6,8 +6,8 @@
  * found on the page the curator opens; the identifiers are those the guest
  * would report (ADR 0014).
  */
-import { collectDocument } from '@curanno/guest/document-metadata';
-import { blockStarts, createDomAdapter, extractText, type DomLikeNode } from '@curanno/model';
+import { collectDocument } from '@anncur/guest/document-metadata';
+import { blockStarts, createDomAdapter, extractText, type DomLikeNode } from '@anncur/model';
 import { Window } from 'happy-dom';
 import { articleIdOf, type Article, type Passage } from './bioc.ts';
 

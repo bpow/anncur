@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AccessToken, NewAccessToken } from '@curanno/api-client';
+import type { AccessToken, NewAccessToken } from '@anncur/api-client';
 import { ref } from 'vue';
 import { useApi } from '../api/client';
 import { useAction, useRequest } from '../composables/request';

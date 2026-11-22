@@ -12,7 +12,7 @@ import {
   type Problem,
   type SuggestionBatch,
   type SuggestionItem,
-} from '@curanno/api-client';
+} from '@anncur/api-client';
 import {
   localLinks,
   type Agent,
@@ -21,7 +21,7 @@ import {
   type OneOrMany,
   type Selector,
   type SpecificResource,
-} from '@curanno/model';
+} from '@anncur/model';
 import { defineStore } from 'pinia';
 import { computed, shallowRef } from 'vue';
 import { buildInput, withEditor, type AnnotationDraft } from '../api/annotations';
@@ -54,7 +54,7 @@ export interface SaveFailure {
 type SaveTask = Omit<SaveFailure, 'problem'>;
 
 const keyOf = (batch: string, local: string) =>
-  `urn:x-curanno-suggestion:${batch}/${local.slice(2)}`;
+  `urn:x-anncur-suggestion:${batch}/${local.slice(2)}`;
 
 /** The engine, as the creator of a suggested body (ADR 0034). */
 export function engineAgent(batch: SuggestionBatch): Agent {

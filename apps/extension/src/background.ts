@@ -91,7 +91,7 @@ async function refresh(tabId: number): Promise<void> {
     await chrome.action.setIcon({ tabId, path: icons(on) });
     await chrome.action.setTitle({
       tabId,
-      title: `CurAnno: ${on ? 'on' : 'off'} (${server.name})`,
+      title: `Anncur: ${on ? 'on' : 'off'} (${server.name})`,
     });
     await chrome.action.setBadgeBackgroundColor({
       tabId,
@@ -125,7 +125,7 @@ async function turnOn(tab: chrome.tabs.Tab): Promise<void> {
   } catch (err) {
     // A page extensions may not touch, such as the Web Store or a browser page.
     await session.remove(onKey(tabId));
-    console.warn('[curanno extension] cannot run on this page:', err);
+    console.warn('[anncur extension] cannot run on this page:', err);
   }
 }
 
@@ -134,7 +134,7 @@ async function turnOff(tabId: number): Promise<void> {
   try {
     await chrome.scripting.executeScript({
       target: { tabId, allFrames: true },
-      func: () => window.__curannoExtension?.stop(),
+      func: () => window.__anncurExtension?.stop(),
     });
   } catch {
     // Nothing was injected, or the page has gone.

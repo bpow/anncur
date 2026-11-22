@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { definePageMeta, useRoute } from '#imports';
-import { bodiesOf, creatorOf, selectorsOfTarget, sourceOf, targetsOf } from '@curanno/model';
+import { bodiesOf, creatorOf, selectorsOfTarget, sourceOf, targetsOf } from '@anncur/model';
 import { type BodyView, viewBody } from '../../annotations/view';
 import { useApi } from '../../api/client';
 import AnnotationSummary from '../../components/AnnotationSummary.vue';

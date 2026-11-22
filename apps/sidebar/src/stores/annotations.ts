@@ -16,10 +16,10 @@ import {
   toProblem,
   unwrap,
   type Problem,
-} from '@curanno/api-client';
+} from '@anncur/api-client';
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
-import { annotationUuid, parentIri } from '@curanno/model';
+import { annotationUuid, parentIri } from '@anncur/model';
 import { useApi } from '../api/client';
 import { subscribeAnnotationEvents, type LiveStatus } from '../events/subscribe';
 import type { GuestDocument } from '../guest';

@@ -8,17 +8,17 @@ This plan does three things:
 
 - It lets one fact name several individuals.
 - It makes linking facts to individuals cheap when curating by hand.
-- It lets a process outside CurAnno run engines over many documents, for example manuscripts from PubMed Central overnight, and post the results as suggestions that a group reviews later.
+- It lets a process outside Anncur run engines over many documents, for example manuscripts from PubMed Central overnight, and post the results as suggestions that a group reviews later.
 
 ## 1. Decisions taken
 
 - **A fact names a list of individuals.** `individuals: [iri…]` replaces `individual` plus `case`. A passage about three siblings gives one annotation, not three. When one individual's facts turn out to differ, a reviewer can split that individual off into its own copy of the annotation.
 - **Labels are not stored in facts.** A fact's labels come from the linked individual annotations whenever it is shown, so renaming an individual cannot leave old labels behind.
 - **Suggestions are stored on the server, as batches that belong to a group.** Any member of the group can review a batch. This replaces ADR 0032's rule that suggestions live only in the sidebar's memory. The sidebar's own runs post batches too, so there is one review path.
-- **CurAnno only receives batches.** It does not schedule jobs, choose engines or hold document text. An engine runs wherever and whenever its operator likes, and posts results through the public API. Document text still never reaches the server: a batch holds quotes, as any annotation does.
+- **Anncur only receives batches.** It does not schedule jobs, choose engines or hold document text. An engine runs wherever and whenever its operator likes, and posts results through the public API. Document text still never reaches the server: a batch holds quotes, as any annotation does.
 - **A batch can link its own items.** An item has a local id (`_:i1`). A link field may name a local id or an existing annotation's IRI. Local ids become IRIs when the items are accepted. This is what lets one batch carry individuals and their facts without a review in between, and it is generic: the API knows about link fields, not about individuals.
 - **Engines authenticate with personal access tokens.** Tokens are issued by the API, scoped and expiring, and work the same with the embedded issuer and with an external provider. Bulk engines use service accounts rather than a person's token.
-- **The bulk engine lives in this repository but behind the API.** It imports `@curanno/model`, `@curanno/extract` and `@curanno/api-client` only. What makes it independent is the batch contract in the OpenAPI document, so an engine written in another language is just as good a client.
+- **The bulk engine lives in this repository but behind the API.** It imports `@anncur/model`, `@anncur/extract` and `@anncur/api-client` only. What makes it independent is the batch contract in the OpenAPI document, so an engine written in another language is just as good a client.
 
 ## 2. Part 1: facts that name several individuals
 
@@ -84,7 +84,7 @@ The current selection is cleared when the page changes.
 {
   "group": "<group id>",
   "document": { "uris": ["https://doi.org/…", "https://pmc.ncbi.nlm.nih.gov/articles/PMC…/"], "title": "…" },
-  "engine": { "name": "curanno-extract", "version": "0.3.0", "nickname": "qwen3.6-35b / prompt 3" },
+  "engine": { "name": "anncur-extract", "version": "0.3.0", "nickname": "qwen3.6-35b / prompt 3" },
   "key": "optional rerun key",
   "items": [
     { "id": "_:i1",
@@ -266,7 +266,7 @@ Step 7 is done on `feat/access-tokens`, in ADR 0038 (Proposed). What differs fro
 
 - **Token routes are under the user:** `/x/users/{id}/tokens`. People manage their own tokens there and on **/me**. Administrators list and revoke anyone's, and make tokens only for service accounts.
 - **A token never carries administration,** whoever owns it, and its scope's operations are listed in `apps/api/src/auth/tokens.ts`. `suggestions:write` allows `GET /x/me`, and posting, listing and reading suggestion batches.
-- **Service accounts** are users with `is_service`, recorded with an issuer that is not a URL (`urn:x-curanno:service-account`), so no token can sign them in. `POST /x/users` creates one.
+- **Service accounts** are users with `is_service`, recorded with an issuer that is not a URL (`urn:x-anncur:service-account`), so no token can sign them in. `POST /x/users` creates one.
 - **Suggesters.** `suggester` is a third group role. It is left out of the caller's principals, so it grants nothing that membership does. A suggester cannot see the group's page or members, and sees only the batches it posted.
 - **Merging accounts** moves tokens a person made for others, drops the loser's own tokens, and ranks roles as suggester, member, admin.
 
@@ -287,12 +287,12 @@ Step 6 is done on `feat/batch-review`. What differs from section 5:
 
 Step 8 is done on `feat/suggester`, and step 9 on `feat/suggestion-worklist`. What differs from sections 6 and 7:
 
-- **Shared batch building.** The run order, local ids and links between kinds moved from the sidebar into `@curanno/extract` (`extractBatch`). The sidebar and the suggester build batches with the same code.
-- **The suggester** is `apps/suggester`, run with `pnpm --filter @curanno/suggester suggest`.
+- **Shared batch building.** The run order, local ids and links between kinds moved from the sidebar into `@anncur/extract` (`extractBatch`). The sidebar and the suggester build batches with the same code.
+- **The suggester** is `apps/suggester`, run with `pnpm --filter @anncur/suggester suggest`.
   - It reads PMC's BioC JSON, by id from the BioC service or from a file, one block per passage, leaving out the references.
   - It posts only a quote selector per item, with no offsets.
   - Profiles are named by IRI or by its end (`individual`, `case-family/1`), and computed profiles are refused.
-  - A lint rule keeps it to `@curanno/model`, `@curanno/extract` and `@curanno/api-client`.
+  - A lint rule keeps it to `@anncur/model`, `@anncur/extract` and `@anncur/api-client`.
 - **The token scope** also allows `GET /x/profiles` and ontology term search. Both are public reads, which the engine needs to fill and resolve values.
 - **Endpoint keys.** An endpoint may carry an API key, sent as a bearer token. The sidebar never sets one.
 - **The anchoring metric** (the share of PMC quotes that anchor on the PMC page and in the publisher's PDF) is not built. Run the suggester on a few articles and open them in the sidebar to see how many items show "Not found on this page".

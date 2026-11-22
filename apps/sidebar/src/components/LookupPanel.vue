@@ -4,8 +4,8 @@
  * candidates. It never fills a field by itself: the curator picks a candidate,
  * or marks the text unresolvable.
  */
-import { type components, type Problem, toProblem, unwrap } from '@curanno/api-client';
-import { givesIds, type FieldLookup } from '@curanno/model';
+import { type components, type Problem, toProblem, unwrap } from '@anncur/api-client';
+import { givesIds, type FieldLookup } from '@anncur/model';
 import { computed, ref, watch } from 'vue';
 import { useApi } from '../api/client';
 import ProblemAlert from './ProblemAlert.vue';

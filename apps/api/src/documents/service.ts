@@ -13,8 +13,8 @@ import {
   resolveLink,
   type DocumentUri,
   type DocumentUriRelation,
-} from '@curanno/model';
-import type { components } from '@curanno/api-client';
+} from '@anncur/model';
+import type { components } from '@anncur/api-client';
 import type { Database } from '../db/index.js';
 import { isoDate } from '../annotations/serialize.js';
 

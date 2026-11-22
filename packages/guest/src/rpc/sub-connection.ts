@@ -9,7 +9,7 @@
  * else, and the sidebar learns this frame's origin from the browser. The
  * page around this frame takes no part in it.
  */
-import { RPC_PROTOCOL_VERSION, isFrameOf, parseWindowMessage } from '@curanno/model';
+import { RPC_PROTOCOL_VERSION, isFrameOf, parseWindowMessage } from '@anncur/model';
 import { PortConnection, type ConnectionOptions, type SidebarWindowLike } from './connection.js';
 
 export type SubGuestConnectionOptions = ConnectionOptions;

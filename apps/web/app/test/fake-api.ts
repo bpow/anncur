@@ -1,4 +1,4 @@
-import { createApiClient, type ApiClient } from '@curanno/api-client';
+import { createApiClient, type ApiClient } from '@anncur/api-client';
 
 export interface Call {
   method: string;

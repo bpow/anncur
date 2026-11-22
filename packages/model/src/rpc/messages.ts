@@ -11,7 +11,7 @@ import type { DocumentUriRelation } from '../document-identity/identity.js';
 import type { TextRange } from '../text-model/selectors.js';
 
 /** Identifies the protocol in every message, so unrelated `postMessage` traffic is ignored. */
-export const RPC_PROTOCOL = 'curanno/guest-sidebar';
+export const RPC_PROTOCOL = 'anncur/guest-sidebar';
 
 /**
  * Bumped for any change a peer of the previous version could not handle.

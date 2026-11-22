@@ -1,4 +1,4 @@
-import type { Annotation } from '@curanno/api-client';
+import type { Annotation } from '@anncur/api-client';
 import { describe, expect, it } from 'vitest';
 import { draftOf, rebuildInput, repairInput, splitInputs, withEditor } from './annotations';
 
@@ -53,7 +53,7 @@ describe('repairInput', () => {
 describe('drafts of structured bodies', () => {
   it('keep who made the body through an edit (ADR 0034)', () => {
     const creator = [
-      { type: 'Software' as const, name: 'curanno-extract', nickname: 'm / prompt 1' },
+      { type: 'Software' as const, name: 'anncur-extract', nickname: 'm / prompt 1' },
       { type: 'Person' as const, id: 'https://annotations.test/x/users/u-1' },
     ];
     const annotation = {
@@ -63,7 +63,7 @@ describe('drafts of structured bodies', () => {
       target: 'https://example.org/page',
       body: {
         type: 'StructuredBody',
-        profile: 'https://curanno.example/profiles/evidence-excerpt/1',
+        profile: 'https://anncur.example/profiles/evidence-excerpt/1',
         value: { kind: 'case' },
         creator,
         created: '2026-11-13T12:00:00.000Z',
@@ -80,7 +80,7 @@ describe('drafts of structured bodies', () => {
 });
 
 describe('withEditor', () => {
-  const model = { type: 'Software' as const, name: 'curanno-extract', nickname: 'm / prompt 1' };
+  const model = { type: 'Software' as const, name: 'anncur-extract', nickname: 'm / prompt 1' };
   const me = 'https://annotations.test/x/users/u-1';
   const curator = () => Promise.resolve(me);
   const made = { profile: 'p', value: { kind: 'case' }, creator: model };
@@ -113,7 +113,7 @@ describe('splitInputs', () => {
     'https://x.example/annotations/2',
     'https://x.example/annotations/3',
   ];
-  const model = { type: 'Software' as const, name: 'curanno-extract' };
+  const model = { type: 'Software' as const, name: 'anncur-extract' };
   const fact: Annotation = {
     '@context': 'http://www.w3.org/ns/anno.jsonld',
     id: 'https://x.example/annotations/9',

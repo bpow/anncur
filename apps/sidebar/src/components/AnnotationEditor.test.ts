@@ -4,7 +4,7 @@ import {
   caseIndividualProfile,
   evidenceExcerptProfile,
   individualProfile,
-} from '@curanno/model';
+} from '@anncur/model';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -71,7 +71,7 @@ describe('AnnotationEditor', () => {
   });
 
   it('keeps who made a structured body while it keeps its profile', async () => {
-    const creator = { type: 'Software' as const, name: 'curanno-extract' };
+    const creator = { type: 'Software' as const, name: 'anncur-extract' };
     const draft = {
       text: '',
       tags: [],

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SuggestionBatchSummary } from '@curanno/api-client';
+import type { SuggestionBatchSummary } from '@anncur/api-client';
 import { computed } from 'vue';
 import { definePageMeta, navigateTo, useRoute } from '#imports';
 import { useApi } from '../../api/client';

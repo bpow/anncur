@@ -5,12 +5,7 @@
  * the document). The guest owns the requests, results and highlights; the
  * integration answers where text is and when it changed.
  */
-import type {
-  GuestDocument,
-  GuestScopeText,
-  Selector,
-  TargetAnchoringResult,
-} from '@curanno/model';
+import type { GuestDocument, GuestScopeText, Selector, TargetAnchoringResult } from '@anncur/model';
 
 /** What anchoring one target produced: the result to report and the ranges to draw. */
 export interface AnchoredTarget {

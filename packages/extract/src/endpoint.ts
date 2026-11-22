@@ -4,7 +4,7 @@
  * configured, and its CSP lets it reach no other. A program outside the
  * browser, such as the bulk suggester, may send an API key.
  */
-import type { JsonSchema } from '@curanno/model';
+import type { JsonSchema } from '@anncur/model';
 import type { ChatMessage } from './prompt.js';
 
 export interface Endpoint {

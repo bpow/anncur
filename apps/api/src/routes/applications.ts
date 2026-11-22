@@ -1,5 +1,5 @@
 import type { Kysely } from 'kysely';
-import type { components } from '@curanno/api-client';
+import type { components } from '@anncur/api-client';
 import { decideApplication } from '../accounts/applications.js';
 import { requireAdmin } from '../auth/plugin.js';
 import { isoDate } from '../annotations/serialize.js';

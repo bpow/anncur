@@ -7,7 +7,7 @@
  * sidebar's and the viewer's frames, and every frame inside them, are
  * left alone.
  */
-import { Guest } from '@curanno/guest';
+import { Guest } from '@anncur/guest';
 import type { AnchorCountMessage } from './messages.js';
 import { excludedOrigins, loadSettings, sidebarLocation, validateSettings } from './settings.js';
 
@@ -17,7 +17,7 @@ interface ExtensionGuest {
 
 declare global {
   interface Window {
-    __curannoExtension?: ExtensionGuest;
+    __anncurExtension?: ExtensionGuest;
   }
 }
 
@@ -28,20 +28,20 @@ function report(count: number): void {
 }
 
 async function main(): Promise<void> {
-  if (window.__curannoExtension) return;
+  if (window.__anncurExtension) return;
   // Claimed before the await so that a second injection meanwhile stops here.
   const state: { guest?: Guest; stopped: boolean } = { stopped: false };
-  window.__curannoExtension = {
+  window.__anncurExtension = {
     stop() {
       state.stopped = true;
       state.guest?.destroy();
-      delete window.__curannoExtension;
+      delete window.__anncurExtension;
     },
   };
   const settings = await loadSettings();
   if (state.stopped) return;
   if (Object.keys(validateSettings(settings)).length > 0) {
-    console.error('[curanno extension] the settings are not valid; see the options page');
+    console.error('[anncur extension] the settings are not valid; see the options page');
     return;
   }
   // Frames inside the sidebar, such as the identity provider's, are excluded too.

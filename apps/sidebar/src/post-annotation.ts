@@ -4,7 +4,7 @@
  * purpose (ADR 0030). The composer and accepted suggestions both post
  * through this, so they stay the same.
  */
-import type { OneOrMany, Target } from '@curanno/model';
+import type { OneOrMany, Target } from '@anncur/model';
 import { buildInput, type AnnotationDraft } from './api/annotations';
 import type { GuestDocument } from './guest';
 import { useAnnotationsStore, type Versioned } from './stores/annotations';

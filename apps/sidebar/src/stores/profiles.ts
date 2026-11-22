@@ -6,11 +6,11 @@ import {
   type BodyProfile,
   type Motivation,
   type ValidationError,
-} from '@curanno/model';
+} from '@anncur/model';
 import { defineStore } from 'pinia';
 import { ref, shallowRef } from 'vue';
 import { useApi } from '../api/client';
-import { toProblem, unwrap, type Problem } from '@curanno/api-client';
+import { toProblem, unwrap, type Problem } from '@anncur/api-client';
 import { createRegistry, toModelProfile } from '../profiles/schema';
 
 export const useProfilesStore = defineStore('profiles', () => {

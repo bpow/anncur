@@ -2,7 +2,7 @@
  * The signed-in user's IRI, as the server names them as a creator: asked of
  * `/x/me` once per identity, since only the server knows its public URL.
  */
-import { unwrap } from '@curanno/api-client';
+import { unwrap } from '@anncur/api-client';
 import { useApi } from './api/client';
 
 let cached: Promise<string | undefined> | undefined;

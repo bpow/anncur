@@ -1,4 +1,4 @@
-import { builtinProfiles } from '@curanno/model';
+import { builtinProfiles } from '@anncur/model';
 import { describe, expect, it } from 'vitest';
 import type { Draft, DraftItem } from './draft.ts';
 import {
@@ -35,7 +35,7 @@ const variant = (id: string, value: Record<string, string>): DraftItem => ({
 const draft = (items: DraftItem[], notInBatch?: string[]): Draft => ({
   article: 'PMC0000001',
   gene: 'MYH7',
-  engine: { model: 'model', skill: 'curanno-suggest', version: '1' },
+  engine: { model: 'model', skill: 'anncur-suggest', version: '1' },
   items,
   ...(notInBatch ? { notInBatch } : {}),
 });

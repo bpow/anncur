@@ -12,7 +12,7 @@ import { createDb, listMigrations, migrate, PUBLIC_PRINCIPAL_ID } from './index.
 import { dropDatabase } from '../test/harness.js';
 
 const adminUrl = process.env['DATABASE_URL'];
-const dbName = `curanno_test_${Date.now().toString(36)}`;
+const dbName = `anncur_test_${Date.now().toString(36)}`;
 
 function withDatabase(url: string, name: string): string {
   const u = new URL(url);

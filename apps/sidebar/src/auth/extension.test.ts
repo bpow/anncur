@@ -1,4 +1,4 @@
-import { EXTENSION_BRIDGE } from '@curanno/model';
+import { EXTENSION_BRIDGE } from '@anncur/model';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { extensionNavigator, extensionRedirectUri, listenForExtension } from './extension';
 

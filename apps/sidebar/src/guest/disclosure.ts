@@ -9,7 +9,7 @@
  * or when the user allowed annotations from that origin on that page's
  * origin. The page's origin is the browser's report (ADR 0024).
  */
-import { sourcesOf, type OneOrMany, type Target } from '@curanno/model';
+import { sourcesOf, type OneOrMany, type Target } from '@anncur/model';
 
 /**
  * The key an origin is compared and remembered by: the host and port,
@@ -46,7 +46,7 @@ export interface ConsentStore {
   add(pageKey: string, sourceKey: string): void;
 }
 
-const STORAGE_KEY = 'curanno.disclosure';
+const STORAGE_KEY = 'anncur.disclosure';
 
 /**
  * Consent kept in the sidebar origin's `sessionStorage`, where the page

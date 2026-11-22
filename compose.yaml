@@ -8,15 +8,15 @@ services:
   postgres:
     image: docker.io/library/postgres:17-alpine
     environment:
-      POSTGRES_USER: curanno
-      POSTGRES_PASSWORD: curanno
-      POSTGRES_DB: curanno
+      POSTGRES_USER: anncur
+      POSTGRES_PASSWORD: anncur
+      POSTGRES_DB: anncur
     ports:
       - '${PGPORT:-5432}:5432'
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U curanno -d curanno']
+      test: ['CMD-SHELL', 'pg_isready -U anncur -d anncur']
       interval: 5s
       timeout: 3s
       retries: 10
@@ -37,10 +37,10 @@ services:
       ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
       ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: zitadel
       ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
-      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: curanno
-      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: curanno
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: anncur
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: anncur
       ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
-      ZITADEL_FIRSTINSTANCE_ORG_NAME: curanno-dev
+      ZITADEL_FIRSTINSTANCE_ORG_NAME: anncur-dev
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: 'false'
       # IAM_OWNER service account; deploy/zitadel/provision.ts uses its token.
       ZITADEL_FIRSTINSTANCE_PATPATH: /zitadel/bootstrap/admin.pat

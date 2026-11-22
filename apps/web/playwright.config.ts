@@ -5,7 +5,7 @@ import { devPort } from '../../dev-ports.ts';
  * End-to-end test against the real stack: the compose Postgres and
  * Zitadel (see the repository README), the API and the Nuxt dev server.
  * The API is started from its build output unless one is already listening;
- * run `pnpm build` and `pnpm --filter @curanno/api migrate` first.
+ * run `pnpm build` and `pnpm --filter @anncur/api migrate` first.
  */
 const ci = !!process.env['CI'];
 

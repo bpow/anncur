@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AnchoringState } from '@curanno/model';
+import type { AnchoringState } from '@anncur/model';
 import HintTooltip from './HintTooltip.vue';
 
 defineProps<{ state: AnchoringState | undefined }>();

@@ -52,7 +52,7 @@ export async function createInvite(
 export async function mailInvite(mailer: Mailer, email: string, link: string): Promise<void> {
   await mailer.send({
     to: email,
-    subject: 'You are invited to curanno',
+    subject: 'You are invited to anncur',
     text: `You have been invited to create an account.\n\nChoose a password here (the link works once, for a week):\n${link}\n`,
   });
 }

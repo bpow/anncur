@@ -5,7 +5,7 @@ import { devPort } from '../../dev-ports.ts';
  * End-to-end tests against the real stack: the compose Postgres and
  * Zitadel (see the repository README), the API and the Vite dev server.
  * The API is started from its build output unless one is already listening;
- * run `pnpm build` and `pnpm --filter @curanno/api migrate` first.
+ * run `pnpm build` and `pnpm --filter @anncur/api migrate` first.
  */
 const ci = !!process.env['CI'];
 // With the embedded issuer (ADR 0028) the issuer, and its sign-in page, are served from the site's origin.
@@ -40,7 +40,7 @@ export default defineConfig({
     ...(embedded
       ? [
           {
-            command: 'pnpm --filter @curanno/web dev',
+            command: 'pnpm --filter @anncur/web dev',
             url: `http://localhost:${devPort('WEB_PORT')}/`,
             reuseExistingServer: !ci,
             timeout: 120_000,

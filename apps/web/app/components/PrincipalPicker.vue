@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PrincipalRef } from '@curanno/api-client';
+import type { PrincipalRef } from '@anncur/api-client';
 import {
   AutocompleteContent,
   AutocompleteInput,

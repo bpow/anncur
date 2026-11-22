@@ -57,7 +57,7 @@ describe('createSessionConsent', () => {
 
   it('treats unreadable storage as no consent and works without storage', () => {
     const storage = memoryStorage();
-    storage.setItem('curanno.disclosure', '{not json');
+    storage.setItem('anncur.disclosure', '{not json');
     expect(createSessionConsent(storage).has('a', 'b')).toBe(false);
     const memory = createSessionConsent(null);
     memory.add('a', 'b');

@@ -17,7 +17,7 @@ import {
   type BodyProfile,
   type JsonSchema,
   type OntologyLookup,
-} from '@curanno/model';
+} from '@anncur/model';
 
 /** Where an ontology field is in a value: property names, and `*` for every array item. */
 export type ValuePath = string[];

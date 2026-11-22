@@ -6,7 +6,7 @@
  * kinds link to them by the batch's local ids, so nothing has to be saved
  * between the two.
  */
-import { unwrap, type SuggestionItemInput } from '@curanno/api-client';
+import { unwrap, type SuggestionItemInput } from '@anncur/api-client';
 import {
   EndpointError,
   PROMPT_VERSION,
@@ -17,13 +17,13 @@ import {
   type ScopeText,
   type Suggestion,
   type Term,
-} from '@curanno/extract';
+} from '@anncur/extract';
 import {
   pageFragmentSelector,
   type BodyProfile,
   type GuestScopeText,
   type SpecificResource,
-} from '@curanno/model';
+} from '@anncur/model';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useApi } from '../api/client';
@@ -187,7 +187,7 @@ export const useSuggestionsStore = defineStore('suggestions', () => {
                 links: document.links.map(({ uri, relation }) => ({ uri, relation })),
               },
               engine: {
-                name: 'curanno-extract',
+                name: 'anncur-extract',
                 version: `prompt ${PROMPT_VERSION}`,
                 nickname: `${request.model} / prompt ${PROMPT_VERSION}`,
               },

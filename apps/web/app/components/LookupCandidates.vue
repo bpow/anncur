@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { components } from '@curanno/api-client';
-import { givesIds, type FieldLookup } from '@curanno/model';
+import type { components } from '@anncur/api-client';
+import { givesIds, type FieldLookup } from '@anncur/model';
 
 type Resolution = components['schemas']['Resolution'];
 type Candidate = components['schemas']['ResolutionCandidate'];

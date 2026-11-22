@@ -7,7 +7,7 @@ import { computed, ref, watch } from 'vue';
 
 export const TEXT_SIZES = [12, 13, 14, 16, 18, 20, 22, 24] as const;
 export const DEFAULT_TEXT_SIZE = 14;
-const STORAGE_KEY = 'curanno.sidebar.textSize';
+const STORAGE_KEY = 'anncur.sidebar.textSize';
 
 function stored(): number {
   try {

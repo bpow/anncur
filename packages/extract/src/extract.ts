@@ -16,7 +16,7 @@ import {
   type StructuredBody,
   type TextSelectors,
   type ValidationError,
-} from '@curanno/model';
+} from '@anncur/model';
 import { chunkText, type Chunk, type ChunkOptions } from './chunk.js';
 import {
   EndpointError,
@@ -101,7 +101,7 @@ export interface ExtractOptions {
   now?: () => Date;
 }
 
-export const GENERATOR_NAME = 'curanno-extract';
+export const GENERATOR_NAME = 'anncur-extract';
 
 /** The body creator recorded for a suggestion from `model` (ADR 0034). */
 export function softwareAgent(model: string): Agent {

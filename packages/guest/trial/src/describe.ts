@@ -3,7 +3,7 @@
  * from its `select` against the original variant, and writes case.json
  * back. Pass case ids to limit it; `--force` regenerates existing selectors.
  *
- *   pnpm --filter @curanno/guest corpus:describe [--force] [case-id ...]
+ *   pnpm --filter @anncur/guest corpus:describe [--force] [case-id ...]
  */
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';

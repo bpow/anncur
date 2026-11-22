@@ -1,5 +1,5 @@
 import type { FastifyRequest } from 'fastify';
-import type { components } from '@curanno/api-client';
+import type { components } from '@anncur/api-client';
 import { isoDate } from '../annotations/serialize.js';
 import { requireUser } from '../auth/plugin.js';
 import { newSecret } from '../auth/tokens.js';

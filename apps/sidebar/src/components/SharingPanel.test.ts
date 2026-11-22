@@ -1,4 +1,4 @@
-import type { AclEntry, PrincipalRef } from '@curanno/api-client';
+import type { AclEntry, PrincipalRef } from '@anncur/api-client';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it } from 'vitest';

@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config';
 /**
  * Browser tests: they build the extension and load it into Chromium, so
  * they run apart from `pnpm test` through
- * `pnpm --filter @curanno/extension test:browser`.
+ * `pnpm --filter @anncur/extension test:browser`.
  */
 export default defineConfig({
   test: {
