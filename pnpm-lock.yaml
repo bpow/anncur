@@ -47,10 +47,10 @@ importers:
 
   apps/api:
     dependencies:
-      '@curanno/api-client':
+      '@anncur/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
-      '@curanno/model':
+      '@anncur/model':
         specifier: workspace:*
         version: link:../../packages/model
       '@fastify/static':
@@ -114,10 +114,10 @@ importers:
 
   apps/extension:
     dependencies:
-      '@curanno/guest':
+      '@anncur/guest':
         specifier: workspace:*
         version: link:../../packages/guest
-      '@curanno/model':
+      '@anncur/model':
         specifier: workspace:*
         version: link:../../packages/model
     devDependencies:
@@ -133,7 +133,7 @@ importers:
 
   apps/pdf-viewer:
     dependencies:
-      '@curanno/guest':
+      '@anncur/guest':
         specifier: workspace:*
         version: link:../../packages/guest
       pdfjs-dist:
@@ -146,13 +146,13 @@ importers:
 
   apps/sidebar:
     dependencies:
-      '@curanno/api-client':
+      '@anncur/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
-      '@curanno/extract':
+      '@anncur/extract':
         specifier: workspace:*
         version: link:../../packages/extract
-      '@curanno/model':
+      '@anncur/model':
         specifier: workspace:*
         version: link:../../packages/model
       '@vueuse/core':
@@ -180,12 +180,12 @@ importers:
         specifier: 3.5.44
         version: 3.5.44(typescript@6.0.3)
     devDependencies:
+      '@anncur/guest':
+        specifier: workspace:*
+        version: link:../../packages/guest
       '@axe-core/playwright':
         specifier: 4.14.0
         version: 4.14.0(playwright-core@1.64.1)
-      '@curanno/guest':
-        specifier: workspace:*
-        version: link:../../packages/guest
       '@playwright/test':
         specifier: 1.64.1
         version: 1.64.1
@@ -207,16 +207,16 @@ importers:
 
   apps/suggester:
     dependencies:
-      '@curanno/api-client':
+      '@anncur/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
-      '@curanno/extract':
+      '@anncur/extract':
         specifier: workspace:*
         version: link:../../packages/extract
-      '@curanno/guest':
+      '@anncur/guest':
         specifier: workspace:*
         version: link:../../packages/guest
-      '@curanno/model':
+      '@anncur/model':
         specifier: workspace:*
         version: link:../../packages/model
       ajv:
@@ -234,13 +234,13 @@ importers:
 
   apps/web:
     dependencies:
-      '@curanno/api-client':
+      '@anncur/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
-      '@curanno/guest':
+      '@anncur/guest':
         specifier: workspace:*
         version: link:../../packages/guest
-      '@curanno/model':
+      '@anncur/model':
         specifier: workspace:*
         version: link:../../packages/model
       '@vueuse/core':
@@ -287,7 +287,7 @@ importers:
 
   packages/extract:
     dependencies:
-      '@curanno/model':
+      '@anncur/model':
         specifier: workspace:*
         version: link:../model
     devDependencies:
@@ -303,7 +303,7 @@ importers:
 
   packages/guest:
     dependencies:
-      '@curanno/model':
+      '@anncur/model':
         specifier: workspace:*
         version: link:../model
       approx-string-match:
