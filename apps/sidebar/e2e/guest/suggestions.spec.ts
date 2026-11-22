@@ -22,7 +22,7 @@ import {
 
 const PAGE_URL = `${HOST_ORIGIN}${PAGE_PATH}`;
 const ENDPOINT = 'http://127.0.0.1:1234';
-const PROFILE = 'https://curanno.example/profiles/evidence-excerpt/1';
+const PROFILE = 'https://anncur.example/profiles/evidence-excerpt/1';
 const FIRST = 'Proposal A keeps the existing service running unchanged for another year.';
 const SECOND = 'Proposal B builds a new client on an existing library and writes the server fresh.';
 /** In the model's answer only: it must never be sent to the page. */
@@ -115,7 +115,7 @@ async function axeViolations(frame: Frame): Promise<string[]> {
 
 function suggestedTexts(): Promise<string[]> {
   return page.evaluate(() =>
-    [...(CSS.highlights.get('curanno-suggestion') ?? [])].map((r) => (r as Range).toString()),
+    [...(CSS.highlights.get('anncur-suggestion') ?? [])].map((r) => (r as Range).toString()),
   );
 }
 
@@ -167,7 +167,7 @@ test('suggestions from the model are posted for the group, highlighted, reviewed
             purpose: 'classifying',
             creator: {
               type: 'Software',
-              name: 'curanno-extract',
+              name: 'anncur-extract',
               nickname: 'test-model / prompt 3',
             },
           },

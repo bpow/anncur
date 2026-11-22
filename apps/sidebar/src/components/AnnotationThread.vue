@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Annotation } from '@curanno/api-client';
+import type { Annotation } from '@anncur/api-client';
 import { useAnnotationsStore } from '../stores/annotations';
 import AnnotationCard from './AnnotationCard.vue';
 

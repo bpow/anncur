@@ -27,7 +27,7 @@ function signinError(err: unknown): string {
   // A page with Cross-Origin-Opener-Policy: same-origin opens the popup but
   // cuts it off from this frame, which leaves it empty (ADR 0029).
   return message === POPUP_UNREACHABLE
-    ? 'This page blocks the sign-in window, so it stayed empty. Close it; the CurAnno browser extension can sign in on pages like this one.'
+    ? 'This page blocks the sign-in window, so it stayed empty. Close it; the Anncur browser extension can sign in on pages like this one.'
     : message;
 }
 

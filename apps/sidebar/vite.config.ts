@@ -50,7 +50,7 @@ export default defineConfig(({ mode }) => {
         ? (repo['PUBLIC_URL'] ?? `http://localhost:${devPort('WEB_PORT')}`).replace(/\/$/, '')
         : repo['OIDC_ISSUER'],
     ],
-    ['VITE_OIDC_CLIENT_ID', embedded ? 'curanno' : repo['OIDC_CLIENT_ID']],
+    ['VITE_OIDC_CLIENT_ID', embedded ? 'anncur' : repo['OIDC_CLIENT_ID']],
     ['VITE_PDF_VIEWER_ORIGIN', `http://localhost:${devPort('PDF_VIEWER_PORT')}`],
     ['VITE_EXTRACT_ENDPOINTS', repo['EXTRACT_ENDPOINTS']],
   ] as const) {

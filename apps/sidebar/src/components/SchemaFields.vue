@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { components } from '@curanno/api-client';
+import type { components } from '@anncur/api-client';
 import {
   idFieldsOf,
   linkedIris,
@@ -9,7 +9,7 @@ import {
   type FieldLookup,
   type JsonValue,
   type ValidationError,
-} from '@curanno/model';
+} from '@anncur/model';
 import { computed, inject } from 'vue';
 import {
   EXTRA_LINKS,

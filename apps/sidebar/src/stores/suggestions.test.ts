@@ -1,10 +1,10 @@
-import { answer, createFakeEndpoint } from '@curanno/extract/testing';
+import { answer, createFakeEndpoint } from '@anncur/extract/testing';
 import {
   caseFamilyProfile,
   caseIndividualProfile,
   evidenceExcerptProfile,
   individualProfile,
-} from '@curanno/model';
+} from '@anncur/model';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createFakeGuest } from '../guest/fake';
@@ -103,7 +103,7 @@ describe('suggestions store', () => {
     expect(batch).toMatchObject({
       group: GROUP,
       document: { uri: PAGE, title: 'Article', links: [{ uri: PAGE, relation: 'self' }] },
-      engine: { name: 'curanno-extract', version: 'prompt 3', nickname: 'm / prompt 3' },
+      engine: { name: 'anncur-extract', version: 'prompt 3', nickname: 'm / prompt 3' },
       items: [
         {
           id: '_:s1',

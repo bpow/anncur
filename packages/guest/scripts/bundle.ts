@@ -5,7 +5,7 @@
  * the compiled library. The model package is bundled from source so a stale
  * `dist/` can never leak into the guest.
  *
- *   pnpm --filter @curanno/guest bundle [--out-dir dir] [--no-minify] [--watch]
+ *   pnpm --filter @anncur/guest bundle [--out-dir dir] [--no-minify] [--watch]
  */
 import path from 'node:path';
 import { parseArgs } from 'node:util';
@@ -39,7 +39,7 @@ export function bundleConfig(options: BundleOptions = {}): esbuild.BuildOptions 
     minify: options.minify ?? true,
     sourcemap: true,
     legalComments: 'inline',
-    alias: { '@curanno/model': MODEL_ENTRY },
+    alias: { '@anncur/model': MODEL_ENTRY },
     logLevel: 'warning',
   };
 }

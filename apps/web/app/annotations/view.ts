@@ -1,8 +1,8 @@
 /**
- * How the site shows annotations beyond what `@curanno/model` reads from
+ * How the site shows annotations beyond what `@anncur/model` reads from
  * them: excerpts and the body shapes the detail page renders.
  */
-import { isStructuredBody, isTextualBody, toArray, type Body } from '@curanno/model';
+import { isStructuredBody, isTextualBody, toArray, type Body } from '@anncur/model';
 
 export function excerpt(text: string, max = 160): string {
   return text.length > max ? `${text.slice(0, max - 1)}…` : text;

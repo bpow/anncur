@@ -4,7 +4,7 @@
  * (Chromium refuses to let a page it cannot place on the network embed a
  * frame from localhost). Build the bundle first.
  *
- *   pnpm --filter @curanno/guest serve:corpus -- --host 127.0.0.1 --port 4180 [--root dir]
+ *   pnpm --filter @anncur/guest serve:corpus -- --host 127.0.0.1 --port 4180 [--root dir]
  *
  * `--root` adds a directory to serve (the bookmarklet suite's own pages).
  */
@@ -33,7 +33,7 @@ const extraRoots = args.root.map((root) => path.resolve(root));
 try {
   await access(path.join(BUILD_DIR, 'guest.js'));
 } catch {
-  console.error(`no guest bundle in ${BUILD_DIR}; run pnpm --filter @curanno/guest bundle first`);
+  console.error(`no guest bundle in ${BUILD_DIR}; run pnpm --filter @anncur/guest bundle first`);
   process.exit(2);
 }
 

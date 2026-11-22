@@ -14,7 +14,7 @@ import {
   type TextPoint,
   type TextRange,
   type XPathSelector,
-} from '@curanno/model';
+} from '@anncur/model';
 import { domRangeOf, textRangeOf, type AnchoringScope } from './scope.js';
 import { xpathFromNode } from './xpath.js';
 

@@ -15,12 +15,12 @@ export interface Metrics {
 export function installMetrics(app: FastifyInstance, options: { enabled: boolean }): Metrics {
   const registry = new Registry();
   const eventStreams = new Gauge({
-    name: 'curanno_event_streams_open',
+    name: 'anncur_event_streams_open',
     help: 'Server-sent event streams currently open',
     registers: [registry],
   });
   const eventsDelivered = new Counter({
-    name: 'curanno_events_delivered_total',
+    name: 'anncur_events_delivered_total',
     help: 'Annotation events written to event streams, by kind',
     labelNames: ['kind'],
     registers: [registry],

@@ -3,8 +3,8 @@
  * through the API, and the kinds a run or a draft names.
  */
 import { createHash } from 'node:crypto';
-import { unwrap, type ApiClient } from '@curanno/api-client';
-import { exactTerm, outputSchema, type ResolveTerms, type Term } from '@curanno/extract';
+import { unwrap, type ApiClient } from '@anncur/api-client';
+import { exactTerm, outputSchema, type ResolveTerms, type Term } from '@anncur/extract';
 import {
   ProfileRegistry,
   addAnnotationFormats,
@@ -12,7 +12,7 @@ import {
   isDerived,
   type BodyProfile,
   type StructuredBody,
-} from '@curanno/model';
+} from '@anncur/model';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 

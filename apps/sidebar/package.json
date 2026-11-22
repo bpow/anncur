@@ -1,5 +1,5 @@
 {
-  "name": "@curanno/sidebar",
+  "name": "@anncur/sidebar",
   "version": "0.0.0",
   "private": true,
   "description": "Sidebar app (Vue 3 + Vite) served from our origin in an iframe",
@@ -14,9 +14,9 @@
     "e2e:guest": "playwright test -c playwright.guest.config.ts"
   },
   "dependencies": {
-    "@curanno/api-client": "workspace:*",
-    "@curanno/extract": "workspace:*",
-    "@curanno/model": "workspace:*",
+    "@anncur/api-client": "workspace:*",
+    "@anncur/extract": "workspace:*",
+    "@anncur/model": "workspace:*",
     "@vueuse/core": "^14.4.0",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",
-    "@curanno/guest": "workspace:*",
+    "@anncur/guest": "workspace:*",
     "@playwright/test": "1.64.1",
     "@types/markdown-it": "^14.2.0",
     "@vitejs/plugin-vue": "^6.0.10",

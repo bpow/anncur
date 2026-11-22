@@ -1,6 +1,6 @@
 # Individuals and facts
 
-CurAnno records a case as several small annotations, each anchored on the passage that states it (ADR 0035):
+Anncur records a case as several small annotations, each anchored on the passage that states it (ADR 0035):
 
 - **One `individual`** per person, quoted where the article first describes them, with `case` as their label.
 - **Facts** about them, each one quoted where the article states it, and naming its individuals in `individuals` by their local ids:
@@ -10,7 +10,7 @@ CurAnno records a case as several small annotations, each anchored on the passag
   - `case-testing`
   - `case-disease`
 
-CurAnno then computes the whole-individual record, ClinGen's Case-Individuals template, from the facts. You never write that record yourself, because the `case-individual` kind is computed.
+Anncur then computes the whole-individual record, ClinGen's Case-Individuals template, from the facts. You never write that record yourself, because the `case-individual` kind is computed.
 
 ## Rules
 
@@ -18,7 +18,7 @@ CurAnno then computes the whole-individual record, ClinGen's Case-Individuals te
 - **One fact per statement.** A sentence that says the same thing about several individuals is one fact naming them all: "All three siblings had cardiomyopathy" is one `case-phenotypes` fact naming three individuals. Split it only where what is said differs: "onset at 3 and 5 years respectively" makes two facts with the same quote.
 - **One kind per fact.** A passage that states a phenotype and a family history gives one fact of each kind, which may share the quote.
 - **Anchor on the evidence.** Quote the sentence that states the fact, not the individual's first mention, unless that is where the fact is stated.
-- **Keep facts small.** Several facts of a kind for one individual are fine, and CurAnno combines them. A variant fact holds one variant.
+- **Keep facts small.** Several facts of a kind for one individual are fine, and Anncur combines them. A variant fact holds one variant.
 - **Relatives without the variant are not individuals.** They belong in a family history fact about the proband.
 
 ## A worked example

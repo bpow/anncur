@@ -8,7 +8,7 @@
 import type { FastifyInstance } from 'fastify';
 import { createLocalJWKSet, type JWTVerifyGetKey } from 'jose';
 import type { Kysely } from 'kysely';
-import { extensionRedirectUri } from '@curanno/model';
+import { extensionRedirectUri } from '@anncur/model';
 import Provider, { type Configuration } from 'oidc-provider';
 import type { Config } from '../../config.js';
 import type { AccountMail } from '../../routes/context.js';
@@ -91,7 +91,7 @@ export async function createEmbeddedIssuer(options: {
     onApplication: (applicant) => tellAdministrators(db, mailer, issuer, applicant),
     ...(options.upstreamClients ? { clientFor: options.upstreamClients } : {}),
   });
-  const bindingCookie = https ? '__Host-curanno_up' : 'curanno_up';
+  const bindingCookie = https ? '__Host-anncur_up' : 'anncur_up';
 
   let keys = await loadSigningKeys(db, secret);
   const provider = new Provider(issuer, providerConfiguration());
@@ -127,9 +127,7 @@ export async function createEmbeddedIssuer(options: {
         await mailer.send({
           to: email,
           subject:
-            decision === 'approved'
-              ? 'Your curanno account is approved'
-              : 'Your curanno application',
+            decision === 'approved' ? 'Your anncur account is approved' : 'Your anncur application',
           text:
             (decision === 'approved'
               ? `Your account is approved. Sign in at ${issuer}\n`

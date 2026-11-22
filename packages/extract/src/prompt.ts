@@ -6,7 +6,7 @@
  * the first line of defence against instructions in the page; the rest is
  * that the answer can only be quotes that anchor and values that validate.
  */
-import type { BodyProfile, JsonSchema } from '@curanno/model';
+import type { BodyProfile, JsonSchema } from '@anncur/model';
 
 /** Recorded in each accepted body's creator (ADR 0034); change it whenever the wording changes. */
 export const PROMPT_VERSION = '3';

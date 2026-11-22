@@ -8,12 +8,12 @@
  * so https pages block the bundle as mixed content; use the served pages or
  * an http page for those.
  *
- *   pnpm --filter @curanno/guest dev [--sidebar-origin http://localhost:3001 [--sidebar-path /sidebar/]]
+ *   pnpm --filter @anncur/guest dev [--sidebar-origin http://localhost:3001 [--sidebar-path /sidebar/]]
  */
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
-import { bookmarkletUrl, validateSidebar } from '@curanno/guest';
+import { bookmarkletUrl, validateSidebar } from '@anncur/guest';
 import { devPort } from '../../../dev-ports.ts';
 import { BUILD_DIR, watchGuest } from './bundle.ts';
 import { serve } from './serve.ts';

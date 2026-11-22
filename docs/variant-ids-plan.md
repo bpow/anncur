@@ -2,7 +2,7 @@
 
 **Status:** Prototyped. Every step of section 8 is done on `claude/external-variant-id-lookup-wpqvc0`; section 7 lists what is left for later.
 
-How CurAnno helps curators find the ClinGen Allele Registry ID (CAID), the ClinVar Variation ID and the gnomAD ID for a variant an article reports. The decisions are recorded in [ADR 0039](adr/0039-variant-lookup-through-the-api.md).
+How Anncur helps curators find the ClinGen Allele Registry ID (CAID), the ClinVar Variation ID and the gnomAD ID for a variant an article reports. The decisions are recorded in [ADR 0039](adr/0039-variant-lookup-through-the-api.md).
 
 ## 1. Goals
 
@@ -14,7 +14,7 @@ How CurAnno helps curators find the ClinGen Allele Registry ID (CAID), the ClinV
 
 ### Not in this plan
 
-- **Registering variants in the Allele Registry.** Curators have no Allele Registry accounts, and CurAnno does not register variants. A candidate the registry does not know gets a link to the registry's own page, where a curator with an account can register it.
+- **Registering variants in the Allele Registry.** Curators have no Allele Registry accounts, and Anncur does not register variants. A candidate the registry does not know gets a link to the registry's own page, where a curator with an account can register it.
 - **A per-gene variant catalog** that would fill new facts from earlier ones.
 - **Structural variants and copy-number changes.** Neither the registry nor this lookup handles them well. Curators mark them `unresolvable`.
 - **Guessing HGVS from legacy names** (`IVS4+1G>A`, "exon 13 deletion") with a language model. Section 7 records how this could work.

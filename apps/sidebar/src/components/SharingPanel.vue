@@ -5,8 +5,8 @@ import {
   toProblem,
   unwrap,
   type Problem,
-} from '@curanno/api-client';
-import type { Permission } from '@curanno/model';
+} from '@anncur/api-client';
+import type { Permission } from '@anncur/model';
 import { onMounted, ref } from 'vue';
 import { useApi } from '../api/client';
 import AclEditor from './AclEditor.vue';

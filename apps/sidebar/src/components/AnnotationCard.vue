@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type Annotation, toProblem, type Problem } from '@curanno/api-client';
+import { type Annotation, toProblem, type Problem } from '@anncur/api-client';
 import {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -19,7 +19,7 @@ import {
   quoteOf,
   structuredBodies,
   tagsOf,
-} from '@curanno/model';
+} from '@anncur/model';
 import {
   buildInput,
   can,

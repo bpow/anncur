@@ -5,8 +5,8 @@ import {
   individualProfile,
   type BodyProfile,
   type JsonValue,
-} from '@curanno/model';
-import type { Annotation } from '@curanno/api-client';
+} from '@anncur/model';
+import type { Annotation } from '@anncur/api-client';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { describe, expect, it } from 'vitest';
@@ -98,7 +98,7 @@ describe('StructuredBodyEditor', () => {
 
   describe('object lists', () => {
     const profile: BodyProfile = {
-      iri: 'https://curanno.example/profiles/test-list/1',
+      iri: 'https://anncur.example/profiles/test-list/1',
       title: 'List test',
       schema: {
         type: 'object',

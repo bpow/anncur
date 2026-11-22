@@ -12,7 +12,7 @@ import {
   type UpdateResult,
 } from 'kysely';
 import { jsonArrayFrom } from 'kysely/helpers/postgres';
-import { stableStringify, type AnchoringState, type Permission } from '@curanno/model';
+import { stableStringify, type AnchoringState, type Permission } from '@anncur/model';
 import type { Caller, UserCaller } from '../auth/caller.js';
 import { PUBLIC_PRINCIPAL_ID, type Database } from '../db/index.js';
 import { documentForSource } from '../documents/service.js';

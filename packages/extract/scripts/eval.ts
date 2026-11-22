@@ -3,7 +3,7 @@
  * endpoint and reports how close it comes to what a curator recorded
  * (docs/extraction-plan.md, section 3.3). Not part of CI: it needs a model.
  *
- *   pnpm --filter @curanno/extract eval -- --endpoint http://localhost:11434 --model llama3.1:8b
+ *   pnpm --filter @anncur/extract eval -- --endpoint http://localhost:11434 --model llama3.1:8b
  *
  * Options: --corpus DIR (default ./corpus), --max-chars N, --overlap N,
  * --concurrency N, --api URL (resolve ontology labels through a running
@@ -45,7 +45,7 @@ import {
   type BodyProfile,
   type DomLikeNode,
   type StructuredBody,
-} from '@curanno/model';
+} from '@anncur/model';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 import { Window } from 'happy-dom';

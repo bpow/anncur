@@ -95,7 +95,7 @@ describe('a hostile host page', () => {
           out[name] = `threw ${(err as Error).name}`;
         }
       };
-      const host = document.querySelector('[data-curanno-guest="sidebar"]');
+      const host = document.querySelector('[data-anncur-guest="sidebar"]');
       attempt('iframes in light DOM', () => document.querySelectorAll('iframe').length);
       attempt('host shadowRoot', () => host?.shadowRoot);
       attempt('child windows', () => window.frames.length);
@@ -107,7 +107,7 @@ describe('a hostile host page', () => {
         'frame global',
         () => (frame as (Window & { __fakeSidebar?: unknown }) | undefined)?.__fakeSidebar,
       );
-      attempt('guest global keys', () => Object.keys(window.__curannoGuest ?? {}));
+      attempt('guest global keys', () => Object.keys(window.__anncurGuest ?? {}));
       return out;
     });
     expect(attempts['iframes in light DOM']).toBe('0');
@@ -159,11 +159,11 @@ describe('a hostile host page', () => {
   });
 
   it('cannot drive the guest through window messages', async () => {
-    const before = await page.evaluate(() => CSS.highlights.get('curanno-annotation')?.size ?? 0);
+    const before = await page.evaluate(() => CSS.highlights.get('anncur-annotation')?.size ?? 0);
     await page.evaluate(() => {
       window.postMessage(
         {
-          protocol: 'curanno/guest-sidebar',
+          protocol: 'anncur/guest-sidebar',
           version: 1,
           type: 'annotations.unanchor',
           ids: ['urn:secret-annotation'],
@@ -171,12 +171,12 @@ describe('a hostile host page', () => {
         '*',
       );
       window.postMessage(
-        { protocol: 'curanno/guest-sidebar', version: 1, type: 'sidebar.ready' },
+        { protocol: 'anncur/guest-sidebar', version: 1, type: 'sidebar.ready' },
         '*',
       );
     });
     await page.waitForTimeout(300);
-    expect(await page.evaluate(() => CSS.highlights.get('curanno-annotation')?.size ?? 0)).toBe(
+    expect(await page.evaluate(() => CSS.highlights.get('anncur-annotation')?.size ?? 0)).toBe(
       before,
     );
     // The spoofed sidebar.ready from the page itself did not start a new connection.

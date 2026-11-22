@@ -4,7 +4,7 @@
  * highlights, selection, re-anchoring after DOM changes, focus, scroll,
  * clicks and teardown.
  */
-import type { AnchoringResult, GuestMessage } from '@curanno/model';
+import type { AnchoringResult, GuestMessage } from '@anncur/model';
 import type { Frame, Page } from 'playwright';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { injectGuest, selectText, startHarness, type Harness } from './harness.ts';
@@ -25,7 +25,7 @@ async function results(): Promise<AnchoringResult[]> {
 
 async function highlightedTexts(): Promise<string[]> {
   return page.evaluate(() =>
-    [...(CSS.highlights.get('curanno-annotation') ?? [])].map((r) => (r as Range).toString()),
+    [...(CSS.highlights.get('anncur-annotation') ?? [])].map((r) => (r as Range).toString()),
   );
 }
 
@@ -77,7 +77,7 @@ describe('guest and fake sidebar', () => {
     const doc = await sidebar.evaluate(() => window.__fakeSidebar.document);
     expect(doc?.uri).toBe(PAGE_URL());
     expect(doc?.links[0]).toEqual({ uri: PAGE_URL(), relation: 'self' });
-    expect(await page.evaluate(() => typeof window.__curannoGuest?.toggleSidebar)).toBe('function');
+    expect(await page.evaluate(() => typeof window.__anncurGuest?.toggleSidebar)).toBe('function');
 
     // A second injection toggles the sidebar instead of loading again.
     await page.evaluate(h.injectSource);
@@ -115,11 +115,11 @@ describe('guest and fake sidebar', () => {
     await anchorQuote('urn:a1', 'Four members supported it');
     await sidebar.evaluate(() => window.__fakeSidebar.focus(['urn:a1']));
     await page.waitForFunction(
-      () => (CSS.highlights.get('curanno-annotation-focus')?.size ?? 0) === 1,
+      () => (CSS.highlights.get('anncur-annotation-focus')?.size ?? 0) === 1,
     );
     await sidebar.evaluate(() => window.__fakeSidebar.unanchor(['urn:a1']));
-    await page.waitForFunction(() => (CSS.highlights.get('curanno-annotation')?.size ?? 0) === 0);
-    expect(await page.evaluate(() => CSS.highlights.get('curanno-annotation-focus')?.size)).toBe(0);
+    await page.waitForFunction(() => (CSS.highlights.get('anncur-annotation')?.size ?? 0) === 0);
+    expect(await page.evaluate(() => CSS.highlights.get('anncur-annotation-focus')?.size)).toBe(0);
   });
 
   it('reports selections as selectors on the page and clears them on request', async () => {
@@ -169,7 +169,7 @@ describe('guest and fake sidebar', () => {
     await sidebar.evaluate(() => window.__fakeSidebar.scrollTo('urn:a1'));
     await page.waitForTimeout(500);
     const box = await page.evaluate(() => {
-      const range = [...CSS.highlights.get('curanno-annotation')!][0] as Range;
+      const range = [...CSS.highlights.get('anncur-annotation')!][0] as Range;
       const rect = range.getBoundingClientRect();
       return {
         x: rect.left + rect.width / 2,
@@ -189,12 +189,12 @@ describe('guest and fake sidebar', () => {
 
   it('tears down cleanly', async () => {
     await anchorQuote('urn:a1', 'Four members supported it');
-    await page.evaluate(() => window.__curannoGuest?.destroy());
-    expect(await page.evaluate(() => window.__curannoGuest)).toBeUndefined();
+    await page.evaluate(() => window.__anncurGuest?.destroy());
+    expect(await page.evaluate(() => window.__anncurGuest)).toBeUndefined();
     expect(page.frames().filter((f) => f.url().startsWith(h.sidebar.origin))).toHaveLength(0);
-    expect(
-      await page.evaluate(() => document.querySelectorAll('[data-curanno-guest]').length),
-    ).toBe(0);
+    expect(await page.evaluate(() => document.querySelectorAll('[data-anncur-guest]').length)).toBe(
+      0,
+    );
     expect(await page.evaluate(() => CSS.highlights.size)).toBe(0);
   });
 
@@ -233,10 +233,10 @@ describe('guest and fake sidebar', () => {
     );
     await sidebar.waitForFunction(() => window.__fakeSidebar.anchoring.has('urn:uuid:suggested-1'));
     const drawn = await page.evaluate(() => ({
-      suggested: [...(CSS.highlights.get('curanno-suggestion') ?? [])].map((r) =>
+      suggested: [...(CSS.highlights.get('anncur-suggestion') ?? [])].map((r) =>
         (r as Range).toString(),
       ),
-      annotations: [...(CSS.highlights.get('curanno-annotation') ?? [])].length,
+      annotations: [...(CSS.highlights.get('anncur-annotation') ?? [])].length,
     }));
     expect(drawn).toEqual({ suggested: [exact], annotations: 0 });
   });

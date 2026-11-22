@@ -5,7 +5,7 @@ import {
   caseIndividualProfile,
   evidenceExcerptProfile,
   type StructuredBody,
-} from '@curanno/model';
+} from '@anncur/model';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import { describe, expect, it } from 'vitest';
 import { EndpointError } from './endpoint.js';
@@ -60,7 +60,7 @@ describe('extract', () => {
       created: '2026-11-13T12:00:00.000Z',
       creator: {
         type: 'Software',
-        name: 'curanno-extract',
+        name: 'anncur-extract',
         nickname: `test-model / prompt ${PROMPT_VERSION}`,
       },
       selectors: {
@@ -332,7 +332,7 @@ describe('extract', () => {
   it('names the model in the body creator', () => {
     expect(softwareAgent('llama3.1:8b')).toEqual({
       type: 'Software',
-      name: 'curanno-extract',
+      name: 'anncur-extract',
       nickname: `llama3.1:8b / prompt ${PROMPT_VERSION}`,
     });
   });

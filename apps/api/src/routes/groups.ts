@@ -1,6 +1,6 @@
 import type { FastifyRequest } from 'fastify';
 import { sql, type Transaction } from 'kysely';
-import type { components } from '@curanno/api-client';
+import type { components } from '@anncur/api-client';
 import { requireUser } from '../auth/plugin.js';
 import type { UserCaller } from '../auth/caller.js';
 import type { Database, GroupRole } from '../db/index.js';

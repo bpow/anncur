@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { GroupRole, Membership, PrincipalRef } from '@curanno/api-client';
+import type { GroupRole, Membership, PrincipalRef } from '@anncur/api-client';
 import { NuxtLink } from '#components';
 import { useApi } from '../api/client';
 import { useAction, useRequest } from '../composables/request';

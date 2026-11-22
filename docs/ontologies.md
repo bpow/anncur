@@ -8,9 +8,9 @@ An operator imports a release in OBO Graphs JSON, the `.json` file OBO Foundry o
 
 ```bash
 curl -LO https://github.com/obophenotype/human-phenotype-ontology/releases/latest/download/hp.json
-pnpm --filter @curanno/api ontology import hp hp.json --homepage http://www.human-phenotype-ontology.org
+pnpm --filter @anncur/api ontology import hp hp.json --homepage http://www.human-phenotype-ontology.org
 # or, in a pod: node dist/ontologies/cli.js import hp hp.json --homepage http://www.human-phenotype-ontology.org
-pnpm --filter @curanno/api ontology list
+pnpm --filter @anncur/api ontology list
 ```
 
 The name is the ontology's CURIE prefix in lower case (`hp` for `HP:0001639`). An import replaces everything stored under that name in one transaction, so it can be rerun for each new release. The API reads ontologies but never changes them. A deployment with no HPO loaded still works: the editor says lookup is unavailable and keeps what users type as text.

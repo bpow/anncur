@@ -4,7 +4,7 @@ import {
   caseIndividualProfile,
   evidenceExcerptProfile,
   type BodyProfile,
-} from '@curanno/model';
+} from '@anncur/model';
 import { describe, expect, it } from 'vitest';
 import { UnsupportedProfileError, outputSchema } from './schema.js';
 
@@ -61,7 +61,7 @@ describe('outputSchema', () => {
     const { valueSchema, link } = outputSchema(caseFamilyProfile, ['II-1', 'II-2', 'II-1']);
     expect(link).toEqual({
       field: 'individuals',
-      profile: 'https://curanno.example/profiles/individual/1',
+      profile: 'https://anncur.example/profiles/individual/1',
       label: 'case',
       multiple: true,
     });

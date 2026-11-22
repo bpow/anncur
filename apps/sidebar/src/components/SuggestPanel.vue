@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { unwrap, type GroupRef } from '@curanno/api-client';
-import { outputSchema } from '@curanno/extract';
+import { unwrap, type GroupRef } from '@anncur/api-client';
+import { outputSchema } from '@anncur/extract';
 import { computed, ref, watch } from 'vue';
 import { useApi } from '../api/client';
 import { config } from '../config';
@@ -18,7 +18,7 @@ const suggestions = useSuggestionsStore();
 const annotations = useAnnotationsStore();
 const batches = useBatchesStore();
 
-const CHOICE_KEY = 'curanno.suggest';
+const CHOICE_KEY = 'anncur.suggest';
 
 interface Choice {
   endpoint?: string;

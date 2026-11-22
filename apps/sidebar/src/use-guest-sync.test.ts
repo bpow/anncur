@@ -1,4 +1,4 @@
-import type { Annotation } from '@curanno/api-client';
+import type { Annotation } from '@anncur/api-client';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { effectScope, nextTick } from 'vue';

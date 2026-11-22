@@ -12,18 +12,18 @@ jobs:
       postgres:
         image: postgres:17-alpine
         env:
-          POSTGRES_USER: curanno
-          POSTGRES_PASSWORD: curanno
-          POSTGRES_DB: curanno
+          POSTGRES_USER: anncur
+          POSTGRES_PASSWORD: anncur
+          POSTGRES_DB: anncur
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U curanno -d curanno"
+          --health-cmd "pg_isready -U anncur -d anncur"
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
     env:
-      DATABASE_URL: postgres://curanno:curanno@localhost:5432/curanno
+      DATABASE_URL: postgres://anncur:anncur@localhost:5432/anncur
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
@@ -64,9 +64,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm --filter @curanno/guest exec playwright install --with-deps chromium
-      - run: pnpm --filter @curanno/guest test:browser
-      - run: pnpm --filter @curanno/guest trial
+      - run: pnpm --filter @anncur/guest exec playwright install --with-deps chromium
+      - run: pnpm --filter @anncur/guest test:browser
+      - run: pnpm --filter @anncur/guest trial
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -84,8 +84,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm --filter @curanno/extension exec playwright install --with-deps chromium
-      - run: pnpm --filter @curanno/extension test:browser
+      - run: pnpm --filter @anncur/extension exec playwright install --with-deps chromium
+      - run: pnpm --filter @anncur/extension test:browser
 
   # The sidebar's end-to-end test needs Postgres, Zitadel, the API and the
   # Vite dev server. Postgres and Zitadel come from compose.yaml, as they do
@@ -96,7 +96,7 @@ jobs:
   sidebar-e2e:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: postgres://curanno:curanno@localhost:5432/curanno
+      DATABASE_URL: postgres://anncur:anncur@localhost:5432/anncur
       PUBLIC_URL: http://localhost:3000
       PORT: 3000
       LOG_LEVEL: warn
@@ -111,12 +111,12 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm --filter @curanno/sidebar exec playwright install --with-deps chromium
+      - run: pnpm --filter @anncur/sidebar exec playwright install --with-deps chromium
       - name: Wait for the compose stack
         run: docker compose up -d --wait --wait-timeout 300 || (docker compose logs; exit 1)
-      - run: pnpm --filter @curanno/api migrate
+      - run: pnpm --filter @anncur/api migrate
       - run: cat deploy/zitadel/.bootstrap/oidc.env >> "$GITHUB_ENV"
-      - run: pnpm --filter @curanno/sidebar e2e
+      - run: pnpm --filter @anncur/sidebar e2e
       # Discovery, the JWKS and a real token from this Zitadel, accepted by the API.
       - run: pnpm vitest run apps/api/src/auth/oidc-live.test.ts
         env:
@@ -145,11 +145,11 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm --filter @curanno/guest bundle
-      - run: pnpm --filter @curanno/sidebar build
-      - run: pnpm --filter @curanno/pdf-viewer build
-      - run: pnpm --filter @curanno/sidebar exec playwright install --with-deps chromium
-      - run: pnpm --filter @curanno/sidebar e2e:guest
+      - run: pnpm --filter @anncur/guest bundle
+      - run: pnpm --filter @anncur/sidebar build
+      - run: pnpm --filter @anncur/pdf-viewer build
+      - run: pnpm --filter @anncur/sidebar exec playwright install --with-deps chromium
+      - run: pnpm --filter @anncur/sidebar e2e:guest
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -162,7 +162,7 @@ jobs:
   web-e2e:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: postgres://curanno:curanno@localhost:5432/curanno
+      DATABASE_URL: postgres://anncur:anncur@localhost:5432/anncur
       PUBLIC_URL: http://localhost:3000
       PORT: 3000
       LOG_LEVEL: warn
@@ -177,12 +177,12 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm --filter @curanno/web exec playwright install --with-deps chromium
+      - run: pnpm --filter @anncur/web exec playwright install --with-deps chromium
       - name: Wait for the compose stack
         run: docker compose up -d --wait --wait-timeout 300 || (docker compose logs; exit 1)
-      - run: pnpm --filter @curanno/api migrate
+      - run: pnpm --filter @anncur/api migrate
       - run: cat deploy/zitadel/.bootstrap/oidc.env >> "$GITHUB_ENV"
-      - run: pnpm --filter @curanno/web e2e
+      - run: pnpm --filter @anncur/web e2e
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -201,15 +201,15 @@ jobs:
       postgres:
         image: postgres:17
         env:
-          POSTGRES_USER: curanno
-          POSTGRES_PASSWORD: curanno
-          POSTGRES_DB: curanno
+          POSTGRES_USER: anncur
+          POSTGRES_PASSWORD: anncur
+          POSTGRES_DB: anncur
         ports: ['5432:5432']
         options: >-
-          --health-cmd "pg_isready -U curanno" --health-interval 5s --health-timeout 5s
+          --health-cmd "pg_isready -U anncur" --health-interval 5s --health-timeout 5s
           --health-retries 10
     env:
-      DATABASE_URL: postgres://curanno:curanno@localhost:5432/curanno
+      DATABASE_URL: postgres://anncur:anncur@localhost:5432/anncur
       AUTH_MODE: embedded
       AUTH_SECRET: ci-only-secret-of-at-least-32-characters
       PUBLIC_URL: http://localhost:3001
@@ -226,14 +226,14 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm --filter @curanno/web exec playwright install --with-deps chromium
-      - run: pnpm --filter @curanno/api migrate
+      - run: pnpm --filter @anncur/web exec playwright install --with-deps chromium
+      - run: pnpm --filter @anncur/api migrate
       - name: Create the test users
         run: |
-          ACCOUNT_PASSWORD=alice-e2e-password pnpm --filter @curanno/api account create --login alice --name "Alice Annotator" --admin
-          ACCOUNT_PASSWORD=bob-e2e-password pnpm --filter @curanno/api account create --login bob --name "Bob Reviewer"
-      - run: pnpm --filter @curanno/web e2e
-      - run: pnpm --filter @curanno/sidebar e2e
+          ACCOUNT_PASSWORD=alice-e2e-password pnpm --filter @anncur/api account create --login alice --name "Alice Annotator" --admin
+          ACCOUNT_PASSWORD=bob-e2e-password pnpm --filter @anncur/api account create --login bob --name "Bob Reviewer"
+      - run: pnpm --filter @anncur/web e2e
+      - run: pnpm --filter @anncur/sidebar e2e
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -251,21 +251,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - run: docker build --target api -t curanno-api -f Dockerfile .
-      - run: docker build --target web -t curanno-web -f Dockerfile .
+      - run: docker build --target api -t anncur-api -f Dockerfile .
+      - run: docker build --target web -t anncur-web -f Dockerfile .
       - run: >-
-          docker run --rm curanno-api node -e
+          docker run --rm anncur-api node -e
           "const fs = require('node:fs'); for (const f of ['openapi.yaml', 'static/sidebar/index.html', 'static/pdf/index.html', 'static/guest.js', 'zitadel/provision.ts', 'dist/auth/embedded/cli.js', 'dist/accounts/merge-cli.js']) fs.accessSync(f); console.log('api image ok')"
       # The embedded issuer's native password hashing and its provider load in the image.
       - run: >-
-          docker run --rm curanno-api node -e
+          docker run --rm anncur-api node -e
           "Promise.all([import('@node-rs/argon2'), import('oidc-provider'), import('nodemailer')]).then(() => console.log('embedded issuer dependencies ok'))"
-      - run: docker run --rm curanno-web node -e "require('node:fs').accessSync('server/index.mjs'); console.log('web image ok')"
+      - run: docker run --rm anncur-web node -e "require('node:fs').accessSync('server/index.mjs'); console.log('web image ok')"
       # The site's CSP names the issuer it is started with, not the one it was built with.
       - run: >-
           docker run -d --rm -p 3001:3001
           -e NUXT_PUBLIC_OIDC_ISSUER=https://idp.ci.test
-          curanno-web
+          anncur-web
       - run: node apps/web/scripts/check-runtime-csp.mjs http://localhost:3001 https://idp.ci.test
 
   helm:
@@ -273,41 +273,41 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: azure/setup-helm@v4
-      - run: helm lint deploy/helm/curanno --set secrets.databaseUrl=postgres://ci --set config.oidcClientId=ci
-      - run: helm template ci deploy/helm/curanno --set secrets.databaseUrl=postgres://ci --set config.oidcClientId=ci --set ingress.enabled=true > /dev/null
-      - run: helm template ci deploy/helm/curanno --set secrets.databaseUrl=postgres://ci --set zitadel.provision.enabled=true > /dev/null
+      - run: helm lint deploy/helm/anncur --set secrets.databaseUrl=postgres://ci --set config.oidcClientId=ci
+      - run: helm template ci deploy/helm/anncur --set secrets.databaseUrl=postgres://ci --set config.oidcClientId=ci --set ingress.enabled=true > /dev/null
+      - run: helm template ci deploy/helm/anncur --set secrets.databaseUrl=postgres://ci --set zitadel.provision.enabled=true > /dev/null
       # No selector may match another workload's pods; selectors cannot be changed once deployed.
       - run: >-
-          helm template ci deploy/helm/curanno --set secrets.databaseUrl=postgres://ci --set zitadel.provision.enabled=true
+          helm template ci deploy/helm/anncur --set secrets.databaseUrl=postgres://ci --set zitadel.provision.enabled=true
           | yq -o=json -I=0 'select(.kind != null)' | node scripts/check-chart-selectors.mjs
       - run: >-
-          helm template ci deploy/helm/curanno --set postgres.enabled=true --set postgres.password=ci
+          helm template ci deploy/helm/anncur --set postgres.enabled=true --set postgres.password=ci
           --set auth.mode=embedded --set secrets.authSecret=ci-only-secret-of-at-least-32-characters
           | yq -o=json -I=0 'select(.kind != null)' | node scripts/check-chart-selectors.mjs
       # The embedded issuer (ADR 0028) needs no identity provider, but does need a secret and routes /oidc and /idp to the API.
       - run: >-
-          helm lint deploy/helm/curanno --set secrets.databaseUrl=postgres://ci
+          helm lint deploy/helm/anncur --set secrets.databaseUrl=postgres://ci
           --set auth.mode=embedded --set secrets.authSecret=ci-only-secret-of-at-least-32-characters
       - run: >-
-          helm template ci deploy/helm/curanno --set secrets.databaseUrl=postgres://ci
+          helm template ci deploy/helm/anncur --set secrets.databaseUrl=postgres://ci
           --set auth.mode=embedded --set secrets.authSecret=ci-only-secret-of-at-least-32-characters
-          --set ingress.enabled=true --set auth.mail.from=curanno@ci.test --set secrets.smtpUrl=smtp://mail
+          --set ingress.enabled=true --set auth.mail.from=anncur@ci.test --set secrets.smtpUrl=smtp://mail
           --set auth.providers.google.clientId=ci --set secrets.upstream.googleClientSecret=ci | grep -q 'path: /oidc'
       # Mistakes are refused rather than rendered.
-      - run: '! helm template ci deploy/helm/curanno --set secrets.databaseUrl=postgres://ci --set auth.mode=embedded'
-      - run: '! helm template ci deploy/helm/curanno --set secrets.databaseUrl=postgres://ci --set auth.mode=embedded --set secrets.authSecret=ci-only-secret-of-at-least-32-characters --set zitadel.provision.enabled=true'
+      - run: '! helm template ci deploy/helm/anncur --set secrets.databaseUrl=postgres://ci --set auth.mode=embedded'
+      - run: '! helm template ci deploy/helm/anncur --set secrets.databaseUrl=postgres://ci --set auth.mode=embedded --set secrets.authSecret=ci-only-secret-of-at-least-32-characters --set zitadel.provision.enabled=true'
       # The bundled Postgres builds DATABASE_URL and needs a password of its own.
       - run: >-
-          helm template ci deploy/helm/curanno --set postgres.enabled=true --set postgres.password=ci
+          helm template ci deploy/helm/anncur --set postgres.enabled=true --set postgres.password=ci
           --set auth.mode=embedded --set secrets.authSecret=ci-only-secret-of-at-least-32-characters | grep -q 'kind: StatefulSet'
-      - run: '! helm template ci deploy/helm/curanno --set config.oidcClientId=ci --set postgres.enabled=true'
-      - run: '! helm template ci deploy/helm/curanno --set config.oidcClientId=ci --set postgres.enabled=true --set postgres.password=ci --set secrets.databaseUrl=postgres://ci'
+      - run: '! helm template ci deploy/helm/anncur --set config.oidcClientId=ci --set postgres.enabled=true'
+      - run: '! helm template ci deploy/helm/anncur --set config.oidcClientId=ci --set postgres.enabled=true --set postgres.password=ci --set secrets.databaseUrl=postgres://ci'
       # OpenShift Routes: one per path, the issuer's included, and never alongside an Ingress.
       - run: >-
-          helm template ci deploy/helm/curanno --set postgres.enabled=true --set postgres.password=ci
+          helm template ci deploy/helm/anncur --set postgres.enabled=true --set postgres.password=ci
           --set auth.mode=embedded --set secrets.authSecret=ci-only-secret-of-at-least-32-characters
           --set route.enabled=true | grep -q 'path: /oidc'
-      - run: '! helm template ci deploy/helm/curanno --set secrets.databaseUrl=postgres://ci --set config.oidcClientId=ci --set ingress.enabled=true --set route.enabled=true'
+      - run: '! helm template ci deploy/helm/anncur --set secrets.databaseUrl=postgres://ci --set config.oidcClientId=ci --set ingress.enabled=true --set route.enabled=true'
       # The values for the official Zitadel chart (deploy/zitadel/README.md) must render.
       - run: helm repo add zitadel https://charts.zitadel.com
       - run: >-

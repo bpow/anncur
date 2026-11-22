@@ -16,7 +16,7 @@ import { buildServer } from '../server.js';
 import { fixtureFetch } from '../variants/fixture-fetch.js';
 
 export const ISSUER = 'https://idp.test';
-export const CLIENT_ID = 'curanno-sidebar';
+export const CLIENT_ID = 'anncur-sidebar';
 export const PUBLIC_URL = 'https://annotations.test';
 
 export interface TestUser {
@@ -92,7 +92,7 @@ export interface TestContextOptions {
 
 export async function createTestContext(options: TestContextOptions = {}): Promise<TestContext> {
   if (!databaseUrl) throw new Error('DATABASE_URL is not set');
-  const dbName = `curanno_test_${randomBytes(6).toString('hex')}`;
+  const dbName = `anncur_test_${randomBytes(6).toString('hex')}`;
   const admin = new pg.Client({ connectionString: databaseUrl });
   await admin.connect();
   let testUrl: string;

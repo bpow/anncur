@@ -50,7 +50,7 @@ export const badRequest = (detail: string, errors?: ValidationIssue[]): Problem 
   new Problem(400, 'Bad Request', detail, errors);
 export const unauthorized = (detail: string): Problem =>
   new Problem(401, 'Unauthorized', detail, undefined, {
-    'www-authenticate': 'Bearer realm="curanno"',
+    'www-authenticate': 'Bearer realm="anncur"',
   });
 export const forbidden = (detail: string): Problem => new Problem(403, 'Forbidden', detail);
 export const accountWithheld = (status: string): Problem =>

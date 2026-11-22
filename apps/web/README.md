@@ -1,13 +1,13 @@
 # Management site
 
-The management site is a [Nuxt](https://nuxt.com) application for the people who run an instance: users, groups and their members, who may see which annotation, and browsing and searching annotations. It is an ordinary client of the public API ([ADR 0009](../../docs/adr/0009-vue-sidebar-nuxt-management-site.md)): every request leaves the browser through `@curanno/api-client` with the signed-in user's own token, and nothing runs in Nuxt's server layer ([ADR 0020](../../docs/adr/0020-management-site-serving.md)).
+The management site is a [Nuxt](https://nuxt.com) application for the people who run an instance: users, groups and their members, who may see which annotation, and browsing and searching annotations. It is an ordinary client of the public API ([ADR 0009](../../docs/adr/0009-vue-sidebar-nuxt-management-site.md)): every request leaves the browser through `@anncur/api-client` with the signed-in user's own token, and nothing runs in Nuxt's server layer ([ADR 0020](../../docs/adr/0020-management-site-serving.md)).
 
 ## Running it
 
 With the compose stack up and the API running (see the [repository README](../../README.md)):
 
 ```bash
-pnpm --filter @curanno/web dev
+pnpm --filter @anncur/web dev
 ```
 
 The site is at <http://localhost:3001>. Sign in as `alice` / `alice` or `bob` / `bob`. Neither is a platform administrator; to see the Users page, make one an administrator with the API (`PATCH /x/users/{id}` with `{"isAdmin": true}` from an administrator, or `update users set is_admin = true` in Postgres for the first one).
@@ -61,7 +61,7 @@ app/
 e2e/             Playwright test against Zitadel and the API
 ```
 
-Auto-imports are off (`nuxt.config.ts`): components import what they use from `vue`, `#imports` and `#components`, so the component tests run with plain `@vue/test-utils` under happy-dom and a fake `fetch` behind the generated client. `pnpm --filter @curanno/web test` runs them; `pnpm --filter @curanno/web e2e` runs the Playwright test (needs the compose stack, a migrated database and `pnpm build` for the API's build output; the dev server is started or reused).
+Auto-imports are off (`nuxt.config.ts`): components import what they use from `vue`, `#imports` and `#components`, so the component tests run with plain `@vue/test-utils` under happy-dom and a fake `fetch` behind the generated client. `pnpm --filter @anncur/web test` runs them; `pnpm --filter @anncur/web e2e` runs the Playwright test (needs the compose stack, a migrated database and `pnpm build` for the API's build output; the dev server is started or reused).
 
 ## Nuxt version
 

@@ -19,7 +19,7 @@ export interface ItemInput {
 
 const LOCAL_ID = /^_:[A-Za-z0-9_-]{1,64}$/;
 // Stands in for a local id while a value is validated; it matches the IRI pattern link fields use.
-export const LOCAL_PLACEHOLDER = 'urn:x-curanno-local:';
+export const LOCAL_PLACEHOLDER = 'urn:x-anncur-local:';
 
 export const isLocalId = (value: string): boolean => value.startsWith('_:');
 

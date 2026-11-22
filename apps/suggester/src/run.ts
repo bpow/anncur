@@ -1,24 +1,24 @@
 /**
- * One article through the model and into CurAnno as a suggestion batch for
+ * One article through the model and into Anncur as a suggestion batch for
  * a group (ADR 0037), through the public API and an access token
  * (ADR 0038). The engine never reads annotations: facts link only to the
  * individuals suggested in the same batch.
  */
-import { stableStringify } from '@curanno/model';
+import { stableStringify } from '@anncur/model';
 import { createHash } from 'node:crypto';
-import { unwrap, type ApiClient, type SuggestionItemInput } from '@curanno/api-client';
+import { unwrap, type ApiClient, type SuggestionItemInput } from '@anncur/api-client';
 import {
   PROMPT_VERSION,
   completionsUrl,
   extractBatch,
   type BatchProgress,
   type Endpoint,
-} from '@curanno/extract';
-import type { BodyProfile, StructuredBody } from '@curanno/model';
+} from '@anncur/extract';
+import type { BodyProfile, StructuredBody } from '@anncur/model';
 import { selectorFor, type Article } from './bioc.ts';
 import { rerunKey, termResolver } from './profiles.ts';
 
-export const ENGINE_NAME = 'curanno-suggester';
+export const ENGINE_NAME = 'anncur-suggester';
 export const ENGINE_VERSION = '0.1.0';
 
 export interface RunConfig {

@@ -3,7 +3,7 @@
  * they are recording. A new body whose profile links to annotations of that
  * profile starts out linked to them.
  */
-import type { BodyProfile, JsonValue } from '@curanno/model';
+import type { BodyProfile, JsonValue } from '@anncur/model';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { linkFieldOf } from '../profiles/links';

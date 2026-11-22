@@ -144,7 +144,7 @@ function githubClient(provider: UpstreamProvider): ProviderClient {
       const headers = {
         authorization: `Bearer ${accessToken}`,
         accept: 'application/vnd.github+json',
-        'user-agent': 'curanno',
+        'user-agent': 'anncur',
       };
       const user = await json(await fetch(`${api}/user`, { headers, signal: signal() }));
       const id = user['id'];

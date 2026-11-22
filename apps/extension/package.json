@@ -1,5 +1,5 @@
 {
-  "name": "@curanno/extension",
+  "name": "@anncur/extension",
   "version": "0.1.0",
   "private": true,
   "description": "Chromium extension that runs the guest in every frame of a tab (ADR 0023)",
@@ -11,8 +11,8 @@
     "test:browser": "vitest run -c test/vitest.config.ts"
   },
   "dependencies": {
-    "@curanno/guest": "workspace:*",
-    "@curanno/model": "workspace:*"
+    "@anncur/guest": "workspace:*",
+    "@anncur/model": "workspace:*"
   },
   "devDependencies": {
     "@types/chrome": "0.3.7",

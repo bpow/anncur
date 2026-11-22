@@ -19,7 +19,7 @@ import {
   textUtf16Index,
   type TextMap,
   type TextQuoteSelector,
-} from '@curanno/model';
+} from '@anncur/model';
 
 export interface ScoredMatch {
   /** Code point offsets into the normalized text. */

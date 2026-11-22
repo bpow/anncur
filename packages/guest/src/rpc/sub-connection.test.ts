@@ -4,7 +4,7 @@ import {
   type GuestMessage,
   type SidebarMessage,
   type SidebarReadyMessage,
-} from '@curanno/model';
+} from '@anncur/model';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SubGuestConnection } from './sub-connection.js';
 

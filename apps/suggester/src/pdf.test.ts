@@ -4,7 +4,7 @@ import {
   addAnnotationFormats,
   addProfileKeywords,
   builtinProfiles,
-} from '@curanno/model';
+} from '@anncur/model';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 import { describe, expect, it } from 'vitest';
@@ -53,7 +53,7 @@ describe('articleFromPdf', () => {
       checkDraft(
         {
           article: FINGERPRINT,
-          engine: { model: 'claude-opus-5-5', skill: 'curanno-suggest', version: '1' },
+          engine: { model: 'claude-opus-5-5', skill: 'anncur-suggest', version: '1' },
           items: [{ id: '_:i1', kind: 'individual', quote, value: { case: 'Rule 4' } }],
         },
         article,

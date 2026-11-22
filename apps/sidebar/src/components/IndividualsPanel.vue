@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { caseIndividualProfile, individualProfile, summarizeIndividuals } from '@curanno/model';
+import { caseIndividualProfile, individualProfile, summarizeIndividuals } from '@anncur/model';
 import { computed, watch } from 'vue';
 import { useGuest } from '../guest';
 import { entriesOf } from '../profiles/entries';

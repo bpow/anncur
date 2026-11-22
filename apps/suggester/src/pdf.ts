@@ -6,8 +6,8 @@
  * the PDF's fingerprint, and its URL when it has one (document identity,
  * section 7).
  */
-import { pageTextScope } from '@curanno/guest/pdf-text';
-import { blockStarts, deriveDocumentUris } from '@curanno/model';
+import { pageTextScope } from '@anncur/guest/pdf-text';
+import { blockStarts, deriveDocumentUris } from '@anncur/model';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { articleIdOf, type Article, type Passage } from './bioc.ts';
 

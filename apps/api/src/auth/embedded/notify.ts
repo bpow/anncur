@@ -23,7 +23,7 @@ export async function tellAdministrators(
     if (!admin.email) continue;
     await mailer.send({
       to: admin.email,
-      subject: `${applicant.name} asks to join curanno`,
+      subject: `${applicant.name} asks to join anncur`,
       text: `${who} applied for an account.${applicant.note ? `\n\nThey wrote: ${applicant.note}` : ''}\n\nDecide at ${origin}/applications\n`,
     });
   }

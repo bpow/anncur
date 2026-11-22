@@ -1,4 +1,4 @@
-import type { Membership, PrincipalRef } from '@curanno/api-client';
+import type { Membership, PrincipalRef } from '@anncur/api-client';
 import { flushPromises, mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { API_KEY } from '../api/client';

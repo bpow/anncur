@@ -2,9 +2,9 @@ import { readFileSync } from 'node:fs';
 import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { createApiClient } from '@curanno/api-client';
-import { answer, createFakeEndpoint } from '@curanno/extract/testing';
-import { builtinProfiles, caseFamilyProfile, individualProfile } from '@curanno/model';
+import { createApiClient } from '@anncur/api-client';
+import { answer, createFakeEndpoint } from '@anncur/extract/testing';
+import { builtinProfiles, caseFamilyProfile, individualProfile } from '@anncur/model';
 import { describe, expect, it } from 'vitest';
 import { articleFromBioc } from './bioc.ts';
 import { loadProfiles, profileForKind, rerunKey } from './profiles.ts';
@@ -35,7 +35,7 @@ function fakeApi() {
   return {
     posted,
     auth,
-    api: createApiClient({ baseUrl: 'https://curanno.test', token: () => 'cat_x', fetch }),
+    api: createApiClient({ baseUrl: 'https://anncur.test', token: () => 'cat_x', fetch }),
   };
 }
 
@@ -78,7 +78,7 @@ describe('suggestFor', () => {
         group: GROUP,
         document: article.document,
         engine: {
-          name: 'curanno-suggester',
+          name: 'anncur-suggester',
           version: '0.1.0 / prompt 3',
           nickname: 'qwen / prompt 3',
         },
@@ -131,14 +131,14 @@ describe('State', () => {
   });
 
   const identity = {
-    apiUrl: 'https://curanno.test',
+    apiUrl: 'https://anncur.test',
     group: GROUP,
     endpoint: { url: 'http://localhost:1234', model: 'qwen' },
     kinds: [individualProfile],
     instructions: 'Only cases in MYH7',
   };
   it.each([
-    { ...identity, apiUrl: 'https://another-curanno.test' },
+    { ...identity, apiUrl: 'https://another-anncur.test' },
     { ...identity, group: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' },
     { ...identity, endpoint: { ...identity.endpoint, url: 'http://localhost:4321' } },
     { ...identity, endpoint: { ...identity.endpoint, model: 'another-model' } },

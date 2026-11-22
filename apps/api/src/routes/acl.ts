@@ -5,8 +5,8 @@
  */
 import type { FastifyRequest } from 'fastify';
 import type { Kysely } from 'kysely';
-import type { components } from '@curanno/api-client';
-import { PERMISSIONS, type Permission } from '@curanno/model';
+import type { components } from '@anncur/api-client';
+import { PERMISSIONS, type Permission } from '@anncur/model';
 import { requireUser } from '../auth/plugin.js';
 import { AUTHENTICATED_PRINCIPAL_ID, PUBLIC_PRINCIPAL_ID, type Database } from '../db/index.js';
 import { isoDate } from '../annotations/serialize.js';

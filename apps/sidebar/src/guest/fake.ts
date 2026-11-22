@@ -5,7 +5,7 @@
  * calls are logged so a developer can see the sidebar's side of the
  * conversation.
  */
-import type { AnchoringState, GuestScopeText } from '@curanno/model';
+import type { AnchoringState, GuestScopeText } from '@anncur/model';
 import { computed, ref, shallowReadonly, shallowRef, type Ref } from 'vue';
 import { createSessionConsent, foreignSources, originKey } from './disclosure';
 import type { AnchorRequest, DocumentSelection, Guest, GuestDocument, Withheld } from './types';

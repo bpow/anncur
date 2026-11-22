@@ -10,7 +10,7 @@ import { defineConfig } from '@playwright/test';
  * The PDF case opens the built viewer app on its preview server, on an
  * origin of its own as in a deployment. Build first:
  *
- *   pnpm build && pnpm --filter @curanno/guest bundle && pnpm --filter @curanno/sidebar build && pnpm --filter @curanno/pdf-viewer build
+ *   pnpm build && pnpm --filter @anncur/guest bundle && pnpm --filter @anncur/sidebar build && pnpm --filter @anncur/pdf-viewer build
  */
 const ci = !!process.env['CI'];
 
@@ -32,7 +32,7 @@ export default defineConfig({
       timeout: 30_000,
     },
     {
-      command: 'pnpm --filter @curanno/pdf-viewer preview',
+      command: 'pnpm --filter @anncur/pdf-viewer preview',
       url: 'http://127.0.0.1:4174/pdf/',
       reuseExistingServer: !ci,
       timeout: 30_000,

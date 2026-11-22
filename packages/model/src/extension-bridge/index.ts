@@ -11,7 +11,7 @@
  * itself, and cannot listen on its window.
  */
 
-export const EXTENSION_BRIDGE = 'curanno/extension-bridge';
+export const EXTENSION_BRIDGE = 'anncur/extension-bridge';
 
 /** Sidebar → bridge: is an extension here? */
 export interface BridgeQueryMessage {

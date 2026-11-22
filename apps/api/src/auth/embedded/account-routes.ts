@@ -116,7 +116,7 @@ export function registerAccountRoutes(app: FastifyInstance, options: AccountRout
         await throttle.record('signup-email', [byEmail]);
         await mailer.send({
           to: email,
-          subject: 'Someone used your address to sign up for curanno',
+          subject: 'Someone used your address to sign up for anncur',
           text: `Someone tried to create an account with this address, which already has one. If it was you, sign in, or choose "Forgot your password" to get back in. If not, ignore this message.\n${origin}\n`,
         });
       } catch {
@@ -141,7 +141,7 @@ export function registerAccountRoutes(app: FastifyInstance, options: AccountRout
         await mailer
           .send({
             to: email,
-            subject: 'Verify your email address for curanno',
+            subject: 'Verify your email address for anncur',
             text: `Confirm that this address is yours (the link works once, for two days):\n${accountLink(origin, 'verify', token)}\n`,
           })
           .catch((err: unknown) =>
@@ -222,7 +222,7 @@ export function registerAccountRoutes(app: FastifyInstance, options: AccountRout
       await mailer
         .send({
           to: found.email,
-          subject: 'Reset your curanno password',
+          subject: 'Reset your anncur password',
           text: `Someone asked to reset the password of this account. If it was you, choose a new one here (the link works once, for an hour):\n${accountLink(origin, 'reset', token)}\n\nIf it was not you, ignore this message; nothing changes.\n`,
         })
         .catch((err: unknown) => request.log.warn({ err }, 'sending the reset mail failed'));
@@ -332,7 +332,7 @@ export function registerAccountRoutes(app: FastifyInstance, options: AccountRout
       await mailer
         .send({
           to: email,
-          subject: 'Verify your email address for curanno',
+          subject: 'Verify your email address for anncur',
           text: `Confirm that this address is yours (the link works once, for two days):\n${accountLink(origin, 'verify', token)}\n`,
         })
         .catch((err: unknown) => request.log.warn({ err }, 'sending the verification mail failed'));

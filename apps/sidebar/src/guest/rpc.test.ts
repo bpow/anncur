@@ -5,7 +5,7 @@ import {
   type GuestMessage,
   type Payload,
   type SidebarMessage,
-} from '@curanno/model';
+} from '@anncur/model';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createSessionConsent } from './disclosure';
 import { createRpcGuest, type MessageEventLike, type PortLike, type WindowLike } from './rpc';

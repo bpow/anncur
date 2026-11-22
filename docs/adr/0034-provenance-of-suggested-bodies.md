@@ -20,7 +20,7 @@ The options considered:
 ## Decision
 
 - The annotation's `creator` stays the curator, as the server assigns it from the token.
-- A structured body accepted from a suggestion has `creator` set to the model, as a `Software` agent: `{"type": "Software", "name": "curanno-extract", "nickname": "<model> / prompt <PROMPT_VERSION>"}`. Its `created` is the time the suggestion was made.
+- A structured body accepted from a suggestion has `creator` set to the model, as a `Software` agent: `{"type": "Software", "name": "anncur-extract", "nickname": "<model> / prompt <PROMPT_VERSION>"}`. Its `created` is the time the suggestion was made.
 - If the curator changed the value before saving, the body's `creator` also lists the curator as a `Person`, using the user's IRI on this server (`<api>/x/users/<id>`).
 - Editing the annotation later keeps the body's `creator` as it was. The sidebar carries it through the draft.
 - Other bodies (a comment, tags) are written by the curator alone and carry no `creator`, as before.

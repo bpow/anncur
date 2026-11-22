@@ -1,4 +1,4 @@
-import type { SuggestionBatchSummary } from '@curanno/api-client';
+import type { SuggestionBatchSummary } from '@anncur/api-client';
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { API_KEY } from '../../api/client';
@@ -16,7 +16,7 @@ const summary = (id: string, title: string): SuggestionBatchSummary => ({
   document: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
   documentUri: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC1/',
   documentTitle: title,
-  engine: { name: 'curanno-suggester', version: '0.1.0', nickname: 'qwen / prompt 3' },
+  engine: { name: 'anncur-suggester', version: '0.1.0', nickname: 'qwen / prompt 3' },
   creator: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
   created: '2026-11-16T02:00:00Z',
   counts: { pending: 4, accepted: 1, rejected: 2 },

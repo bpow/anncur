@@ -106,6 +106,6 @@ Added after the review above. The sidebar sends a document's text to a language 
 
 - A page may attach its own URL to an existing document through a canonical link (finding 3 stops merges, not additions). A reader of that page then sees the linked document's annotations in the sidebar, marked with the site they were made on. The page is sent only the public ones until the reader allows that site (finding 22, ADR 0025). Hypothesis has the same property without the consent step; a stricter rule (same registrable domain) would break DOI and publisher links. Revisit if it is abused.
 - The overlay highlight fallback and the browsers without the CSS Custom Highlight API are untested in CI (Chromium only).
-- The guest exposes `window.__curannoGuest` with `toggleSidebar` and `destroy`; the page can do both by other means, so this grants nothing (ADR 0007).
+- The guest exposes `window.__anncurGuest` with `toggleSidebar` and `destroy`; the page can do both by other means, so this grants nothing (ADR 0007).
 - Rate limiting and connection limits are left to the ingress; the chart documents the SSE timeouts but sets no limits.
 - The review was done by reading and by tests, not by penetration testing of a deployment. The operator guide lists what to check on a real cluster.

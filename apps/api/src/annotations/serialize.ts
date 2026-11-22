@@ -13,7 +13,7 @@ import {
   type Permission,
   type Selector,
   type Target,
-} from '@curanno/model';
+} from '@anncur/model';
 import { TARGET_SHAPE, type TargetShape } from './input.js';
 
 export interface StoredTarget {

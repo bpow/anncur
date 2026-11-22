@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import type { Selector, TextQuoteSelector } from '@curanno/model';
+import type { Selector, TextQuoteSelector } from '@anncur/model';
 import { beforeEach, describe as suite, expect, it } from 'vitest';
 import { anchor, MIN_FUZZY_QUOTE_LENGTH } from './anchor.js';
 import { describe } from './describe.js';

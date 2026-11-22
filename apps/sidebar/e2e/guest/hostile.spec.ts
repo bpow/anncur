@@ -8,7 +8,7 @@
  * embedding policy the sidebar is served with (ADR 0007, ADR 0019).
  */
 import { expect, test, type Response } from '@playwright/test';
-import { RPC_PROTOCOL, RPC_PROTOCOL_VERSION } from '@curanno/model';
+import { RPC_PROTOCOL, RPC_PROTOCOL_VERSION } from '@anncur/model';
 import {
   HOST_ORIGIN,
   PAGE_PATH,
@@ -133,7 +133,7 @@ test('a hostile page observes the traffic but never a token, body, tag or creato
       highlights: [...CSS.highlights.values()].flatMap((hl) => [...hl].map(String)).join('\n'),
       storage,
       iframes: document.querySelectorAll('iframe').length,
-      shadow: document.querySelector('[data-curanno-guest="sidebar"]')?.shadowRoot ?? null,
+      shadow: document.querySelector('[data-anncur-guest="sidebar"]')?.shadowRoot ?? null,
     };
   });
 

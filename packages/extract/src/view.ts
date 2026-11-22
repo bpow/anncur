@@ -8,7 +8,7 @@
  * Offsets here are UTF-16 indices; conversion to code points happens once
  * a match is final.
  */
-import { codePointToUtf16 } from '@curanno/model';
+import { codePointToUtf16 } from '@anncur/model';
 
 export const BLOCK_SEPARATOR = '\n\n';
 

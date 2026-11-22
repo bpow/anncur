@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { toProblem, type AclEntry, type Problem } from '@curanno/api-client';
-import { quoteOf, type JsonValue, type StructuredBody } from '@curanno/model';
+import { toProblem, type AclEntry, type Problem } from '@anncur/api-client';
+import { quoteOf, type JsonValue, type StructuredBody } from '@anncur/model';
 import { computed, ref } from 'vue';
 import type { AnnotationDraft } from '../api/annotations';
 import { useGuest } from '../guest';

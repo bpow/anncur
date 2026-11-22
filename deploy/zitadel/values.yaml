@@ -43,7 +43,7 @@ zitadel:
       Enabled: false
     FirstInstance:
       Org:
-        Name: curanno
+        Name: anncur
         Human:
           UserName: admin
           PasswordChangeRequired: true

@@ -1,10 +1,10 @@
-import type { Annotation, SuggestionBatch } from '@curanno/api-client';
+import type { Annotation, SuggestionBatch } from '@anncur/api-client';
 import {
   caseFamilyProfile,
   individualProfile,
   pageFragmentSelector,
   type Selector,
-} from '@curanno/model';
+} from '@anncur/model';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { TooltipProvider } from 'reka-ui';
@@ -48,7 +48,7 @@ function batchOf(statuses: Record<string, string> = {}): SuggestionBatch {
     group: GROUP,
     groupName: 'Curators',
     document: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
-    engine: { name: 'curanno-extract', version: '0.3.0', nickname: 'qwen / prompt 3' },
+    engine: { name: 'anncur-extract', version: '0.3.0', nickname: 'qwen / prompt 3' },
     creator: GROUP,
     created: '2026-11-15T10:00:00Z',
     counts: { pending, accepted: items.length - pending, rejected: 0 },
@@ -193,7 +193,7 @@ describe('BatchReview', () => {
       body: {
         profile: caseFamilyProfile.iri,
         value: { individuals: ['_:i1'], familyInfo: 'Parents are cousins.' },
-        creator: { type: 'Software', name: 'curanno-extract', nickname: 'qwen / prompt 3' },
+        creator: { type: 'Software', name: 'anncur-extract', nickname: 'qwen / prompt 3' },
       },
     });
     const shares = api.calls.filter((c) => c.method === 'PUT' && c.url.pathname.endsWith('/acl'));

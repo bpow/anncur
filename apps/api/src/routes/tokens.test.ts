@@ -2,7 +2,7 @@
  * Access tokens, service accounts and the suggester role (ADR 0038).
  */
 import type { InjectOptions, LightMyRequestResponse } from 'fastify';
-import { individualProfile } from '@curanno/model';
+import { individualProfile } from '@anncur/model';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   alice,

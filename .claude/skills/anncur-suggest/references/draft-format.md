@@ -6,7 +6,7 @@
 {
   "article": "PMC1234567",
   "gene": "MYH7",
-  "engine": { "model": "<your model id>", "skill": "curanno-suggest", "version": "1" },
+  "engine": { "model": "<your model id>", "skill": "anncur-suggest", "version": "1" },
   "items": [
     { "id": "_:i1", "kind": "individual", "passage": 12, "quote": "…", "value": { "case": "…" } }
   ],

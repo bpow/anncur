@@ -6,15 +6,15 @@
  * assistant claims is taken on trust: every quote must be in the article,
  * every term must resolve through the API, and every value must fit.
  */
-import { stableStringify } from '@curanno/model';
-import type { components } from '@curanno/api-client';
+import { stableStringify } from '@anncur/model';
+import type { components } from '@anncur/api-client';
 import {
   buildView,
   locateQuote,
   outputSchema,
   resolveOntologyFields,
   type ResolveTerms,
-} from '@curanno/extract';
+} from '@anncur/extract';
 import {
   checkItems,
   describeRange,
@@ -23,7 +23,7 @@ import {
   type JsonValue,
   type ProfileRegistry,
   type StructuredBody,
-} from '@curanno/model';
+} from '@anncur/model';
 import { selectorFor, type Article } from './bioc.ts';
 import { profileForKind, rerunKey } from './profiles.ts';
 

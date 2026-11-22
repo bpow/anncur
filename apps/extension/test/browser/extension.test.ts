@@ -11,7 +11,7 @@ import type { AddressInfo } from 'node:net';
 import path from 'node:path';
 import { chromium, type BrowserContext, type Frame, type Page, type Worker } from 'playwright';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { EXTENSION_BRIDGE, type BridgeMessage, type GuestMessage } from '@curanno/model';
+import { EXTENSION_BRIDGE, type BridgeMessage, type GuestMessage } from '@anncur/model';
 import type { FakeSidebar } from '../../../../packages/guest/src/rpc/fake-sidebar.ts';
 import { buildGuest } from '../../../../packages/guest/scripts/bundle.ts';
 import { serve, type StaticServer } from '../../../../packages/guest/scripts/serve.ts';
@@ -212,7 +212,7 @@ describe('the toolbar button', () => {
     await press(url);
     const frame = await sidebarFrame(p);
     await expect.poll(() => reported(frame)).toContain(url);
-    expect(await worker.evaluate(() => chrome.action.getTitle({}))).toBe('CurAnno: off');
+    expect(await worker.evaluate(() => chrome.action.getTitle({}))).toBe('Anncur: off');
 
     await press(url);
     await expect.poll(() => p.frames().some((f) => f.url().startsWith(sidebar.origin))).toBe(false);
@@ -407,15 +407,15 @@ describe('the options page', () => {
     await p.fill('#siteUrl-0', 'http://localhost:3001');
     await p.click('#add');
     await p.fill('#name-1', 'Production');
-    await p.fill('#siteUrl-1', 'https://curanno.example');
+    await p.fill('#siteUrl-1', 'https://anncur.example');
     await p.check('#active-1');
     await p.check('#publicCounts');
     await p.click('button[type=submit]');
     await expect.poll(() => p.textContent('#status')).toMatch(/Saved/);
     expect(await worker.evaluate(() => chrome.storage.sync.get(null))).toMatchObject({
       servers: [
-        { name: 'CurAnno', siteUrl: 'http://localhost:3001', sidebarUrl: '' },
-        { name: 'Production', siteUrl: 'https://curanno.example', sidebarUrl: '' },
+        { name: 'Anncur', siteUrl: 'http://localhost:3001', sidebarUrl: '' },
+        { name: 'Production', siteUrl: 'https://anncur.example', sidebarUrl: '' },
       ],
       activeServer: 'Production',
       publicCounts: true,
@@ -470,7 +470,7 @@ describe('switching servers', () => {
     });
     await expect
       .poll(() => worker.evaluate((i) => chrome.action.getTitle({ tabId: i }), id))
-      .toBe('CurAnno: off (Two)');
+      .toBe('Anncur: off (Two)');
     expect(await worker.evaluate(() => chrome.storage.sync.get('activeServer'))).toEqual({
       activeServer: 'Two',
     });

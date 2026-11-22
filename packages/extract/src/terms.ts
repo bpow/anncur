@@ -5,7 +5,7 @@
  * A label the lookup matches stores the term's ID and label; any other is
  * kept as written and reported, so the editor can point at it.
  */
-import type { OntologyLookup } from '@curanno/model';
+import type { OntologyLookup } from '@anncur/model';
 import type { OntologyField, ValuePath } from './schema.js';
 
 export interface Term {

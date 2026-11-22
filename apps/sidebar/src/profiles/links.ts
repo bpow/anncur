@@ -2,9 +2,9 @@
  * Annotations a link field may name (ADR 0035): those with a structured body
  * of the field's profile, labelled by the body's `label` field.
  */
-import type { Annotation } from '@curanno/api-client';
+import type { Annotation } from '@anncur/api-client';
 import type { InjectionKey, Ref } from 'vue';
-import { quoteOf, structuredBodies, type AnnotationLink, type BodyProfile } from '@curanno/model';
+import { quoteOf, structuredBodies, type AnnotationLink, type BodyProfile } from '@anncur/model';
 import { fieldsOf, type SchemaField } from './schema';
 
 /** Annotations a link may name besides those saved: a batch's items, by local id (ADR 0037). */

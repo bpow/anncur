@@ -1,6 +1,6 @@
-# CurAnno
+# Anncur
 
-An annotation system built on the [W3C Web Annotation Data Model](https://www.w3.org/TR/annotation-model/) and [Protocol](https://www.w3.org/TR/annotation-protocol/), with structured annotation bodies, per-annotation access control, and a Hypothesis-style guest/sidebar client split. The project is named CurAnno, for curation annotations; its packages use the `@curanno` scope.
+An annotation system built on the [W3C Web Annotation Data Model](https://www.w3.org/TR/annotation-model/) and [Protocol](https://www.w3.org/TR/annotation-protocol/), with structured annotation bodies, per-annotation access control, and a Hypothesis-style guest/sidebar client split. The project is named Anncur, for curation annotations; its packages use the `@anncur` scope.
 
 - [Analysis and architecture](docs/web-annotation-replacement.md)
 - [Project plan](docs/web-annotation-plan.md)
@@ -12,15 +12,15 @@ An annotation system built on the [W3C Web Annotation Data Model](https://www.w3
 
 | Path                  | Package             | Role                                                       |
 | --------------------- | ------------------- | ---------------------------------------------------------- |
-| `packages/model`      | `@curanno/model`      | Annotation types, text model, selectors, RPC message types |
-| `packages/api-client` | `@curanno/api-client` | Client generated from the OpenAPI document                 |
-| `packages/extract`    | `@curanno/extract`    | Annotation suggestions from a model behind an OpenAI-compatible endpoint ([plan](docs/extraction-plan.md)) |
-| `packages/guest`      | `@curanno/guest`      | Framework-free in-page guest, its bundle and bookmarklet   |
-| `apps/api`            | `@curanno/api`        | Fastify server                                             |
-| `apps/sidebar`        | `@curanno/sidebar`    | Vue sidebar app ([README](apps/sidebar/README.md))         |
-| `apps/pdf-viewer`     | `@curanno/pdf-viewer` | PDF.js viewer page with the guest built in ([README](apps/pdf-viewer/README.md)) |
-| `apps/extension`      | `@curanno/extension`  | Chromium extension running the guest in every frame ([README](apps/extension/README.md)) |
-| `apps/web`            | `@curanno/web`        | Nuxt management site ([README](apps/web/README.md))        |
+| `packages/model`      | `@anncur/model`      | Annotation types, text model, selectors, RPC message types |
+| `packages/api-client` | `@anncur/api-client` | Client generated from the OpenAPI document                 |
+| `packages/extract`    | `@anncur/extract`    | Annotation suggestions from a model behind an OpenAI-compatible endpoint ([plan](docs/extraction-plan.md)) |
+| `packages/guest`      | `@anncur/guest`      | Framework-free in-page guest, its bundle and bookmarklet   |
+| `apps/api`            | `@anncur/api`        | Fastify server                                             |
+| `apps/sidebar`        | `@anncur/sidebar`    | Vue sidebar app ([README](apps/sidebar/README.md))         |
+| `apps/pdf-viewer`     | `@anncur/pdf-viewer` | PDF.js viewer page with the guest built in ([README](apps/pdf-viewer/README.md)) |
+| `apps/extension`      | `@anncur/extension`  | Chromium extension running the guest in every frame ([README](apps/extension/README.md)) |
+| `apps/web`            | `@anncur/web`        | Nuxt management site ([README](apps/web/README.md))        |
 | `deploy/`             |                     | Helm chart, and Zitadel's compose setup, provisioning and chart values |
 | `docs/`               |                     | Analysis, plan and ADRs                                    |
 
@@ -32,8 +32,8 @@ Requires Node 24 or later, pnpm 11, and podman (or docker) with the compose plug
 pnpm install
 podman compose up -d --wait
 cp .env.example .env
-pnpm --filter @curanno/api migrate
-pnpm --filter @curanno/api dev
+pnpm --filter @anncur/api migrate
+pnpm --filter @anncur/api dev
 pnpm check
 ```
 
@@ -43,34 +43,34 @@ Other scripts:
 
 | Script                                    | Does                                                                   |
 | ----------------------------------------- | ---------------------------------------------------------------------- |
-| `pnpm --filter @curanno/api migrate`        | Applies `apps/api/migrations/*.sql` to `DATABASE_URL`                  |
-| `pnpm --filter @curanno/api dev`            | Builds and runs the API, restarting on changes to the build output     |
-| `pnpm --filter @curanno/sidebar dev`        | Runs the sidebar on port 5173 (`SIDEBAR_PORT`), proxying the API (`apps/sidebar/README.md`) |
-| `pnpm --filter @curanno/sidebar e2e`        | Playwright test of the sidebar against Zitadel and the API            |
-| `pnpm --filter @curanno/sidebar e2e:guest`  | Playwright test of the bookmarklet, guest, sidebar and PDF viewer on corpus pages, API stubbed |
-| `pnpm --filter @curanno/pdf-viewer dev`     | Runs the PDF viewer on port 5174 (`PDF_VIEWER_PORT`) (`apps/pdf-viewer/README.md`)        |
-| `pnpm --filter @curanno/extension build`    | Builds the unpacked extension into `apps/extension/dist` (`apps/extension/README.md`) |
-| `pnpm --filter @curanno/extension test:browser` | Playwright test of the built extension in Chromium against the fake sidebar |
-| `pnpm --filter @curanno/web dev`            | Runs the management site on port 3001 (`WEB_PORT`), proxying the API and the sidebar (`apps/web/README.md`) |
-| `pnpm --filter @curanno/web e2e`            | Playwright test of the management site against Zitadel and the API    |
-| `pnpm --filter @curanno/extract eval -- --endpoint URL --model NAME` | Runs the suggestion pipeline over `packages/extract/corpus` against a real model and reports recall, precision and field agreement |
+| `pnpm --filter @anncur/api migrate`        | Applies `apps/api/migrations/*.sql` to `DATABASE_URL`                  |
+| `pnpm --filter @anncur/api dev`            | Builds and runs the API, restarting on changes to the build output     |
+| `pnpm --filter @anncur/sidebar dev`        | Runs the sidebar on port 5173 (`SIDEBAR_PORT`), proxying the API (`apps/sidebar/README.md`) |
+| `pnpm --filter @anncur/sidebar e2e`        | Playwright test of the sidebar against Zitadel and the API            |
+| `pnpm --filter @anncur/sidebar e2e:guest`  | Playwright test of the bookmarklet, guest, sidebar and PDF viewer on corpus pages, API stubbed |
+| `pnpm --filter @anncur/pdf-viewer dev`     | Runs the PDF viewer on port 5174 (`PDF_VIEWER_PORT`) (`apps/pdf-viewer/README.md`)        |
+| `pnpm --filter @anncur/extension build`    | Builds the unpacked extension into `apps/extension/dist` (`apps/extension/README.md`) |
+| `pnpm --filter @anncur/extension test:browser` | Playwright test of the built extension in Chromium against the fake sidebar |
+| `pnpm --filter @anncur/web dev`            | Runs the management site on port 3001 (`WEB_PORT`), proxying the API and the sidebar (`apps/web/README.md`) |
+| `pnpm --filter @anncur/web e2e`            | Playwright test of the management site against Zitadel and the API    |
+| `pnpm --filter @anncur/extract eval -- --endpoint URL --model NAME` | Runs the suggestion pipeline over `packages/extract/corpus` against a real model and reports recall, precision and field agreement |
 | `pnpm openapi:lint`                       | Lints `apps/api/openapi.yaml` with Redocly                             |
 | `pnpm api-client:generate`                | Regenerates `packages/api-client/src/schema.ts` from the OpenAPI document |
-| `pnpm --filter @curanno/guest bundle`       | Builds the guest bundle `packages/guest/build/guest.js`                 |
-| `pnpm --filter @curanno/guest bookmarklet -- --bundle-url URL --sidebar-origin ORIGIN` | Prints the bookmarklet for a deployed bundle and sidebar |
-| `pnpm --filter @curanno/guest dev [-- --sidebar-origin ORIGIN]` | Serves a sample page and the bundle, opens the fake or a real sidebar, prints a bookmarklet |
-| `pnpm --filter @curanno/guest test:browser` | Browser tests: text-model fixtures through the guest, RPC, hostile page |
-| `pnpm --filter @curanno/guest trial`        | Anchoring regression corpus; fails on a guessed must-not-match anchor  |
+| `pnpm --filter @anncur/guest bundle`       | Builds the guest bundle `packages/guest/build/guest.js`                 |
+| `pnpm --filter @anncur/guest bookmarklet -- --bundle-url URL --sidebar-origin ORIGIN` | Prints the bookmarklet for a deployed bundle and sidebar |
+| `pnpm --filter @anncur/guest dev [-- --sidebar-origin ORIGIN]` | Serves a sample page and the bundle, opens the fake or a real sidebar, prints a bookmarklet |
+| `pnpm --filter @anncur/guest test:browser` | Browser tests: text-model fixtures through the guest, RPC, hostile page |
+| `pnpm --filter @anncur/guest trial`        | Anchoring regression corpus; fails on a guessed must-not-match anchor  |
 | `pnpm load:seed -- [--annotations N ...]`  | Fills `DATABASE_URL` with load-test data at representative volumes (`docs/performance.md`) |
 | `pnpm load:run -- [--out results.json]`   | Runs the load test against that database and explains the search queries |
-| `podman build -t curanno-api -f Dockerfile .` | Builds the API image                                           |
-| `helm lint deploy/helm/curanno --set config.oidcClientId=dev` | Validates the Helm chart (see `deploy/helm/curanno/values.yaml`)   |
+| `podman build -t anncur-api -f Dockerfile .` | Builds the API image                                           |
+| `helm lint deploy/helm/anncur --set config.oidcClientId=dev` | Validates the Helm chart (see `deploy/helm/anncur/values.yaml`)   |
 
 Each development port can be moved through an environment variable or `.env` (`PORT`, `WEB_PORT`, `SIDEBAR_PORT`, `PDF_VIEWER_PORT`, `GUEST_PORT`, `GUEST_BUNDLE_PORT`, `PGPORT`, `ZITADEL_PORT`; see `.env.example`).
 
-The compose stack provides Postgres on port 5432 and Zitadel on port 8080 (issuer `http://localhost:8080`, its login UI under `/ui/v2/login`), keeping its own `zitadel` database in the same Postgres. Its `zitadel-provision` service runs `deploy/zitadel/provision.ts --dev-users` on every `up`: it creates the client and the users `alice` and `bob`, both with their username as password, and writes the generated client id to `deploy/zitadel/.bootstrap/oidc.env`. The API, the sidebar's and the site's dev servers and the end-to-end tests fall back to that file when `OIDC_ISSUER` and `OIDC_CLIENT_ID` are not set in the environment or `.env`. The Zitadel console is at <http://localhost:8080/ui/console> as `zitadel-admin@curanno-dev.localhost` / `Password1!`. All of this is for local development only; see [deploy/zitadel/README.md](deploy/zitadel/README.md).
+The compose stack provides Postgres on port 5432 and Zitadel on port 8080 (issuer `http://localhost:8080`, its login UI under `/ui/v2/login`), keeping its own `zitadel` database in the same Postgres. Its `zitadel-provision` service runs `deploy/zitadel/provision.ts --dev-users` on every `up`: it creates the client and the users `alice` and `bob`, both with their username as password, and writes the generated client id to `deploy/zitadel/.bootstrap/oidc.env`. The API, the sidebar's and the site's dev servers and the end-to-end tests fall back to that file when `OIDC_ISSUER` and `OIDC_CLIENT_ID` are not set in the environment or `.env`. The Zitadel console is at <http://localhost:8080/ui/console> as `zitadel-admin@anncur-dev.localhost` / `Password1!`. All of this is for local development only; see [deploy/zitadel/README.md](deploy/zitadel/README.md).
 
-Instead of Zitadel, the API can be its own issuer (`AUTH_MODE=embedded`, [ADR 0028](docs/adr/0028-embedded-issuer.md)): only Postgres is needed. Set `AUTH_MODE`, `AUTH_SECRET` and `PUBLIC_URL=http://localhost:3001` in `.env` (see `.env.example`), run `pnpm --filter @curanno/api migrate`, create a user with `pnpm --filter @curanno/api account create --login you@example.org --admin`, and sign in at <http://localhost:3001/>. Others join by invitation (`pnpm --filter @curanno/api account invite --email them@example.org` prints the link; with `SMTP_URL` it can be mailed, and password reset is offered) or are created with `account create`. People can also apply at `/account/signup`; by default (`AUTH_SIGNUP=approval`) an administrator approves them on the Applications page, and until then they read as the public. People can also sign in with Google, GitHub or another OpenID Connect provider (`UPSTREAM_*` in `.env.example`) and link several to one account from `/me`. If someone ends up with two accounts, an operator can fold one into the other with `pnpm --filter @curanno/api account:merge --survivor <who> --loser <who>` (add `--yes` to do it; either auth mode). Sign-in attempts are throttled per login and per address.
+Instead of Zitadel, the API can be its own issuer (`AUTH_MODE=embedded`, [ADR 0028](docs/adr/0028-embedded-issuer.md)): only Postgres is needed. Set `AUTH_MODE`, `AUTH_SECRET` and `PUBLIC_URL=http://localhost:3001` in `.env` (see `.env.example`), run `pnpm --filter @anncur/api migrate`, create a user with `pnpm --filter @anncur/api account create --login you@example.org --admin`, and sign in at <http://localhost:3001/>. Others join by invitation (`pnpm --filter @anncur/api account invite --email them@example.org` prints the link; with `SMTP_URL` it can be mailed, and password reset is offered) or are created with `account create`. People can also apply at `/account/signup`; by default (`AUTH_SIGNUP=approval`) an administrator approves them on the Applications page, and until then they read as the public. People can also sign in with Google, GitHub or another OpenID Connect provider (`UPSTREAM_*` in `.env.example`) and link several to one account from `/me`. If someone ends up with two accounts, an operator can fold one into the other with `pnpm --filter @anncur/api account:merge --survivor <who> --loser <who>` (add `--yes` to do it; either auth mode). Sign-in attempts are throttled per login and per address.
 
 The API is configured entirely through environment variables; `.env.example` documents each one. A request with a bearer token from the configured issuer acts as that user, created on first sight with the groups in the token's `groups` claim; a request without a token acts as the `public` principal and may only read.
 

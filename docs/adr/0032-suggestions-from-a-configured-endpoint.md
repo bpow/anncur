@@ -21,7 +21,7 @@ The options considered for the protocol:
 
 ## Decision
 
-- `@curanno/extract` (`packages/extract`) is the pipeline. It turns scope texts and a profile into suggestions: it chunks the text, builds the prompt and the output schema, calls the endpoint, anchors each quote, resolves ontology labels and validates each value. It depends only on `@curanno/model`, so it runs in the sidebar and in a Node CLI alike.
+- `@anncur/extract` (`packages/extract`) is the pipeline. It turns scope texts and a profile into suggestions: it chunks the text, builds the prompt and the output schema, calls the endpoint, anchors each quote, resolves ontology labels and validates each value. It depends only on `@anncur/model`, so it runs in the sidebar and in a Node CLI alike.
 - The endpoint is an OpenAI-compatible `POST {url}/v1/chat/completions`, called with `fetch` and no SDK. No credential is sent.
 - The operator lists the endpoints in `EXTRACT_ENDPOINTS`, a JSON array of `{label, url, models?}`. The list reaches the sidebar through `config.json`, and each endpoint's origin is added to the sidebar's `connect-src`. That makes the CSP the enforcement point: the sidebar cannot send text to an endpoint the operator did not list. An empty list turns the feature off.
 - `EXTRACT_LOCAL_ONLY=true` makes the server refuse to start when an endpoint's host is not loopback (`localhost`, `127.0.0.1`, `[::1]`). This lets a deployment guarantee that document text stays on the curator's machine.

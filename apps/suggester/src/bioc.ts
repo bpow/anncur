@@ -1,12 +1,12 @@
 /**
  * An article from PubMed Central's open-access BioC JSON, as the text the
- * pipeline reads and the identifiers CurAnno finds its document by
+ * pipeline reads and the identifiers Anncur finds its document by
  * (ADR 0014). Each passage is a block, as the guest reports a page's
  * paragraphs; references are left out.
  */
-import type { ScopeText } from '@curanno/extract';
-import { pageFragmentSelector, type Selector } from '@curanno/model';
-import type { components } from '@curanno/api-client';
+import type { ScopeText } from '@anncur/extract';
+import { pageFragmentSelector, type Selector } from '@anncur/model';
+import type { components } from '@anncur/api-client';
 
 type DocumentMetadata = components['schemas']['DocumentMetadata'];
 
@@ -120,7 +120,7 @@ export async function fetchBioc(
 ): Promise<unknown> {
   const url = `${options.base ?? BIOC_URL}/BioC_json/${encodeURIComponent(pmcid)}/unicode`;
   const response = await (options.fetch ?? fetch)(url, {
-    headers: { 'user-agent': 'curanno-suggester' },
+    headers: { 'user-agent': 'anncur-suggester' },
   });
   if (!response.ok) throw new Error(`${url} answered ${response.status}`);
   const body = await response.text();

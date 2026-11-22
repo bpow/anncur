@@ -18,7 +18,7 @@ import {
   type GuestMessage,
   type Payload,
   type SidebarMessage,
-} from '@curanno/model';
+} from '@anncur/model';
 
 /** What `guest.ts` needs from a connection, whichever frame the guest is in. */
 export interface Connection {

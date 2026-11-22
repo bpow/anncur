@@ -15,7 +15,7 @@ beforeEach(() => {
     if (!meId) return json({ status: 401, title: 'Unauthorized' }, { status: 401 });
     return json({
       id: meId,
-      iri: `https://annotations.test/curanno/x/users/${meId}`,
+      iri: `https://annotations.test/anncur/x/users/${meId}`,
       isAdmin: false,
       created: '2026-01-01T00:00:00Z',
     });
@@ -24,18 +24,18 @@ beforeEach(() => {
 
 describe('currentUserIri', () => {
   it('is the IRI the server names the user by, asked once per identity', async () => {
-    expect(await currentUserIri()).toBe('https://annotations.test/curanno/x/users/u-1');
+    expect(await currentUserIri()).toBe('https://annotations.test/anncur/x/users/u-1');
     await currentUserIri();
     expect(api.calls).toHaveLength(1);
     forgetCurrentUser();
     meId = 'u-2';
-    expect(await currentUserIri()).toBe('https://annotations.test/curanno/x/users/u-2');
+    expect(await currentUserIri()).toBe('https://annotations.test/anncur/x/users/u-2');
   });
 
   it('asks again after a failure', async () => {
     meId = undefined;
     expect(await currentUserIri()).toBeUndefined();
     meId = 'u-3';
-    expect(await currentUserIri()).toBe('https://annotations.test/curanno/x/users/u-3');
+    expect(await currentUserIri()).toBe('https://annotations.test/anncur/x/users/u-3');
   });
 });

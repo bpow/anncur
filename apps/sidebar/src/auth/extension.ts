@@ -12,7 +12,7 @@ import {
   type BridgeNavigateMessage,
   type BridgeNavigatedMessage,
   type BridgeQueryMessage,
-} from '@curanno/model';
+} from '@anncur/model';
 import type { INavigator, IWindow, NavigateParams, NavigateResponse } from 'oidc-client-ts';
 
 let redirectUri: string | undefined;

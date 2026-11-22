@@ -1,5 +1,5 @@
 {
-  "name": "@curanno/guest",
+  "name": "@anncur/guest",
   "version": "0.0.0",
   "private": true,
   "description": "Framework-free in-page guest: selection, anchoring, highlights and the sidebar RPC",
@@ -48,7 +48,7 @@
     "serve:corpus": "node scripts/serve-corpus.ts"
   },
   "dependencies": {
-    "@curanno/model": "workspace:*",
+    "@anncur/model": "workspace:*",
     "approx-string-match": "2.0.1"
   }
 }

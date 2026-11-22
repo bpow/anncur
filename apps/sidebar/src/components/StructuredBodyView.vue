@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { StructuredBody } from '@curanno/model';
+import type { StructuredBody } from '@anncur/model';
 import { computed, inject } from 'vue';
 import { entriesOf, isObject, type Entry, type LinkLabel } from '../profiles/entries';
 import { EXTRA_LINKS, extraCandidates, linkLabels } from '../profiles/links';

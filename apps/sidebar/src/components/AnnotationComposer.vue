@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { emptyDraft, type AnnotationDraft } from '../api/annotations';
-import { toProblem, type Problem } from '@curanno/api-client';
+import { toProblem, type Problem } from '@anncur/api-client';
 import { useGuest } from '../guest';
 import { usePostAnnotation } from '../post-annotation';
 import { useAnnotationsStore } from '../stores/annotations';

@@ -1,11 +1,11 @@
 {
-  "name": "@curanno/suggester",
+  "name": "@anncur/suggester",
   "version": "0.1.0",
   "private": true,
   "description": "Runs a model over articles outside the sidebar and posts suggestion batches for a group (ADR 0037, 0038)",
   "type": "module",
   "bin": {
-    "curanno-suggester": "./src/cli.ts"
+    "anncur-suggester": "./src/cli.ts"
   },
   "scripts": {
     "build": "tsc -b ../../packages/model ../../packages/api-client ../../packages/extract ../../packages/guest",
@@ -13,10 +13,10 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@curanno/api-client": "workspace:*",
-    "@curanno/extract": "workspace:*",
-    "@curanno/guest": "workspace:*",
-    "@curanno/model": "workspace:*",
+    "@anncur/api-client": "workspace:*",
+    "@anncur/extract": "workspace:*",
+    "@anncur/guest": "workspace:*",
+    "@anncur/model": "workspace:*",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "happy-dom": "^21.0.4",

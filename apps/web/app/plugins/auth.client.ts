@@ -1,4 +1,4 @@
-import { createApiClient } from '@curanno/api-client';
+import { createApiClient } from '@anncur/api-client';
 import { defineNuxtPlugin, useRuntimeConfig } from '#imports';
 import { API_KEY } from '../api/client';
 import { createAuthStore } from '../auth/store';

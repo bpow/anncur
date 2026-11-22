@@ -4,20 +4,20 @@
  * or tokens cross this boundary in either direction. One sidebar serves the
  * page's host frame and any other frames with guests of their own, each
  * with a document of its own; this interface merges them. The document,
- * selection and request shapes are the RPC protocol's own (`@curanno/model`,
+ * selection and request shapes are the RPC protocol's own (`@anncur/model`,
  * `rpc/`), which `rpc.ts` speaks over postMessage; the fake in `fake.ts`
  * serves development and tests.
  */
-import type { AnchoringState } from '@curanno/model';
+import type { AnchoringState } from '@anncur/model';
 import type { Ref } from 'vue';
 
-export type { DocumentLink, GuestDocument, GuestScopeText, GuestSelection } from '@curanno/model';
+export type { DocumentLink, GuestDocument, GuestScopeText, GuestSelection } from '@anncur/model';
 import type {
   AnchorRequest as WireAnchorRequest,
   GuestDocument,
   GuestScopeText,
   GuestSelection,
-} from '@curanno/model';
+} from '@anncur/model';
 
 /**
  * What the sidebar asks to be anchored: the protocol's request, which is

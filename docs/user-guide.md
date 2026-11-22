@@ -1,6 +1,6 @@
 # User guide
 
-How to annotate web pages and PDFs with the platform, share what you write, and work in groups. Your administrator gives you two addresses: the **platform address** (where the sidebar and the management site live, say `https://curanno.example`) and your **login**, which is the organisation's usual sign-in.
+How to annotate web pages and PDFs with the platform, share what you write, and work in groups. Your administrator gives you two addresses: the **platform address** (where the sidebar and the management site live, say `https://anncur.example`) and your **login**, which is the organisation's usual sign-in.
 
 ## 1. Install the bookmarklet
 
@@ -14,7 +14,7 @@ The bookmarklet runs on `http` and `https` pages. It cannot run on your browser'
 
 ### Or use the browser extension
 
-In Chrome and other Chromium browsers, the CurAnno extension does the same job without those limits: it works on pages that refuse the bookmarklet, in frames from other sites, and sends PDFs to the viewer. Your administrator tells you how to install it. Then open its options (right-click its toolbar button, **Options**), enter the sidebar address (`https://curanno.example/sidebar/`) and the viewer address, and save. Click the button to turn the annotation tools on in a tab; they stay on as you move between pages in that tab until you click it again. The number on the button is how many annotations the sidebar shows for the page. The options can also show the number of public annotations on every page while the tools are off, which tells the platform each address you visit, so it is off unless you turn it on.
+In Chrome and other Chromium browsers, the Anncur extension does the same job without those limits: it works on pages that refuse the bookmarklet, in frames from other sites, and sends PDFs to the viewer. Your administrator tells you how to install it. Then open its options (right-click its toolbar button, **Options**), enter the sidebar address (`https://anncur.example/sidebar/`) and the viewer address, and save. Click the button to turn the annotation tools on in a tab; they stay on as you move between pages in that tab until you click it again. The number on the button is how many annotations the sidebar shows for the page. The options can also show the number of public annotations on every page while the tools are off, which tells the platform each address you visit, so it is off unless you turn it on.
 
 ## 2. Annotate a web page
 
@@ -25,7 +25,7 @@ In Chrome and other Chromium browsers, the CurAnno extension does the same job w
 5. **Find an annotation in the page**: click its quoted text in the sidebar and the page scrolls to the highlight. Hover a card and its highlight is emphasised; click a highlight in the page and the sidebar scrolls to its card.
 6. **Reply**, **Edit**, **Share** and **Delete** are the icon buttons under each card you have the right to (hover one for its name). Edits keep the original selection; if someone changed the annotation since you opened it, the sidebar tells you and offers to load the latest version first.
 
-7. **Arrange the sidebar**: the tab on its edge hides and shows it, and stays on the page while it is hidden; drag the sidebar's edge (or focus it and use the arrow keys) to make it wider or narrower. The buttons next to the CurAnno title hide or show the highlights in the page and make the annotations' text smaller or larger; the text size is remembered.
+7. **Arrange the sidebar**: the tab on its edge hides and shows it, and stays on the page while it is hidden; drag the sidebar's edge (or focus it and use the arrow keys) to make it wider or narrower. The buttons next to the Anncur title hide or show the highlights in the page and make the annotations' text smaller or larger; the text size is remembered.
 
 ### When the page has changed
 
@@ -51,7 +51,7 @@ Annotations other people create, change or delete on the page appear, change or 
 
 PDFs are annotated in the platform's own viewer, so that the annotations follow the file rather than the address it was downloaded from.
 
-- **From a link**: open the viewer address (`https://pdf.curanno.example/pdf/`, the administrator's) and paste the PDF's web address into the form. Clicking the bookmark while your browser shows a PDF opens the viewer directly in browsers that run bookmarklets on PDFs (Firefox); in others, copy the address into the viewer's form. With the extension on in a tab, opening a PDF goes to the viewer by itself.
+- **From a link**: open the viewer address (`https://pdf.anncur.example/pdf/`, the administrator's) and paste the PDF's web address into the form. Clicking the bookmark while your browser shows a PDF opens the viewer directly in browsers that run bookmarklets on PDFs (Firefox); in others, copy the address into the viewer's form. With the extension on in a tab, opening a PDF goes to the viewer by itself.
 - **From your computer**: open the viewer address and choose the file. The file is read in your browser and is not uploaded; the platform identifies it by a fingerprint of its content, so the same PDF opened by anyone else, from anywhere, shows the same annotations.
 - Some sites do not allow their PDFs to be fetched by other sites. If the viewer says the PDF could not be loaded, download the file and open it from your computer instead.
 
@@ -122,7 +122,7 @@ When the article itself states the IDs, type them in and set **IDSource** to *st
 
 Looked-up IDs belong to the variant as it was written then: editing **Variant** afterwards clears them and **IDSource**, so look the variant up again. Editing the variant of one marked *unresolvable*, or typing an ID into it, clears that mark.
 
-Suggestions made with the `curanno-suggest` skill look variants up the same way, but fill IDs only when there is nothing to choose: a single registered allele, nothing found wrong, and, if no transcript was given, a protein change in the article that confirms the one assumed. Those suggestions arrive with **IDSource** *looked up*; check them in review like any other value. The skill's report lists the variants it left for you, with their candidates.
+Suggestions made with the `anncur-suggest` skill look variants up the same way, but fill IDs only when there is nothing to choose: a single registered allele, nothing found wrong, and, if no transcript was given, a protein change in the article that confirms the one assumed. Those suggestions arrive with **IDSource** *looked up*; check them in review like any other value. The skill's report lists the variants it left for you, with their candidates.
 
 The management site's **Variants** page gathers the case variants still without IDs from every article you can read, grouped by the variant as written. Look a variant up there once, and **Use for N annotations** saves its IDs to every annotation of that variant you may edit; **Mark unresolvable** marks them all. Annotations you may only read are listed but left as they are.
 
@@ -132,7 +132,7 @@ If the lookup says it is not available, the administrator has turned it off. Typ
 
 If the administrator offers "This computer", run a model server on your machine:
 
-- **Ollama**: start it so that it accepts the sidebar's requests, with the sidebar's address in place of the example: `OLLAMA_ORIGINS=https://curanno.example ollama serve`, then `ollama pull llama3.1:8b` (or the model the form lists).
+- **Ollama**: start it so that it accepts the sidebar's requests, with the sidebar's address in place of the example: `OLLAMA_ORIGINS=https://anncur.example ollama serve`, then `ollama pull llama3.1:8b` (or the model the form lists).
 - **LM Studio**: load the model, start the server (port 1234) and turn on **Enable CORS** in its server settings.
 
 If the sidebar says it could not reach the server, check that the server is running and allows the sidebar's origin. Chromium may ask once whether the sidebar may connect to devices on your local network; allow it.

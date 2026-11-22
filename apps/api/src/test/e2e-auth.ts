@@ -51,7 +51,7 @@ async function embeddedAccessToken(user: E2eUser): Promise<string> {
     return res;
   };
   const authorize = new URLSearchParams({
-    client_id: 'curanno',
+    client_id: 'anncur',
     redirect_uri: redirectUri,
     response_type: 'code',
     scope: 'openid profile email',
@@ -76,7 +76,7 @@ async function embeddedAccessToken(user: E2eUser): Promise<string> {
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       grant_type: 'authorization_code',
-      client_id: 'curanno',
+      client_id: 'anncur',
       code,
       redirect_uri: redirectUri,
       code_verifier: verifier,

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { AclEntry, PrincipalRef, Problem } from '@curanno/api-client';
-import type { JsonValue, Permission, ValidationError } from '@curanno/model';
+import type { AclEntry, PrincipalRef, Problem } from '@anncur/api-client';
+import type { JsonValue, Permission, ValidationError } from '@anncur/model';
 import { computed, ref, shallowRef, watch } from 'vue';
 import type { AnnotationDraft } from '../api/annotations';
 import { writable } from '../profiles/schema';

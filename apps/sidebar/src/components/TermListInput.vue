@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { OntologyLookup } from '@curanno/model';
+import type { OntologyLookup } from '@anncur/model';
 import {
   AutocompleteContent,
   AutocompleteInput,

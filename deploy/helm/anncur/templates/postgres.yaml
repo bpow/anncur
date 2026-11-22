@@ -1,11 +1,11 @@
 {{- if .Values.postgres.enabled }}
-{{- $name := include "curanno.postgresHost" . }}
+{{- $name := include "anncur.postgresHost" . }}
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ $name }}
   labels:
-    {{- include "curanno.labels" . | nindent 4 }}
+    {{- include "anncur.labels" . | nindent 4 }}
     app.kubernetes.io/component: postgres
 spec:
   clusterIP: None
@@ -14,25 +14,25 @@ spec:
       port: 5432
       targetPort: postgres
   selector:
-    {{- include "curanno.postgresSelectorLabels" . | nindent 4 }}
+    {{- include "anncur.postgresSelectorLabels" . | nindent 4 }}
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ $name }}
   labels:
-    {{- include "curanno.labels" . | nindent 4 }}
+    {{- include "anncur.labels" . | nindent 4 }}
     app.kubernetes.io/component: postgres
 spec:
   replicas: 1
   serviceName: {{ $name }}
   selector:
     matchLabels:
-      {{- include "curanno.postgresSelectorLabels" . | nindent 6 }}
+      {{- include "anncur.postgresSelectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "curanno.postgresSelectorLabels" . | nindent 8 }}
+        {{- include "anncur.postgresSelectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -56,7 +56,7 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "curanno.secretName" . }}
+                  name: {{ include "anncur.secretName" . }}
                   key: POSTGRES_PASSWORD
             # A subdirectory, because initdb refuses a mount point holding lost+found.
             - name: PGDATA
@@ -98,7 +98,7 @@ spec:
     - metadata:
         name: data
         labels:
-          {{- include "curanno.postgresSelectorLabels" . | nindent 10 }}
+          {{- include "anncur.postgresSelectorLabels" . | nindent 10 }}
       spec:
         accessModes:
           {{- toYaml .Values.postgres.persistence.accessModes | nindent 10 }}

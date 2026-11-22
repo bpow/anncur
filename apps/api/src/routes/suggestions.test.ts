@@ -2,7 +2,7 @@
  * Suggestion batches through the API (ADR 0037): who may see and decide on
  * them, links between items, and reruns.
  */
-import { caseFamilyProfile, individualProfile, type JsonValue } from '@curanno/model';
+import { caseFamilyProfile, individualProfile, type JsonValue } from '@anncur/model';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   alice,
@@ -75,7 +75,7 @@ describe.skipIf(!databaseUrl)('suggestion batches', () => {
       payload: {
         group,
         document: { uri: PAGE, title: 'A case report', links: [] },
-        engine: { name: 'curanno-extract', version: '0.3.0', nickname: 'qwen / prompt 3' },
+        engine: { name: 'anncur-extract', version: '0.3.0', nickname: 'qwen / prompt 3' },
         items,
         ...extra,
       },

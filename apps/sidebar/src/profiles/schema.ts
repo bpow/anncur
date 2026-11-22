@@ -3,7 +3,7 @@
  * `ProfileRegistry` the server uses, compiled with Ajv from the schemas the
  * server lists, plus the field list an editor is built from.
  */
-import type { BodyProfile as ApiBodyProfile } from '@curanno/api-client';
+import type { BodyProfile as ApiBodyProfile } from '@anncur/api-client';
 import {
   addAnnotationFormats,
   addProfileKeywords,
@@ -14,7 +14,7 @@ import {
   type JsonSchema,
   type OntologyLookup,
   type FieldLookup,
-} from '@curanno/model';
+} from '@anncur/model';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 

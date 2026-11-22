@@ -1,4 +1,4 @@
-import { caseVariantProfile, type JsonValue } from '@curanno/model';
+import { caseVariantProfile, type JsonValue } from '@anncur/model';
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';

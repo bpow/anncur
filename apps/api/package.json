@@ -1,5 +1,5 @@
 {
-  "name": "@curanno/api",
+  "name": "@anncur/api",
   "version": "0.0.0",
   "private": true,
   "description": "Fastify server implementing the W3C Web Annotation Protocol",
@@ -30,8 +30,8 @@
     "load:run": "tsc -b && node --env-file-if-exists=../../.env --experimental-strip-types scripts/load-run.ts"
   },
   "dependencies": {
-    "@curanno/api-client": "workspace:*",
-    "@curanno/model": "workspace:*",
+    "@anncur/api-client": "workspace:*",
+    "@anncur/model": "workspace:*",
     "@fastify/static": "^10.1.8",
     "@node-rs/argon2": "^2.2.2",
     "ajv": "^8.20.0",

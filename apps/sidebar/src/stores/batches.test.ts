@@ -1,5 +1,5 @@
-import type { SuggestionBatch } from '@curanno/api-client';
-import { individualProfile, type BodyProfile } from '@curanno/model';
+import type { SuggestionBatch } from '@anncur/api-client';
+import { individualProfile, type BodyProfile } from '@anncur/model';
 import { flushPromises } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it } from 'vitest';

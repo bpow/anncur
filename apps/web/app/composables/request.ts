@@ -1,5 +1,5 @@
 import { onMounted, ref, shallowRef, watch, type WatchSource } from 'vue';
-import { problemFrom, toProblem, type Problem } from '@curanno/api-client';
+import { problemFrom, toProblem, type Problem } from '@anncur/api-client';
 
 interface Result<T> {
   data?: T;

@@ -13,7 +13,7 @@ import type {
   Permission,
   Selector,
   StructuredBody,
-} from '@curanno/model';
+} from '@anncur/model';
 
 type Timestamp = ColumnType<Date, Date | string | undefined, Date | string>;
 type OptionalTimestamp = ColumnType<

@@ -12,7 +12,7 @@ import { devPort } from '../../dev-ports.ts';
 /** The dev server's `config.json`, which the API generates in a deployment. */
 function devConfig(): Plugin {
   return {
-    name: 'curanno-dev-config',
+    name: 'anncur-dev-config',
     apply: 'serve',
     configureServer(server) {
       server.middlewares.use('/pdf/config.json', (_request, response) => {

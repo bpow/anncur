@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Problem } from '@curanno/api-client';
+import type { Problem } from '@anncur/api-client';
 
 defineProps<{ problem: Problem | null | undefined }>();
 </script>

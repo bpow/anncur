@@ -8,7 +8,7 @@ down:
     podman compose down
 
 migrate: up
-    pnpm --filter @curanno/api migrate
+    pnpm --filter @anncur/api migrate
 
 # Build first so the dev scripts' concurrent `tsc -b` runs are no-ops, not races
 build:
@@ -18,12 +18,12 @@ build:
 # PDF viewer on PDF_VIEWER_PORT (5174). Ports: .env.example
 dev: migrate build
     pnpm -r --parallel \
-      --filter @curanno/api \
-      --filter @curanno/sidebar \
-      --filter @curanno/pdf-viewer \
-      --filter @curanno/web \
+      --filter @anncur/api \
+      --filter @anncur/sidebar \
+      --filter @anncur/pdf-viewer \
+      --filter @anncur/web \
       dev
 
 # Sample host page and bookmarklet on GUEST_PORT (5180), against the local sidebar
 guest:
-    pnpm --filter @curanno/guest dev -- --sidebar-origin http://localhost:`node dev-ports.ts WEB_PORT`
+    pnpm --filter @anncur/guest dev -- --sidebar-origin http://localhost:`node dev-ports.ts WEB_PORT`

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Annotation } from '@curanno/api-client';
+import type { Annotation } from '@anncur/api-client';
 import { computed } from 'vue';
 import { NuxtLink } from '#components';
 import {
@@ -13,7 +13,7 @@ import {
   quoteOf,
   structuredBodies,
   tagsOf,
-} from '@curanno/model';
+} from '@anncur/model';
 import { excerpt } from '../annotations/view';
 import { formatDate } from '../util/time';
 

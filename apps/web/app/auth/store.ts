@@ -1,4 +1,4 @@
-import { type ApiClient, type User as ApiUser, toProblem, unwrap } from '@curanno/api-client';
+import { type ApiClient, type User as ApiUser, toProblem, unwrap } from '@anncur/api-client';
 import type { User, UserManager } from 'oidc-client-ts';
 import { computed, ref, shallowRef } from 'vue';
 

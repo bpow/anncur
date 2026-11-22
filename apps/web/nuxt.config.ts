@@ -1,6 +1,6 @@
 /**
  * The management site is an ordinary client of the public API (ADR 0009):
- * every request leaves the browser through `@curanno/api-client` with the
+ * every request leaves the browser through `@anncur/api-client` with the
  * user's own token. Nothing runs in Nuxt's server layer; a lint rule in the
  * root ESLint config fails on any file under apps/web/server.
  *
@@ -46,7 +46,7 @@ const oidcDefaults = embedded
         /\/$/,
         '',
       ),
-      clientId: 'curanno',
+      clientId: 'anncur',
     }
   : {
       issuer: repoEnv['OIDC_ISSUER'] ?? 'http://localhost:8080',
@@ -105,7 +105,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'en' },
-      title: 'CurAnno',
+      title: 'Anncur',
     },
   },
   runtimeConfig: {
@@ -130,8 +130,8 @@ export default defineNuxtConfig({
     // mid-session (which broke e2e tests in CI). Bundle them at startup instead.
     optimizeDeps: {
       include: [
-        '@curanno/api-client > openapi-fetch',
-        '@curanno/guest > approx-string-match',
+        '@anncur/api-client > openapi-fetch',
+        '@anncur/guest > approx-string-match',
         '@vueuse/core',
         'oidc-client-ts',
         'reka-ui',

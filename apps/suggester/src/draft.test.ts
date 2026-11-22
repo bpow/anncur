@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import type { ResolveTerms } from '@curanno/extract';
+import type { ResolveTerms } from '@anncur/extract';
 import {
   ProfileRegistry,
   addAnnotationFormats,
@@ -7,7 +7,7 @@ import {
   builtinProfiles,
   casePhenotypesProfile,
   individualProfile,
-} from '@curanno/model';
+} from '@anncur/model';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 import { describe, expect, it } from 'vitest';
@@ -35,7 +35,7 @@ const check = (items: DraftItem[]) =>
     {
       article: 'PMC0000001',
       gene: 'MYH7',
-      engine: { model: 'claude-opus-5-5', skill: 'curanno-suggest', version: '1' },
+      engine: { model: 'claude-opus-5-5', skill: 'anncur-suggest', version: '1' },
       items,
     } satisfies Draft,
     article,
@@ -67,8 +67,8 @@ describe('checkDraft', () => {
       document: article.document,
       engine: {
         name: 'claude-code',
-        version: 'curanno-suggest 1',
-        nickname: 'claude-opus-5-5 / curanno-suggest 1',
+        version: 'anncur-suggest 1',
+        nickname: 'claude-opus-5-5 / anncur-suggest 1',
       },
       items: [
         {
