@@ -1,6 +1,6 @@
 # 0037. Suggestions are stored as batches that belong to a group, and their items may link to each other
 
-**Status:** Proposed
+**Status:** Accepted (2026-11-23)
 
 **Date:** 2026-11-15
 

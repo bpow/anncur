@@ -1,6 +1,6 @@
 # 0038. The API issues scoped access tokens, and service accounts post suggestions for groups
 
-**Status:** Proposed
+**Status:** Accepted (2026-11-23)
 
 **Date:** 2026-11-15
 

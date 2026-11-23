@@ -1,6 +1,6 @@
 # 0036. Whole-individual summaries are computed from the facts, not stored
 
-**Status:** Proposed
+**Status:** Accepted (2026-11-23)
 
 **Date:** 2026-11-13
 
