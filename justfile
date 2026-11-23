@@ -27,3 +27,7 @@ dev: migrate build
 # Sample host page and bookmarklet on GUEST_PORT (5180), against the local sidebar
 guest:
     pnpm --filter @anncur/guest dev -- --sidebar-origin http://localhost:`node dev-ports.ts WEB_PORT`
+
+# Unpacked browser extension into apps/extension/dist/
+extension:
+    pnpm --filter @anncur/extension build
