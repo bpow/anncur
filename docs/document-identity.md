@@ -44,7 +44,7 @@ What is deliberately not done: stripping `www.`, removing `index.html`, treating
 
 ## 4. Identifiers a page reports
 
-The client collects the following from the page and sends them as `DocumentMetadata` to `POST /x/documents` before creating an annotation. `deriveDocumentUris` turns them into `(uri, normalized, relation)` triples.
+The client collects the following from the page and sends them as `DocumentMetadata` to `POST /x/documents` before creating an annotation, and the sidebar also sends them when a signed-in user opens a page that reports more than its own URL ([ADR 0040](adr/0040-register-documents-on-load.md)). `deriveDocumentUris` turns them into `(uri, normalized, relation)` triples.
 
 | Relation          | Source                                                        | Normalized form                                                                               |
 | ----------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
@@ -99,6 +99,7 @@ A PDF's identity is its PDF.js fingerprint, which is derived from the file's tra
 ## 8. What clients must do
 
 - Report the page URL and every identifier in section 4 that the page exposes, exactly as found; normalization happens in the model package on both sides and in the server.
+- Register before searching when the page reports identifiers beyond its URL, so that a page opened at a new URL finds the annotations its DOI or canonical link already has.
 - Use the `id` returned by `POST /x/documents` only for display and search; targets name the page URL as `source`.
 - Never invent identifiers from page content.
 - Send a page only the annotations made on its own origin, public ones, and those whose origin the user allowed there. Any page can link itself to any document, so the annotations search finds for a page's URL may have been made on another site, and their selectors carry the quoted text ([ADR 0025](adr/0025-disclosure-by-origin.md)).
