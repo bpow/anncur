@@ -50,7 +50,8 @@ watch(
     if (!joined) return;
     const uris = joined.split('\n');
     void profiles.load();
-    void store.load(uris).then((current) => {
+    const register = status === 'authenticated' ? guest.documents.value : [];
+    void store.load(uris, { register }).then((current) => {
       if (current) store.startLive(uris);
     });
   },

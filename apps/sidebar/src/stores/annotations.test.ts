@@ -167,3 +167,45 @@ describe('sharing a new annotation', () => {
     ).rejects.toMatchObject({ problem: { title: 'Saved, but not shared: Forbidden' } });
   });
 });
+
+describe('registering documents on load', () => {
+  beforeEach(() => setActivePinia(createPinia()));
+
+  const withDoi = {
+    uri: PAGE,
+    links: [
+      { uri: PAGE, relation: 'self' as const },
+      { uri: '10.1000/xyz', relation: 'doi' as const },
+    ],
+  };
+
+  it('registers a page that reports more than its URL before searching it', async () => {
+    const api = installFakeApi(({ url }) => {
+      if (url.pathname === '/x/documents') return json({}, { status: 201 });
+      if (url.pathname === '/x/search') return json({ total: 0, items: [] });
+      return undefined;
+    });
+    await useAnnotationsStore().load([PAGE], { register: [withDoi] });
+    expect(api.calls.map((c) => c.url.pathname)).toEqual(['/x/documents', '/x/search']);
+    expect(api.calls[0]?.body).toEqual({ uri: PAGE, links: withDoi.links });
+  });
+
+  it('does not register a page that reports only its URL', async () => {
+    const api = installFakeApi(({ url }) =>
+      url.pathname === '/x/search' ? json({ total: 0, items: [] }) : undefined,
+    );
+    const onlySelf = { uri: PAGE, links: [{ uri: PAGE, relation: 'self' as const }] };
+    await useAnnotationsStore().load([PAGE], { register: [onlySelf] });
+    expect(api.calls.map((c) => c.url.pathname)).toEqual(['/x/search']);
+  });
+
+  it('still searches when registering fails', async () => {
+    installFakeApi(({ url }) =>
+      url.pathname === '/x/search' ? json({ total: 1, items: [annotation(1)] }) : undefined,
+    );
+    const store = useAnnotationsStore();
+    expect(await store.load([PAGE], { register: [withDoi] })).toBe(true);
+    expect(store.items.size).toBe(1);
+    expect(store.problem).toBeUndefined();
+  });
+});
