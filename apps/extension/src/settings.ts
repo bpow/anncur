@@ -47,11 +47,11 @@ export const MAX_SERVERS = 6;
  */
 export const DEFAULT_SERVER: Server = {
   name: 'Anncur',
-  siteUrl: 'https://curanno.apps.cloudapps.unc.edu',
+  siteUrl: 'https://anncur.apps.cloudapps.unc.edu',
   sidebarUrl: '',
   apiUrl: '',
   pdfViewerUrl: '',
-  foundViewerUrl: 'https://curanno-pdf.apps.cloudapps.unc.edu/pdf/',
+  foundViewerUrl: 'https://anncur-pdf.apps.cloudapps.unc.edu/pdf/',
 };
 
 /** The viewer that settings from before servers used when they named none. */

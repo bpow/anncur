@@ -35,7 +35,7 @@ pnpm --filter @anncur/extension build
 
 writes the unpacked extension to `apps/extension/dist`. In Chrome open `chrome://extensions`, turn on Developer mode, choose **Load unpacked** and pick that folder. `pnpm --filter @anncur/extension dev` rebuilds on change; press the reload button on the extension's card afterwards.
 
-A new install starts with one server, **Anncur**, at `https://curanno.apps.cloudapps.unc.edu`. For another deployment, add a server with the site URL `https://<host>`; the extension finds the viewer itself. If a deployment's viewer host changes, save the options again. Settings saved before servers existed become one server named **Default**.
+A new install starts with one server, **Anncur**, at `https://anncur.apps.cloudapps.unc.edu`. For another deployment, add a server with the site URL `https://<host>`; the extension finds the viewer itself. If a deployment's viewer host changes, save the options again. Settings saved before servers existed become one server named **Default**.
 
 For the development stack, add a server with the site URL `http://localhost:3001` (the site from `just dev`, with its sidebar at `/sidebar/`) and, under Advanced, the PDF viewer URL `http://localhost:5174/pdf/` (the viewer from `pnpm --filter @anncur/pdf-viewer dev`); the development sidebar serves no `config.json` to find the viewer in. Its `frame-ancestors` allows only `localhost` and `127.0.0.1` pages; set `VITE_FRAME_ANCESTORS` to annotate others. A deployed sidebar is framed by whatever page is open, so `FRAME_ANCESTORS` has to allow those pages: `https:` for extension users on any site.
 

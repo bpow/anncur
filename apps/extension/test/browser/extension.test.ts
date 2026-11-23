@@ -398,7 +398,7 @@ describe('the options page', () => {
     const p = await open(`chrome-extension://${extensionId}/options.html`);
     await expect
       .poll(() => p.inputValue('#siteUrl-0'))
-      .toBe('https://curanno.apps.cloudapps.unc.edu');
+      .toBe('https://anncur.apps.cloudapps.unc.edu');
     await p.fill('#siteUrl-0', 'javascript:alert(1)');
     await p.click('button[type=submit]');
     await expect.poll(() => p.textContent('#siteUrl-0-error')).toMatch(/http/);

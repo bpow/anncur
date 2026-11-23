@@ -85,8 +85,8 @@ describe('mergeStored', () => {
   it('starts with the default server', () => {
     expect(mergeStored({})).toEqual(DEFAULT_STORED);
     expect(activeSettings(mergeStored({}))).toEqual(DEFAULT_SETTINGS);
-    expect(DEFAULT_SETTINGS.sidebarUrl).toBe('https://curanno.apps.cloudapps.unc.edu/sidebar/');
-    expect(viewerUrl(DEFAULT_SERVER)).toBe('https://curanno-pdf.apps.cloudapps.unc.edu/pdf/');
+    expect(DEFAULT_SETTINGS.sidebarUrl).toBe('https://anncur.apps.cloudapps.unc.edu/sidebar/');
+    expect(viewerUrl(DEFAULT_SERVER)).toBe('https://anncur-pdf.apps.cloudapps.unc.edu/pdf/');
   });
 
   it('keeps stored servers and picks the active one', () => {
