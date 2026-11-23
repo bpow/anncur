@@ -128,10 +128,16 @@ export const useAnnotationsStore = defineStore('annotations', () => {
 
   /**
    * Makes the store hold these documents' annotations: documents no longer
-   * shown are dropped, new ones loaded, the rest kept. Resolves to false
-   * when the session was reset meanwhile and the results were dropped.
+   * shown are dropped, new ones loaded, the rest kept. Documents in
+   * `register` are registered before their first search, so that a page
+   * opened at a new URL finds its document by DOI or canonical link
+   * (ADR 0040). Resolves to false when the session was reset meanwhile and
+   * the results were dropped.
    */
-  async function load(uris: string[]): Promise<boolean> {
+  async function load(
+    uris: string[],
+    options: { register?: readonly GuestDocument[] } = {},
+  ): Promise<boolean> {
     const wanted = new Set(uris);
     const previous = new Set(documentUris.value);
     documentUris.value = [...uris];
@@ -144,7 +150,14 @@ export const useAnnotationsStore = defineStore('annotations', () => {
     problem.value = undefined;
     try {
       const results = await Promise.all(
-        toLoad.map(async (uri) => [uri, await search(uri)] as const),
+        toLoad.map(async (uri) => {
+          const doc = options.register?.find((d) => d.uri === uri);
+          if (doc && doc.links.some((l) => l.relation !== 'self')) {
+            // Without it the page still finds what its URL alone finds.
+            await ensureDocument(doc).catch(() => undefined);
+          }
+          return [uri, await search(uri)] as const;
+        }),
       );
       if (started !== session) return false;
       // Loads overlap when frames connect one after another; each merges
