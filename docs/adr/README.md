@@ -46,9 +46,10 @@ An architecture decision record (ADR) captures one decision that shapes the syst
 | [0032](0032-suggestions-from-a-configured-endpoint.md) | Annotation suggestions come from an OpenAI-compatible endpoint the deployment configures | Accepted |
 | [0033](0033-guest-reports-document-text.md) | The guest reports its document's text when the sidebar asks | Accepted |
 | [0034](0034-provenance-of-suggested-bodies.md) | A suggested body names the model as its creator | Accepted |
-| [0035](0035-case-facts-link-to-an-individual.md) | Facts about a case individual are annotations that link to an individual annotation | Proposed |
-| [0036](0036-individual-summaries-are-computed.md) | Whole-individual summaries are computed from the facts, not stored | Proposed |
-| [0037](0037-suggestion-batches.md) | Suggestions are stored as batches that belong to a group, and their items may link to each other | Proposed |
-| [0038](0038-access-tokens-and-service-accounts.md) | The API issues scoped access tokens, and service accounts post suggestions for groups | Proposed |
-| [0039](0039-variant-lookup-through-the-api.md) | Variant IDs are looked up through the API in the ClinGen Allele Registry | Proposed |
+| [0035](0035-case-facts-link-to-an-individual.md) | Facts about a case individual are annotations that link to an individual annotation | Accepted |
+| [0036](0036-individual-summaries-are-computed.md) | Whole-individual summaries are computed from the facts, not stored | Accepted |
+| [0037](0037-suggestion-batches.md) | Suggestions are stored as batches that belong to a group, and their items may link to each other | Accepted |
+| [0038](0038-access-tokens-and-service-accounts.md) | The API issues scoped access tokens, and service accounts post suggestions for groups | Accepted |
+| [0039](0039-variant-lookup-through-the-api.md) | Variant IDs are looked up through the API in the ClinGen Allele Registry | Accepted |
 | [0040](0040-register-documents-on-load.md) | The sidebar registers a page's identifiers when it loads, not only when annotating | Proposed |
+| [0041](0041-discarding-a-suggestion-batch.md) | Members of a group may discard a whole suggestion batch | Accepted |

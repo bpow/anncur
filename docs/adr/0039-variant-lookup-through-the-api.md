@@ -1,6 +1,6 @@
 # 0039. Variant IDs are looked up through the API in the ClinGen Allele Registry
 
-**Status:** Proposed
+**Status:** Accepted (2026-11-23)
 
 **Date:** 2026-11-19
 

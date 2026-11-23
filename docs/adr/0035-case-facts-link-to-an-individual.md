@@ -1,6 +1,6 @@
 # 0035. Facts about a case individual are annotations that link to an individual annotation
 
-**Status:** Proposed
+**Status:** Accepted (2026-11-23)
 
 **Date:** 2026-11-13
 
